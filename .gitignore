@@ -1,84 +1,79 @@
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-
-# Testing
-coverage/
-*.lcov
-
-# Production
-build/
-dist/
-.next/
-out/
-
-# Misc
+# macOS
 .DS_Store
-*.pem
 .AppleDouble
 .LSOverride
 
-# Debug
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcworkspace/*
+!*.xcworkspace/contents.xcworkspacedata
+!*.xcworkspace/xcshareddata/
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+.build/
+Packages/
+*.xcodeproj
+
+# CocoaPods
+Pods/
+
+# Node.js
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Local env files
+# Environment variables
 .env
-.env*.local
-.env.production
+.env.local
+.env.*.local
 
-# Vercel
-.vercel
+# Logs
+logs/
+*.log
 
-# Turbo
-.turbo
+# Database
+*.sqlite
+*.sqlite3
+*.db
 
-# IDEs
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
-Thumbs.db
+# Build outputs
+dist/
+build/
+*.app
+*.dmg
 
-# Swift/iOS
-*.xcuserstate
-*.xcworkspace/xcuserdata/
-DerivedData/
-*.hmap
-*.ipa
-*.dSYM.zip
-*.dSYM
-.build/
-Pods/
-*.moved-aside
-*.xccheckout
-*.xcscmblueprint
+# Test coverage
+coverage/
+.nyc_output/
 
-# Xcode
-xcuserdata/
-*.xcodeproj/*
-!*.xcodeproj/project.pbxproj
-!*.xcodeproj/xcshareddata/
-!*.xcworkspace/contents.xcworkspacedata
+# Temporary files
+tmp/
+temp/
+*.tmp
 
-# Node
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# Logs
-logs/
-*.log
-
-# Process IDs
-*.pid
-
-# Development logs
-backend.log
-frontend.log
+# Secrets
+secrets/
+*.pem
+*.key
+*.cert
