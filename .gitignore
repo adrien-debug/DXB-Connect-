@@ -75,3 +75,10 @@ pnpm-lock.yaml
 # Logs
 logs/
 *.log
+
+# Process IDs
+*.pid
+
+# Development logs
+backend.log
+frontend.log
