@@ -71,7 +71,8 @@ struct AuthView: View {
                 Text(viewModel.errorMessage)
             }
             .sheet(isPresented: $viewModel.showEmailAuth) {
-                EmailAuthView(coordinator: coordinator)
+                EmailAuthView()
+                    .environmentObject(coordinator)
             }
             .overlay {
                 if viewModel.isLoading {

@@ -48,6 +48,7 @@ app.use('/api/v1/esim', require('./routes/esim'));
 app.use('/api/v1/support', require('./routes/support'));
 app.use('/api/v1/admin', require('./routes/admin'));
 app.use('/api/v1/webhooks', require('./routes/webhooks'));
+app.use('/api/v1/provider', require('./routes/esimProvider'));
 
 // 404 handler
 app.use((req, res) => {

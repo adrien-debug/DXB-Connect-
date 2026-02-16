@@ -1,6 +1,6 @@
 import Foundation
 
-public enum OrderStatus: String, Codable {
+public enum OrderStatus: String, Codable, Hashable {
     case pending = "PENDING"
     case paid = "PAID"
     case fulfilling = "FULFILLING"
@@ -11,7 +11,7 @@ public enum OrderStatus: String, Codable {
     case refunded = "REFUNDED"
 }
 
-public struct Order: Codable, Identifiable {
+public struct Order: Codable, Identifiable, Hashable {
     public let id: String
     public let plan: Plan
     public let amount: Decimal
@@ -44,7 +44,7 @@ public struct Order: Codable, Identifiable {
     }
 }
 
-public struct ESIMInfo: Codable {
+public struct ESIMInfo: Codable, Hashable {
     public let qrCodeURL: String?
     public let activationCode: String?
     public let smdpAddress: String?
@@ -70,7 +70,7 @@ public struct ESIMInfo: Codable {
     }
 }
 
-public struct ESIMUsage: Codable {
+public struct ESIMUsage: Codable, Hashable {
     public let dataUsedMB: Int
     public let dataTotalMB: Int
     public let lastUpdated: Date
