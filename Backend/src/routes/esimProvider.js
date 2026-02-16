@@ -30,8 +30,26 @@ router.get('/balance', adminAuthMiddleware, async (req, res) => {
 router.get('/packages', async (req, res) => {
   try {
     const { country, type } = req.query;
-    const packages = await esimAccessProvider.getPackages({ country, type });
-    res.json(packages);
+    const result = await esimAccessProvider.getPackages({ 
+      locationCode: country || 'AE', 
+      type: type || 'BASE' 
+    });
+    
+    // Transform to cleaner format
+    const packages = (result.obj?.packageList || []).map(p => ({
+      packageCode: p.packageCode,
+      name: p.name,
+      priceUSD: p.price / 10000,
+      dataGB: Math.round(p.volume / 1073741824 * 10) / 10,
+      duration: p.duration,
+      durationUnit: p.durationUnit,
+      country: p.location,
+      description: p.description,
+      speed: p.speed || '4G/5G',
+      slug: p.slug
+    }));
+    
+    res.json({ success: true, packages });
   } catch (error) {
     logger.error('Failed to get packages', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch packages' });
