@@ -50,12 +50,11 @@ final class AppCoordinator: ObservableObject {
         self.authService = authService
         self.apiService = apiService
 
-        #if DEBUG
-        // En dev, pointer vers localhost Next.js (port 4000)
-        APIConfig.current = .development  // localhost:4000
-        #else
+        // Toujours utiliser Railway en attendant que le backend local soit prêt
         APIConfig.current = .production
-        #endif
+        // #if DEBUG
+        // APIConfig.current = .development  // localhost:4000
+        // #endif
     }
 
     // MARK: - Auth
@@ -103,6 +102,30 @@ final class AppCoordinator: ObservableObject {
         } catch {
             appLogError(error, message: "Sign out failed", category: .auth)
         }
+    }
+    
+    // MARK: - Email/Password Auth
+    
+    func signInWithPassword(email: String, password: String) async throws {
+        appLog("Signing in with email: \(email)", category: .auth)
+        let response = try await apiService.signInWithPassword(email: email, password: password)
+        user.email = email
+        user.name = response.user?.name ?? ""
+        saveUserToStorage()
+        await loadAllData()
+        isAuthenticated = true
+        appLog("Sign in successful", category: .auth)
+    }
+    
+    func signUpWithPassword(email: String, password: String, name: String) async throws {
+        appLog("Signing up with email: \(email)", category: .auth)
+        let response = try await apiService.signUpWithPassword(email: email, password: password, name: name)
+        user.email = email
+        user.name = name
+        saveUserToStorage()
+        await loadAllData()
+        isAuthenticated = true
+        appLog("Sign up successful", category: .auth)
     }
 
     // MARK: - Persistence

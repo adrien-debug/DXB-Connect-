@@ -6,6 +6,8 @@ public protocol DXBAPIServiceProtocol: Sendable {
     func signInWithApple(identityToken: String, authorizationCode: String, user: AppleUserInfo) async throws -> AuthResponse
     func signInWithEmail(email: String) async throws
     func verifyOTP(email: String, otp: String) async throws -> AuthResponse
+    func signInWithPassword(email: String, password: String) async throws -> AuthResponse
+    func signUpWithPassword(email: String, password: String, name: String) async throws -> AuthResponse
     func fetchPlans(locale: String) async throws -> [Plan]
     func fetchMyESIMs() async throws -> [ESIMOrder]
     func purchasePlan(planId: String) async throws -> ESIMOrder
@@ -59,6 +61,38 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
 
         let response: AuthResponse = try await apiClient.request(
             endpoint: "auth/email/verify",
+            method: "POST",
+            body: body,
+            requiresAuth: false
+        )
+
+        try await authService.saveTokens(access: response.accessToken, refresh: response.refreshToken)
+        await apiClient.setAccessToken(response.accessToken)
+
+        return response
+    }
+    
+    public func signInWithPassword(email: String, password: String) async throws -> AuthResponse {
+        let body: [String: Any] = ["email": email, "password": password]
+
+        let response: AuthResponse = try await apiClient.request(
+            endpoint: "auth/login",
+            method: "POST",
+            body: body,
+            requiresAuth: false
+        )
+
+        try await authService.saveTokens(access: response.accessToken, refresh: response.refreshToken)
+        await apiClient.setAccessToken(response.accessToken)
+
+        return response
+    }
+    
+    public func signUpWithPassword(email: String, password: String, name: String) async throws -> AuthResponse {
+        let body: [String: Any] = ["email": email, "password": password, "name": name]
+
+        let response: AuthResponse = try await apiClient.request(
+            endpoint: "auth/register",
             method: "POST",
             body: body,
             requiresAuth: false
