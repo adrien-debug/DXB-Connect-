@@ -1,10 +1,10 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cd Backend && npm install"
+buildCommand = "cd Apps/DXBClient && npm install && npm run build"
 
 [deploy]
-startCommand = "cd Backend && node src/server.js"
-healthcheckPath = "/health"
-healthcheckTimeout = 100
+startCommand = "cd Apps/DXBClient && npm start"
+healthcheckPath = "/api/esim/packages"
+healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
