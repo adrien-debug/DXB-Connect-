@@ -23,8 +23,8 @@ const colorConfig = {
     iconColor: 'text-emerald-600',
   },
   purple: {
-    iconBg: 'bg-sky-100',
-    iconColor: 'text-sky-600',
+    iconBg: 'bg-violet-100',
+    iconColor: 'text-violet-600',
   },
   orange: {
     iconBg: 'bg-amber-100',
@@ -35,8 +35,8 @@ const colorConfig = {
     iconColor: 'text-rose-600',
   },
   indigo: {
-    iconBg: 'bg-sky-100',
-    iconColor: 'text-sky-600',
+    iconBg: 'bg-indigo-100',
+    iconColor: 'text-indigo-600',
   },
 }
 

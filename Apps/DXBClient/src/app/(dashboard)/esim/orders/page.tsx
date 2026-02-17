@@ -137,7 +137,7 @@ export default function EsimOrdersPage() {
       </div>
 
       {/* Filtres et contrôles */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50">
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100/50">
         <div className="flex flex-wrap items-center gap-4">
           {/* Filtre statut */}
           <div className="relative flex-1 min-w-[180px] max-w-[250px]">
@@ -194,7 +194,7 @@ export default function EsimOrdersPage() {
           ))}
 
         {countryCount === 0 && (
-          <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100/50">
+          <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-gray-100/50">
             <Wifi className="w-12 h-12 text-gray-200 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">Aucune eSIM trouvée</p>
             <p className="text-sm text-gray-400 mt-1">Modifiez vos filtres ou achetez des eSIMs</p>
@@ -231,7 +231,7 @@ function CountryAccordion({
   onViewDetails: (order: EsimOrder) => void
 }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden">
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-100/50 overflow-hidden">
       {/* Header cliquable */}
       <button
         onClick={onToggle}
@@ -248,12 +248,14 @@ function CountryAccordion({
           {/* Mini badges statuts */}
           <div className="flex items-center gap-1">
             {orders.filter(o => o.esimStatus === 'GOT_RESOURCE').length > 0 && (
-              <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-600 rounded-full">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-600 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
                 {orders.filter(o => o.esimStatus === 'GOT_RESOURCE').length} dispo
               </span>
             )}
             {orders.filter(o => o.esimStatus === 'IN_USE').length > 0 && (
-              <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-600 rounded-full">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-green-100 text-green-600 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
                 {orders.filter(o => o.esimStatus === 'IN_USE').length} actif
               </span>
             )}
@@ -343,7 +345,7 @@ function OrderRow({ order, onViewDetails }: { order: EsimOrder; onViewDetails: (
         <span className="text-sm text-gray-600">{formatDate(order.expiredTime)}</span>
       </td>
       <td className="px-4 py-3">
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${statusColor}`}>
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusColor}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${
             order.esimStatus === 'IN_USE' ? 'bg-green-500' :
             order.esimStatus === 'GOT_RESOURCE' ? 'bg-blue-500' :
@@ -470,7 +472,13 @@ function OrderDetailModal({ order, onClose }: { order: EsimOrder; onClose: () =>
             </div>
             <div className="p-4 rounded-xl bg-gray-50">
               <p className="text-xs text-gray-400 uppercase mb-1">Statut</p>
-              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-medium ${ESIM_STATUS_COLORS[order.esimStatus] || 'bg-gray-100 text-gray-600'}`}>
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${ESIM_STATUS_COLORS[order.esimStatus] || 'bg-gray-100 text-gray-600'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                  order.esimStatus === 'IN_USE' ? 'bg-green-500' :
+                  order.esimStatus === 'GOT_RESOURCE' ? 'bg-blue-500' :
+                  order.esimStatus === 'EXPIRED' ? 'bg-red-500' :
+                  'bg-gray-500'
+                }`} />
                 {ESIM_STATUS_LABELS[order.esimStatus] || order.esimStatus}
               </span>
             </div>

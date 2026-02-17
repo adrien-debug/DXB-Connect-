@@ -128,7 +128,7 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="relative">
-          <div className="w-16 h-16 rounded-3xl bg-sky-500 flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center animate-pulse">
             <LayoutDashboard className="w-8 h-8 text-white" />
           </div>
         </div>
@@ -338,12 +338,18 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <span className={`
-                    px-2 py-1 rounded-lg text-xs font-medium whitespace-nowrap
+                    inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap
                     ${esim.esimStatus === 'IN_USE' ? 'bg-green-100 text-green-600' :
                       esim.esimStatus === 'GOT_RESOURCE' ? 'bg-blue-100 text-blue-600' :
                       esim.esimStatus === 'EXPIRED' ? 'bg-red-100 text-red-600' :
                       'bg-gray-100 text-gray-600'}
                   `}>
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                      esim.esimStatus === 'IN_USE' ? 'bg-green-500' :
+                      esim.esimStatus === 'GOT_RESOURCE' ? 'bg-blue-500' :
+                      esim.esimStatus === 'EXPIRED' ? 'bg-red-500' :
+                      'bg-gray-500'
+                    }`} />
                     {esim.esimStatus === 'GOT_RESOURCE' ? 'Disponible' :
                      esim.esimStatus === 'IN_USE' ? 'En usage' :
                      esim.esimStatus === 'EXPIRED' ? 'Expiré' :

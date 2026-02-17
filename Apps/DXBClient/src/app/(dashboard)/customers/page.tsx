@@ -12,7 +12,8 @@ import {
   ShoppingBag,
   User,
   Users,
-  Wifi
+  Wifi,
+  X
 } from 'lucide-react'
 
 interface ClientProfile {
@@ -295,25 +296,33 @@ function ClientDetailModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-sky-50 to-white">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-white text-2xl font-bold ">
-              {client.full_name?.charAt(0).toUpperCase() || client.email?.charAt(0).toUpperCase() || 'U'}
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-white text-2xl font-bold">
+                {client.full_name?.charAt(0).toUpperCase() || client.email?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {client.full_name || 'Utilisateur'}
+                </h2>
+                <p className="text-gray-400 flex items-center gap-2">
+                  <Mail size={14} />
+                  {client.email}
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800">
-                {client.full_name || 'Utilisateur'}
-              </h2>
-              <p className="text-gray-400 flex items-center gap-2">
-                <Mail size={14} />
-                {client.email}
-              </p>
-            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+            >
+              <X size={20} />
+            </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
           {/* Stats */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-sky-50 rounded-2xl p-4">
@@ -347,11 +356,16 @@ function ClientDetailModal({
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-gray-800">{order.package_code}</span>
                       <span className={`
-                        px-2 py-1 rounded-full text-xs font-medium
+                        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
                         ${order.status === 'IN_USE' ? 'bg-green-100 text-green-600' :
                           order.status === 'GOT_RESOURCE' ? 'bg-blue-100 text-blue-600' :
                           'bg-gray-100 text-gray-600'}
                       `}>
+                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                          order.status === 'IN_USE' ? 'bg-green-500' :
+                          order.status === 'GOT_RESOURCE' ? 'bg-blue-500' :
+                          'bg-gray-500'
+                        }`} />
                         {order.status}
                       </span>
                     </div>
@@ -365,15 +379,6 @@ function ClientDetailModal({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-100 bg-gray-50">
-          <button
-            onClick={onClose}
-            className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl font-medium transition-all"
-          >
-            Fermer
-          </button>
-        </div>
       </div>
     </div>
   )
