@@ -1,9 +1,23 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 // Cast ciblé — types Supabase générés en décalage avec la version du client
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
+
+/**
+ * Client Supabase standard (non-SSR) pour vérification JWT Bearer.
+ * Le client SSR (@supabase/ssr) utilise les cookies et ne supporte pas
+ * correctement getUser(jwt) avec un token passé explicitement.
+ */
+function createJwtClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  )
+}
 
 /**
  * Middleware d'authentification pour les routes API
@@ -27,8 +41,8 @@ export async function requireAuth(request: Request) {
   const token = authHeader.replace('Bearer ', '')
 
   try {
-    // Vérifier le token avec Supabase
-    const supabase = await createClient() as SupabaseAny
+    // Client non-SSR : supporte getUser(jwt) correctement (iOS Bearer)
+    const supabase = createJwtClient() as SupabaseAny
     const { data: { user }, error } = await supabase.auth.getUser(token)
 
     if (error || !user) {
@@ -42,11 +56,7 @@ export async function requireAuth(request: Request) {
       }
     }
 
-    // Token valide, retourner l'utilisateur
-    return {
-      error: null,
-      user
-    }
+    return { error: null, user }
   } catch (error) {
     console.error('[Auth] Error verifying token:', error)
     return {
@@ -72,7 +82,7 @@ export async function optionalAuth(request: Request) {
   const token = authHeader.replace('Bearer ', '')
 
   try {
-    const supabase = await createClient() as SupabaseAny
+    const supabase = createJwtClient() as SupabaseAny
     const { data: { user }, error } = await supabase.auth.getUser(token)
 
     if (error || !user) {
@@ -91,30 +101,29 @@ export async function optionalAuth(request: Request) {
  * Essaie Bearer en premier, puis cookie SSR
  */
 export async function requireAuthFlexible(request: Request) {
-  // 1. Essayer Bearer (iOS)
+  // 1. Essayer Bearer (iOS) — client non-SSR requis pour getUser(jwt)
   const authHeader = request.headers.get('Authorization')
 
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.replace('Bearer ', '')
 
     try {
-      const supabase = await createClient() as SupabaseAny
+      const supabase = createJwtClient() as SupabaseAny
       const { data: { user }, error } = await supabase.auth.getUser(token)
 
       if (!error && user) {
         return { error: null, user }
       }
+      console.error('[Auth] Bearer verification failed:', error?.message)
     } catch (error) {
-      console.error('[Auth] Bearer verification failed:', error)
+      console.error('[Auth] Bearer verification error:', error)
     }
   }
 
-  // 2. Essayer Cookie SSR (Web)
+  // 2. Essayer Cookie SSR (Web) — client SSR avec cookies
   try {
-    const supabase = await createClient() as SupabaseAny
+    const supabase = await createServerClient() as SupabaseAny
     const { data: { user }, error } = await supabase.auth.getUser()
-
-    console.log('[Auth] Cookie check - User:', user?.email, 'Error:', error?.message)
 
     if (!error && user) {
       return { error: null, user }
@@ -148,7 +157,7 @@ export async function requireAdmin(request: Request) {
       user: null
     }
   }
-  const supabase = await createClient() as SupabaseAny as SupabaseAny
+  const supabase = await createServerClient() as SupabaseAny
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('role')
