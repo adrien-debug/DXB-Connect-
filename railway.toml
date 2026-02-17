@@ -4,7 +4,7 @@ buildCommand = "cd Apps/DXBClient && npm install && npm run build"
 
 [deploy]
 startCommand = "cd Apps/DXBClient && npm start"
-healthcheckPath = "/api/esim/packages"
+healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
