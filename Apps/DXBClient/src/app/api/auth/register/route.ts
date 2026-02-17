@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 /**
  * Register avec email/password pour iOS
+ * Utilise le service role pour auto-confirmer l'email
  */
 
 interface RegisterRequest {
@@ -29,16 +30,19 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = await createClient()
+    // Utiliser service role pour créer l'utilisateur avec email confirmé
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
-    // Register via Supabase
-    const { data, error } = await supabase.auth.signUp({
+    // Créer l'utilisateur avec email déjà confirmé
+    const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email: body.email,
       password: body.password,
-      options: {
-        data: {
-          full_name: body.name || '',
-        }
+      email_confirm: true,
+      user_metadata: {
+        full_name: body.name || '',
       }
     })
 
@@ -57,67 +61,37 @@ export async function POST(request: Request) {
       )
     }
 
-    // Si la confirmation email est requise, on n'a pas de session
-    if (!data.session) {
-      // Créer le profil manuellement
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.from('profiles') as any).upsert({
-        id: data.user.id,
-        email: body.email,
-        full_name: body.name || '',
-        role: 'client',
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'id' })
-
-      // Pour dev, on peut auto-login (si email confirm désactivé)
-      const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-        email: body.email,
-        password: body.password,
-      })
-
-      if (loginError || !loginData.session) {
-        // Email confirmation requise
-        return NextResponse.json({
-          success: true,
-          message: 'Account created. Please check your email to confirm.',
-          user: {
-            id: data.user.id,
-            email: data.user.email,
-            name: body.name,
-          }
-        })
-      }
-
-      // Auto-login réussi
-      return NextResponse.json({
-        accessToken: loginData.session.access_token,
-        refreshToken: loginData.session.refresh_token,
-        user: {
-          id: loginData.user.id,
-          email: loginData.user.email,
-          name: body.name,
-        },
-      })
-    }
-
-    // Session disponible directement (email confirm désactivé)
-    // Créer/mettre à jour le profil
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from('profiles') as any).upsert({
+    // Créer le profil
+    await supabaseAdmin.from('profiles').upsert({
       id: data.user.id,
       email: body.email,
       full_name: body.name || '',
       role: 'client',
+      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' })
 
+    // Auto-login pour obtenir la session
+    const { data: loginData, error: loginError } = await supabaseAdmin.auth.signInWithPassword({
+      email: body.email,
+      password: body.password,
+    })
+
+    if (loginError || !loginData.session) {
+      console.error('[auth/register] Login error:', loginError?.message)
+      return NextResponse.json(
+        { success: false, error: 'Account created but login failed' },
+        { status: 500 }
+      )
+    }
+
     // Format de réponse aligné avec iOS AuthResponse
     const response = {
-      accessToken: data.session.access_token,
-      refreshToken: data.session.refresh_token,
+      accessToken: loginData.session.access_token,
+      refreshToken: loginData.session.refresh_token,
       user: {
-        id: data.user.id,
-        email: data.user.email,
+        id: loginData.user.id,
+        email: loginData.user.email,
         name: body.name,
       },
     }
