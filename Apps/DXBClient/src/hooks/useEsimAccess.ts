@@ -22,6 +22,19 @@ interface MerchantBalance {
   currencyCode: string
 }
 
+interface StockStats {
+  total: number
+  available: number
+  inUse: number
+  expired: number
+}
+
+interface StockData {
+  stats: StockStats
+  byPackage: { name: string; count: number; volume: number }[]
+  esimList: any[]
+}
+
 interface EsimApiResponse<T> {
   success: boolean
   errorCode?: string
@@ -84,6 +97,42 @@ async function fetchPackagesRaw(params?: { location?: string; type?: string }): 
 async function fetchPlans(params?: { location?: string; type?: string }): Promise<Plan[]> {
   const rawPackages = await fetchPackagesRaw(params)
   return rawPackages.map(toNormalizedPlan)
+}
+
+/**
+ * Fetch stock eSIM
+ */
+async function fetchStock(): Promise<StockData> {
+  const headers: HeadersInit = {}
+  if (typeof window !== 'undefined') {
+    try {
+      const { createBrowserClient } = await import('@supabase/ssr')
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`
+      }
+    } catch (e) {
+      console.warn('[useEsimAccess] Could not get session:', e)
+    }
+  }
+
+  const response = await fetch('/api/esim/stock', { headers })
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch stock')
+  }
+
+  const data: EsimApiResponse<StockData> = await response.json()
+
+  if (!data.success) {
+    throw new Error(data.errorMsg || 'API error')
+  }
+
+  return data.obj!
 }
 
 /**
@@ -219,6 +268,17 @@ export function useEsimBalance() {
     queryKey: ['esim-balance'],
     queryFn: fetchBalance,
     staleTime: 1000 * 60, // 1 minute
+  })
+}
+
+/**
+ * Hook pour récupérer le stock eSIM
+ */
+export function useEsimStock() {
+  return useQuery({
+    queryKey: ['esim-stock'],
+    queryFn: fetchStock,
+    staleTime: 1000 * 60 * 2, // 2 minutes
   })
 }
 

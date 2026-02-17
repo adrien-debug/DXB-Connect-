@@ -110,6 +110,8 @@ export async function requireAuthFlexible(request: Request) {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
 
+    console.log('[Auth] Cookie check - User:', user?.email, 'Error:', error?.message)
+
     if (!error && user) {
       return { error: null, user }
     }

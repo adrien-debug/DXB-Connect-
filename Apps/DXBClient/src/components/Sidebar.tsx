@@ -8,11 +8,8 @@ import {
   ClipboardList,
   LayoutDashboard,
   LogOut,
-  Megaphone,
-  Package,
   Settings,
   ShoppingCart,
-  Truck,
   Users,
   Wifi
 } from 'lucide-react'
@@ -25,11 +22,7 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/esim', label: 'Acheter eSIM', icon: Wifi },
   { href: '/esim/orders', label: 'Mes eSIMs', icon: ClipboardList },
-  { href: '/products', label: 'Produits', icon: Package },
-  { href: '/orders', label: 'Commandes', icon: ShoppingCart },
-  { href: '/suppliers', label: 'Fournisseurs', icon: Truck },
   { href: '/customers', label: 'Clients', icon: Users },
-  { href: '/ads', label: 'Publicités', icon: Megaphone },
 ]
 
 interface SidebarProps {
@@ -125,7 +118,16 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
           <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
             {navItems.map((item, index) => {
               const Icon = item.icon
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+              // Logique améliorée : exact match OU startsWith mais pas si un autre item est plus spécifique
+              const isExactMatch = pathname === item.href
+              const isChildMatch = pathname.startsWith(item.href + '/')
+              // Vérifie si un autre item plus spécifique matche
+              const hasMoreSpecificMatch = navItems.some(
+                other => other.href !== item.href && 
+                         other.href.startsWith(item.href) && 
+                         (pathname === other.href || pathname.startsWith(other.href + '/'))
+              )
+              const isActive = isExactMatch || (isChildMatch && !hasMoreSpecificMatch)
 
               return (
                 <Link

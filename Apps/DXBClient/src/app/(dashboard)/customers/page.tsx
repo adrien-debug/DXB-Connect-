@@ -1,364 +1,380 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabaseAny as supabase, Customer } from '@/lib/supabase'
-import DataTable from '@/components/DataTable'
-import Modal from '@/components/Modal'
-import { Users, Sparkles } from 'lucide-react'
+import { supabaseAny as supabase } from '@/lib/supabase'
+import StatCard from '@/components/StatCard'
+import {
+  Calendar,
+  ChevronRight,
+  Mail,
+  Search,
+  Smartphone,
+  ShoppingBag,
+  User,
+  Users,
+  Wifi
+} from 'lucide-react'
 
-const defaultCustomer: Partial<Customer> = {
-  first_name: '',
-  last_name: '',
-  email: '',
-  phone: '',
-  company: '',
-  address: '',
-  city: '',
-  country: '',
-  segment: '',
-  lifetime_value: 0,
-  status: 'active',
-  notes: ''
+interface ClientProfile {
+  id: string
+  email: string | null
+  full_name: string | null
+  role: string
+  created_at: string
+  updated_at: string
+  esim_count?: number
 }
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>([])
+  const [clients, setClients] = useState<ClientProfile[]>([])
   const [loading, setLoading] = useState(true)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editingCustomer, setEditingCustomer] = useState<Partial<Customer>>(defaultCustomer)
-  const [isEditing, setIsEditing] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [search, setSearch] = useState('')
+  const [selectedClient, setSelectedClient] = useState<ClientProfile | null>(null)
 
   useEffect(() => {
-    fetchCustomers()
+    fetchClients()
   }, [])
 
-  const fetchCustomers = async () => {
+  const fetchClients = async () => {
     try {
-      const { data, error } = await supabase
-        .from('customers')
+      // Récupérer les profils avec role='client'
+      const { data: profiles, error } = await supabase
+        .from('profiles')
         .select('*')
+        .eq('role', 'client')
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setCustomers(data || [])
+
+      // Récupérer le nombre de commandes eSIM par utilisateur
+      const clientsWithOrders = await Promise.all(
+        (profiles || []).map(async (profile: ClientProfile) => {
+          const { count } = await supabase
+            .from('esim_orders')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', profile.id)
+
+          return {
+            ...profile,
+            esim_count: count || 0
+          }
+        })
+      )
+
+      setClients(clientsWithOrders)
     } catch (error) {
-      console.error('Error fetching customers:', error)
+      console.error('Error fetching clients:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleAdd = () => {
-    setEditingCustomer(defaultCustomer)
-    setIsEditing(false)
-    setModalOpen(true)
+  const filteredClients = clients.filter(client => {
+    const q = search.toLowerCase()
+    return (
+      client.email?.toLowerCase().includes(q) ||
+      client.full_name?.toLowerCase().includes(q)
+    )
+  })
+
+  const totalEsims = clients.reduce((sum, c) => sum + (c.esim_count || 0), 0)
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })
   }
-
-  const handleEdit = (customer: Customer) => {
-    setEditingCustomer(customer)
-    setIsEditing(true)
-    setModalOpen(true)
-  }
-
-  const handleDelete = async (customer: Customer) => {
-    if (!confirm(`Supprimer le client "${customer.first_name} ${customer.last_name}" ?`)) return
-
-    try {
-      const { error } = await supabase.from('customers').delete().eq('id', customer.id)
-      if (error) throw error
-      setCustomers(prev => prev.filter(c => c.id !== customer.id))
-    } catch (error) {
-      console.error('Error deleting customer:', error)
-      alert('Erreur lors de la suppression')
-    }
-  }
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-
-    try {
-      if (isEditing && editingCustomer.id) {
-        const { error } = await supabase
-          .from('customers')
-          .update({
-            ...editingCustomer,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingCustomer.id)
-
-        if (error) throw error
-      } else {
-        const { error } = await supabase.from('customers').insert([editingCustomer])
-        if (error) throw error
-      }
-
-      await fetchCustomers()
-      setModalOpen(false)
-    } catch (error) {
-      console.error('Error saving customer:', error)
-      alert('Erreur lors de la sauvegarde')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const columns = [
-    {
-      key: 'name',
-      label: 'Nom',
-      render: (customer: Customer) => (
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-emerald-500/20">
-            {customer.first_name?.charAt(0)}{customer.last_name?.charAt(0)}
-          </div>
-          <div>
-            <p className="font-medium text-slate-800">{customer.first_name} {customer.last_name}</p>
-            <p className="text-xs text-slate-400">{customer.email}</p>
-          </div>
-        </div>
-      )
-    },
-    { key: 'phone', label: 'Téléphone' },
-    { key: 'company', label: 'Société' },
-    { key: 'city', label: 'Ville' },
-    { 
-      key: 'segment', 
-      label: 'Segment',
-      render: (customer: Customer) => customer.segment ? (
-        <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">
-          {customer.segment}
-        </span>
-      ) : '-'
-    },
-    {
-      key: 'lifetime_value',
-      label: 'Valeur',
-      render: (customer: Customer) => (
-        <span className="font-semibold text-slate-700">
-          {customer.lifetime_value?.toLocaleString() || 0} €
-        </span>
-      )
-    },
-    {
-      key: 'status',
-      label: 'Statut',
-      render: (customer: Customer) => (
-        <span className={`
-          inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold
-          ${customer.status === 'active' 
-            ? 'bg-emerald-100 text-emerald-700' 
-            : customer.status === 'prospect'
-            ? 'bg-indigo-100 text-indigo-700'
-            : 'bg-slate-100 text-slate-600'
-          }
-        `}>
-          <span className={`w-1.5 h-1.5 rounded-full ${
-            customer.status === 'active' ? 'bg-emerald-500' :
-            customer.status === 'prospect' ? 'bg-indigo-500' : 'bg-slate-400'
-          }`} />
-          {customer.status === 'active' ? 'Actif' : customer.status === 'prospect' ? 'Prospect' : 'Inactif'}
-        </span>
-      )
-    }
-  ]
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center animate-pulse">
             <Users className="w-8 h-8 text-white" />
           </div>
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 blur-xl opacity-50 animate-pulse" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="animate-fade-in-up">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-            <Users className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800">Clients</h1>
-            <p className="text-slate-500">Gérez votre base clients</p>
-          </div>
+        <h1 className="text-2xl font-semibold text-gray-800">Clients</h1>
+        <p className="text-gray-400 text-sm mt-1">Utilisateurs inscrits via l'app iOS</p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.05s', animationFillMode: 'backwards' }}>
+          <StatCard
+            title="Total clients"
+            value={clients.length}
+            icon={Users}
+            color="purple"
+          />
+        </div>
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'backwards' }}>
+          <StatCard
+            title="eSIMs achetées"
+            value={totalEsims}
+            icon={Wifi}
+            color="green"
+          />
+        </div>
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.15s', animationFillMode: 'backwards' }}>
+          <StatCard
+            title="App iOS"
+            value="SwiftUI"
+            icon={Smartphone}
+            color="purple"
+          />
         </div>
       </div>
 
-      <DataTable
-        data={customers}
-        columns={columns}
-        title={`${customers.length} client(s)`}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        addLabel="Nouveau client"
-        searchPlaceholder="Rechercher un client..."
-      />
+      {/* Search */}
+      <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100/50 animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'backwards' }}>
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={18} />
+          <input
+            type="text"
+            placeholder="Rechercher un client par nom ou email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 focus:bg-white transition-all placeholder:text-gray-300"
+          />
+        </div>
+        <p className="text-sm text-gray-400 mt-3">
+          <span className="font-medium text-gray-600">{filteredClients.length}</span> client(s) trouvé(s)
+        </p>
+      </div>
 
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={isEditing ? 'Modifier le client' : 'Nouveau client'}
-        size="lg"
+      {/* Clients List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredClients.map((client, index) => (
+          <ClientCard
+            key={client.id}
+            client={client}
+            index={index}
+            onClick={() => setSelectedClient(client)}
+          />
+        ))}
+      </div>
+
+      {filteredClients.length === 0 && (
+        <div className="text-center py-16 animate-fade-in-up">
+          <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
+            <Users className="w-8 h-8 text-gray-300" />
+          </div>
+          <p className="text-gray-500 font-medium">Aucun client trouvé</p>
+          <p className="text-sm text-gray-400 mt-1">Les clients apparaîtront ici après inscription via l'app iOS</p>
+        </div>
+      )}
+
+      {/* Client Detail Modal */}
+      {selectedClient && (
+        <ClientDetailModal
+          client={selectedClient}
+          onClose={() => setSelectedClient(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+function ClientCard({
+  client,
+  index,
+  onClick
+}: {
+  client: ClientProfile
+  index: number
+  onClick: () => void
+}) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })
+  }
+
+  return (
+    <div
+      onClick={onClick}
+      className="
+        group bg-white rounded-3xl p-5 cursor-pointer
+        shadow-sm hover:shadow-md border border-gray-100/50
+        hover:-translate-y-1 transition-all duration-300
+        animate-fade-in-up
+      "
+      style={{ animationDelay: `${0.25 + index * 0.03}s`, animationFillMode: 'backwards' }}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-bold shadow-lg shadow-violet-500/20">
+            {client.full_name?.charAt(0).toUpperCase() || client.email?.charAt(0).toUpperCase() || 'U'}
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800 group-hover:text-violet-600 transition-colors">
+              {client.full_name || 'Utilisateur'}
+            </h3>
+            <p className="text-sm text-gray-400 truncate max-w-[180px]">{client.email}</p>
+          </div>
+        </div>
+        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-violet-500 group-hover:translate-x-1 transition-all" />
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-sm">
+          <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center">
+            <Wifi size={14} className="text-violet-500" />
+          </div>
+          <span className="text-gray-600">{client.esim_count || 0} eSIM(s) achetée(s)</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center">
+            <Calendar size={14} className="text-violet-500" />
+          </div>
+          <span className="text-gray-600">Inscrit le {formatDate(client.created_at)}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ClientDetailModal({
+  client,
+  onClose
+}: {
+  client: ClientProfile
+  onClose: () => void
+}) {
+  const [orders, setOrders] = useState<any[]>([])
+  const [loadingOrders, setLoadingOrders] = useState(true)
+
+  useEffect(() => {
+    fetchOrders()
+  }, [client.id])
+
+  const fetchOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('esim_orders')
+        .select('*')
+        .eq('user_id', client.id)
+        .order('created_at', { ascending: false })
+        .limit(10)
+
+      if (error) throw error
+      setOrders(data || [])
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    } finally {
+      setLoadingOrders(false)
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-3xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl animate-fade-in-up"
+        onClick={(e) => e.stopPropagation()}
       >
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Prénom *</label>
-              <input
-                type="text"
-                required
-                value={editingCustomer.first_name || ''}
-                onChange={e => setEditingCustomer(prev => ({ ...prev, first_name: e.target.value }))}
-                className="input-premium"
-              />
+        {/* Header */}
+        <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-violet-50 to-white">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-violet-500/30">
+              {client.full_name?.charAt(0).toUpperCase() || client.email?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Nom *</label>
-              <input
-                type="text"
-                required
-                value={editingCustomer.last_name || ''}
-                onChange={e => setEditingCustomer(prev => ({ ...prev, last_name: e.target.value }))}
-                className="input-premium"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-              <input
-                type="email"
-                value={editingCustomer.email || ''}
-                onChange={e => setEditingCustomer(prev => ({ ...prev, email: e.target.value }))}
-                className="input-premium"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Téléphone</label>
-              <input
-                type="tel"
-                value={editingCustomer.phone || ''}
-                onChange={e => setEditingCustomer(prev => ({ ...prev, phone: e.target.value }))}
-                className="input-premium"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Société</label>
-              <input
-                type="text"
-                value={editingCustomer.company || ''}
-                onChange={e => setEditingCustomer(prev => ({ ...prev, company: e.target.value }))}
-                className="input-premium"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Ville</label>
-              <input
-                type="text"
-                value={editingCustomer.city || ''}
-                onChange={e => setEditingCustomer(prev => ({ ...prev, city: e.target.value }))}
-                className="input-premium"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Pays</label>
-              <input
-                type="text"
-                value={editingCustomer.country || ''}
-                onChange={e => setEditingCustomer(prev => ({ ...prev, country: e.target.value }))}
-                className="input-premium"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Segment</label>
-              <select
-                value={editingCustomer.segment || ''}
-                onChange={e => setEditingCustomer(prev => ({ ...prev, segment: e.target.value }))}
-                className="select-premium"
-              >
-                <option value="">Sélectionner...</option>
-                <option value="enterprise">Enterprise</option>
-                <option value="pme">PME</option>
-                <option value="startup">Startup</option>
-                <option value="particulier">Particulier</option>
-                <option value="revendeur">Revendeur</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Valeur client (€)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={editingCustomer.lifetime_value || 0}
-                onChange={e => setEditingCustomer(prev => ({ ...prev, lifetime_value: parseFloat(e.target.value) || 0 }))}
-                className="input-premium"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Statut</label>
-              <select
-                value={editingCustomer.status || 'active'}
-                onChange={e => setEditingCustomer(prev => ({ ...prev, status: e.target.value }))}
-                className="select-premium"
-              >
-                <option value="prospect">Prospect</option>
-                <option value="active">Actif</option>
-                <option value="inactive">Inactif</option>
-              </select>
+              <h2 className="text-xl font-semibold text-gray-800">
+                {client.full_name || 'Utilisateur'}
+              </h2>
+              <p className="text-gray-400 flex items-center gap-2">
+                <Mail size={14} />
+                {client.email}
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)]">
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-violet-50 rounded-2xl p-4">
+              <p className="text-sm text-violet-600 mb-1">eSIMs achetées</p>
+              <p className="text-2xl font-bold text-violet-700">{client.esim_count || 0}</p>
+            </div>
+            <div className="bg-gray-50 rounded-2xl p-4">
+              <p className="text-sm text-gray-500 mb-1">Membre depuis</p>
+              <p className="text-lg font-semibold text-gray-700">{formatDate(client.created_at).split(',')[0]}</p>
+            </div>
+          </div>
+
+          {/* Orders */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Adresse</label>
-            <textarea
-              value={editingCustomer.address || ''}
-              onChange={e => setEditingCustomer(prev => ({ ...prev, address: e.target.value }))}
-              rows={2}
-              className="input-premium resize-none"
-            />
+            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <ShoppingBag size={18} />
+              Historique des commandes
+            </h3>
+
+            {loadingOrders ? (
+              <div className="text-center py-8 text-gray-400">Chargement...</div>
+            ) : orders.length === 0 ? (
+              <div className="text-center py-8 bg-gray-50 rounded-2xl">
+                <Wifi className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-400">Aucune commande</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {orders.map((order) => (
+                  <div key={order.id} className="bg-gray-50 rounded-2xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-800">{order.package_code}</span>
+                      <span className={`
+                        px-2 py-1 rounded-full text-xs font-medium
+                        ${order.status === 'IN_USE' ? 'bg-green-100 text-green-600' :
+                          order.status === 'GOT_RESOURCE' ? 'bg-blue-100 text-blue-600' :
+                          'bg-gray-100 text-gray-600'}
+                      `}>
+                        {order.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-400">
+                      Commandé le {formatDate(order.created_at)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Notes</label>
-            <textarea
-              value={editingCustomer.notes || ''}
-              onChange={e => setEditingCustomer(prev => ({ ...prev, notes: e.target.value }))}
-              rows={3}
-              className="input-premium resize-none"
-            />
-          </div>
-          <div className="flex justify-end gap-3 pt-5 border-t border-slate-200/60">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl transition-all duration-200 font-medium"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="
-                px-6 py-2.5 
-                bg-gradient-to-r from-indigo-600 to-purple-600
-                text-white font-semibold rounded-xl 
-                shadow-lg shadow-indigo-500/25
-                hover:shadow-xl hover:shadow-indigo-500/30
-                hover:scale-[1.02] active:scale-[0.98]
-                transition-all duration-300 
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
-              "
-            >
-              {saving ? 'Enregistrement...' : 'Enregistrer'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-100 bg-gray-50">
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl font-medium transition-all"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

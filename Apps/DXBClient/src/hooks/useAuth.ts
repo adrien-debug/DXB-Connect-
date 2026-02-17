@@ -144,6 +144,27 @@ export function useAuth() {
     toast.success('Email de réinitialisation envoyé')
   }, [])
 
+  /**
+   * Fetch authentifié - ajoute automatiquement le token Bearer
+   * Utiliser pour tous les appels API protégés
+   */
+  const authFetch = useCallback(async (url: string, options: RequestInit = {}) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session?.access_token) {
+      throw new Error('Not authenticated')
+    }
+
+    const headers = new Headers(options.headers)
+    headers.set('Authorization', `Bearer ${session.access_token}`)
+    headers.set('Content-Type', 'application/json')
+
+    return fetch(url, {
+      ...options,
+      headers,
+    })
+  }, [])
+
   return {
     user: state.user,
     session: state.session,
@@ -155,5 +176,6 @@ export function useAuth() {
     signUp,
     signOut,
     resetPassword,
+    authFetch,
   }
 }
