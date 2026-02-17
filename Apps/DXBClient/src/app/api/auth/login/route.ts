@@ -45,8 +45,8 @@ export async function POST(request: Request) {
     }
 
     // Récupérer le profil pour le nom
-    const { data: profile } = await supabase
-      .from('profiles')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: profile } = await (supabase.from('profiles') as any)
       .select('full_name')
       .eq('id', data.user.id)
       .single()
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
       user: {
         id: data.user.id,
         email: data.user.email,
-        name: profile?.full_name || data.user.user_metadata?.full_name,
+        name: profile?.full_name || data.user.user_metadata?.full_name || '',
       },
     }
 

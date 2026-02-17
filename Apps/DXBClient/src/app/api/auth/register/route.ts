@@ -60,7 +60,8 @@ export async function POST(request: Request) {
     // Si la confirmation email est requise, on n'a pas de session
     if (!data.session) {
       // Créer le profil manuellement
-      await supabase.from('profiles').upsert({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from('profiles') as any).upsert({
         id: data.user.id,
         email: body.email,
         full_name: body.name || '',
@@ -101,7 +102,8 @@ export async function POST(request: Request) {
 
     // Session disponible directement (email confirm désactivé)
     // Créer/mettre à jour le profil
-    await supabase.from('profiles').upsert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from('profiles') as any).upsert({
       id: data.user.id,
       email: body.email,
       full_name: body.name || '',
