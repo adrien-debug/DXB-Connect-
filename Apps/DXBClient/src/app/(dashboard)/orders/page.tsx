@@ -89,7 +89,7 @@ export default function OrdersPage() {
       <div className="animate-fade-in-up">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center ">
               <ShoppingBag className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -212,7 +212,7 @@ export default function OrdersPage() {
           <p className="text-sm text-slate-400 mt-1 mb-6">Vos commandes apparaîtront ici</p>
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-xl  hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             Voir les produits
             <ChevronRight size={18} />

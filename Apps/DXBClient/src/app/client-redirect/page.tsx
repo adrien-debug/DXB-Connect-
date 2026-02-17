@@ -10,9 +10,9 @@ export default function ClientRedirectPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-white to-indigo-50">
       <div className="max-w-md w-full mx-4">
         {/* Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-sky-500/10 p-8 text-center border border-gray-100">
+        <div className="bg-white rounded-3xl  p-8 text-center border border-gray-100">
           {/* Icon */}
-          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-sky-500 flex items-center justify-center">
             <Smartphone className="w-10 h-10 text-white" />
           </div>
 

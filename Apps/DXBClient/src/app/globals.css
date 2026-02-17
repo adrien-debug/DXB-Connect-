@@ -160,19 +160,19 @@ body {
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
     box-shadow: 
-      0 2px 8px rgba(14, 165, 233, 0.04),
-      0 8px 24px rgba(14, 165, 233, 0.06);
+      0 1px 3px rgba(0, 0, 0, 0.05),
+      0 4px 12px rgba(0, 0, 0, 0.05);
     border-radius: var(--radius-regular);
-    transition: all 0.35s var(--ease-premium);
+    transition: all 0.2s ease;
   }
   
   .glass-card:hover {
     box-shadow: 
-      0 4px 12px rgba(14, 165, 233, 0.08),
-      0 16px 40px rgba(14, 165, 233, 0.1);
+      0 4px 12px rgba(0, 0, 0, 0.08),
+      0 8px 24px rgba(0, 0, 0, 0.08);
   }
 
   /* Soft light background */
@@ -205,37 +205,17 @@ body {
     mask-composite: exclude;
   }
 
-  /* Soft sky blue shadows */
+  /* Clean neutral shadows */
   .shadow-premium {
     box-shadow: 
-      0 2px 8px rgba(14, 165, 233, 0.04),
-      0 8px 24px rgba(14, 165, 233, 0.08);
+      0 2px 8px rgba(0, 0, 0, 0.04),
+      0 8px 24px rgba(0, 0, 0, 0.08);
   }
 
   .shadow-premium-hover {
     box-shadow: 
-      0 4px 12px rgba(14, 165, 233, 0.08),
-      0 16px 40px rgba(14, 165, 233, 0.12);
-  }
-
-  .shadow-glow {
-    box-shadow: 0 0 40px rgba(14, 165, 233, 0.12);
-  }
-
-  .shadow-glow-accent {
-    box-shadow: 0 0 40px rgba(56, 189, 248, 0.15);
-  }
-
-  /* Sky blue blob decoration */
-  .blob-sky {
-    background: linear-gradient(135deg, #0EA5E9 0%, #38BDF8 50%, #0284C7 100%);
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    opacity: 0.8;
-  }
-
-  .blob-sky-soft {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.3) 0%, rgba(56, 189, 248, 0.2) 100%);
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      0 4px 12px rgba(0, 0, 0, 0.08),
+      0 16px 40px rgba(0, 0, 0, 0.1);
   }
 
   /* Animations */
@@ -243,8 +223,8 @@ body {
     animation: float 6s ease-in-out infinite;
   }
 
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s ease-in-out infinite;
   }
 
   .animate-shimmer {

@@ -132,7 +132,7 @@ export default function AdsPage() {
       label: 'Campagne',
       render: (campaign: AdCampaign) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/20">
+          <div className="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center text-white ">
             <Megaphone size={16} />
           </div>
           <div>
@@ -224,10 +224,10 @@ export default function AdsPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center animate-pulse">
             <Megaphone className="w-8 h-8 text-white" />
           </div>
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 blur-xl opacity-50 animate-pulse" />
+          <div className="absolute inset-0 rounded-2xl bg-sky-500 blur-xl opacity-50 animate-pulse" />
         </div>
       </div>
     )
@@ -238,7 +238,7 @@ export default function AdsPage() {
       {/* Header */}
       <div className="animate-fade-in-up">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+          <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center ">
             <Megaphone className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -440,13 +440,11 @@ export default function AdsPage() {
               disabled={saving}
               className="
                 px-6 py-2.5
-                bg-gradient-to-r from-indigo-600 to-purple-600
+                bg-sky-500 hover:bg-sky-600
                 text-white font-semibold rounded-xl
-                shadow-lg shadow-indigo-500/25
-                hover:shadow-xl hover:shadow-indigo-500/30
-                hover:scale-[1.02] active:scale-[0.98]
-                transition-all duration-300
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                shadow-md hover:shadow-lg
+                transition-all duration-200
+                disabled:opacity-50 disabled:cursor-not-allowed
               "
             >
               {saving ? 'Enregistrement...' : 'Enregistrer'}

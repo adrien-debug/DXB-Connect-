@@ -128,7 +128,7 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="relative">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 rounded-3xl bg-sky-500 flex items-center justify-center animate-pulse">
             <LayoutDashboard className="w-8 h-8 text-white" />
           </div>
         </div>

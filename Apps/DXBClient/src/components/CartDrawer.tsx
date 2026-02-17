@@ -174,12 +174,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 onClick={() => setPaymentOpen(true)}
                 className="
                   flex-[2] py-3 px-4 
-                  bg-gradient-to-r from-sky-600 to-sky-500
-                  text-white font-medium rounded-2xl
-                  shadow-md shadow-sky-500/20
-                  hover:shadow-lg hover:shadow-sky-500/25
-                  hover:-translate-y-0.5 active:translate-y-0
-                  transition-all duration-300
+                  bg-sky-500 hover:bg-sky-600
+                  text-white font-medium rounded-xl
+                  shadow-md hover:shadow-lg
+                  transition-all duration-200
                 "
               >
                 Commander

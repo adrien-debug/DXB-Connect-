@@ -152,7 +152,7 @@ export default function ProductsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center animate-pulse">
+        <div className="w-14 h-14 rounded-2xl bg-sky-500 flex items-center justify-center animate-pulse">
           <Package className="w-7 h-7 text-white" />
         </div>
       </div>
@@ -172,12 +172,10 @@ export default function ProductsPage() {
             onClick={handleAdd}
             className="
               flex items-center gap-2 px-5 py-2.5
-              bg-gradient-to-r from-sky-600 to-sky-500
-              text-white font-medium rounded-2xl
-              shadow-md shadow-sky-500/20
-              hover:shadow-lg hover:shadow-sky-500/25
-              hover:-translate-y-0.5 active:translate-y-0
-              transition-all duration-300
+              bg-sky-500 hover:bg-sky-600
+              text-white font-medium rounded-xl
+              shadow-md hover:shadow-lg
+              transition-all duration-200
             "
           >
             <Plus size={18} />
@@ -383,10 +381,10 @@ export default function ProductsPage() {
               disabled={saving}
               className="
                 px-6 py-2.5
-                bg-gradient-to-r from-sky-600 to-sky-500
+                bg-sky-500 hover:bg-sky-600
                 text-white font-medium rounded-2xl
-                shadow-md shadow-sky-500/20
-                hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5
+                
+                hover:-translate-y-0.5
                 transition-all duration-300
                 disabled:opacity-50 disabled:cursor-not-allowed
               "
@@ -525,10 +523,10 @@ function ProductCard({
             disabled={isOutOfStock}
             className="
               flex items-center gap-1.5 px-3 py-2
-              bg-gradient-to-r from-sky-600 to-sky-500
+              bg-sky-500 hover:bg-sky-600
               text-white text-xs font-medium rounded-xl
-              shadow-sm shadow-sky-500/20
-              hover:shadow-md hover:shadow-sky-500/25 hover:-translate-y-0.5
+              
+              hover:-translate-y-0.5
               transition-all duration-200
               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
               whitespace-nowrap

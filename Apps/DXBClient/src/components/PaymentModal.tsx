@@ -281,7 +281,7 @@ export default function PaymentModal({
               {/* Continue button */}
               <button
                 onClick={() => setStep('payment')}
-                className="w-full py-3.5 bg-gradient-to-r from-sky-600 to-sky-500 text-white font-medium rounded-2xl shadow-md shadow-sky-500/20 hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
               >
                 Continuer vers le paiement
                 <ChevronRight size={16} />
@@ -460,7 +460,7 @@ export default function PaymentModal({
 
                 <button
                   onClick={handlePayment}
-                  className="w-full py-3.5 bg-gradient-to-r from-sky-600 to-sky-500 text-white font-medium rounded-2xl shadow-md shadow-sky-500/20 hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   <Lock size={16} />
                   Payer maintenant
@@ -480,7 +480,7 @@ export default function PaymentModal({
             <div className="py-12 text-center">
               <div className="relative w-16 h-16 mx-auto mb-6">
                 <div className="absolute inset-0 rounded-full bg-sky-500 animate-ping opacity-20" />
-                <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center">
+                <div className="relative w-16 h-16 rounded-full bg-green-500 flex items-center justify-center">
                   <Loader2 className="w-8 h-8 text-white animate-spin" />
                 </div>
               </div>
@@ -501,7 +501,7 @@ export default function PaymentModal({
               </p>
               <button
                 onClick={handleClose}
-                className="px-8 py-3 bg-gradient-to-r from-sky-600 to-sky-500 text-white font-medium rounded-2xl shadow-md shadow-sky-500/20 hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all"
+                className="px-8 py-3 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
               >
                 Fermer
               </button>

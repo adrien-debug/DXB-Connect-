@@ -52,7 +52,7 @@ export default function RegisterPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F3F4FA]">
         <div className="relative">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 rounded-3xl bg-sky-500 flex items-center justify-center animate-pulse">
             <Wifi className="w-8 h-8 text-white" />
           </div>
         </div>

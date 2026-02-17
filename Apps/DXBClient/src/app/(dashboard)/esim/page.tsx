@@ -149,7 +149,7 @@ function ProviderCard({
           <div className="flex items-center gap-3">
             <div className={`
               w-14 h-14 rounded-2xl flex items-center justify-center
-              ${disabled ? 'bg-gray-100' : 'bg-gradient-to-br from-sky-500 to-sky-600'}
+              ${disabled ? 'bg-gray-100' : 'bg-sky-500'}
             `}>
               <Wifi className={`w-7 h-7 ${disabled ? 'text-gray-400' : 'text-white'}`} />
             </div>

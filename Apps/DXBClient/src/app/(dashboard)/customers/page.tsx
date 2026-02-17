@@ -91,7 +91,7 @@ export default function CustomersPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center animate-pulse">
             <Users className="w-8 h-8 text-white" />
           </div>
         </div>
@@ -215,7 +215,7 @@ function ClientCard({
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center text-white font-bold shadow-lg shadow-sky-500/20">
+          <div className="w-12 h-12 rounded-2xl bg-sky-500 flex items-center justify-center text-white font-bold ">
             {client.full_name?.charAt(0).toUpperCase() || client.email?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div>
@@ -297,7 +297,7 @@ function ClientDetailModal({
         {/* Header */}
         <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-sky-50 to-white">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-sky-500/30">
+            <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-white text-2xl font-bold ">
               {client.full_name?.charAt(0).toUpperCase() || client.email?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div>

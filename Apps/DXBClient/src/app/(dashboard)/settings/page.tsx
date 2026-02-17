@@ -124,7 +124,7 @@ function ProfileTab({ user, profile }: { user: any; profile: any }) {
 
         {/* Avatar */}
         <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center text-white text-2xl font-bold">
+          <div className="w-20 h-20 rounded-2xl bg-sky-500 flex items-center justify-center text-white text-2xl font-bold">
             {user?.email?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div>
@@ -171,7 +171,7 @@ function ProfileTab({ user, profile }: { user: any; profile: any }) {
           <button
             onClick={handleSave}
             disabled={loading}
-            className="mt-4 px-6 py-3 bg-gradient-to-r from-sky-600 to-sky-500 text-white rounded-2xl font-medium shadow-md shadow-sky-500/20 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="mt-4 px-6 py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl font-medium  hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {loading && <Loader2 size={18} className="animate-spin" />}
             Enregistrer
@@ -254,7 +254,7 @@ function SecurityTab({ user }: { user: any }) {
           <button
             onClick={handleChangePassword}
             disabled={loading || !newPassword || !confirmPassword}
-            className="mt-4 px-6 py-3 bg-gradient-to-r from-sky-600 to-sky-500 text-white rounded-2xl font-medium shadow-md shadow-sky-500/20 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="mt-4 px-6 py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl font-medium  hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {loading && <Loader2 size={18} className="animate-spin" />}
             Mettre à jour
@@ -388,7 +388,7 @@ function BillingTab() {
   return (
     <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
       {/* Balance */}
-      <div className="bg-gradient-to-br from-sky-600 to-sky-700 rounded-3xl p-6 text-white">
+      <div className="bg-sky-600 rounded-3xl p-6 text-white">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold opacity-90">Solde disponible</h2>
           <Wallet size={24} className="opacity-70" />

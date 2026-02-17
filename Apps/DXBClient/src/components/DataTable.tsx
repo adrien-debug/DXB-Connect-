@@ -94,12 +94,10 @@ export default function DataTable<T extends { id: string }>({
                 onClick={onAdd}
                 className="
                   flex items-center gap-2 px-5 py-2.5 
-                  bg-gradient-to-r from-sky-600 to-sky-500
-                  text-white font-medium rounded-2xl 
-                  shadow-md shadow-sky-500/20
-                  hover:shadow-lg hover:shadow-sky-500/25
-                  hover:-translate-y-0.5 active:translate-y-0
-                  transition-all duration-300 
+                  bg-sky-500 hover:bg-sky-600
+                  text-white font-medium rounded-xl 
+                  shadow-md hover:shadow-lg
+                  transition-all duration-200 
                   whitespace-nowrap
                 "
               >
@@ -250,7 +248,7 @@ export default function DataTable<T extends { id: string }>({
                         w-9 h-9 rounded-xl font-medium text-sm
                         transition-all duration-200
                         ${currentPage === pageNum
-                          ? 'bg-sky-600 text-white shadow-md shadow-sky-500/20'
+                          ? 'bg-sky-600 text-white '
                           : 'bg-gray-50 border border-gray-100 text-gray-500 hover:bg-gray-100 hover:border-gray-200'
                         }
                       `}
