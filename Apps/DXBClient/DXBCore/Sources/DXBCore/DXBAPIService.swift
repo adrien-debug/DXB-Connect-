@@ -107,14 +107,14 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
     public func fetchPlans(locale: String) async throws -> [Plan] {
         await AppLogger.shared.logData("Fetching eSIM plans (locale: \(locale))")
 
-        // Load token if available
+        // Charger le token dans le client avant la requête
         if let token = try await authService.getAccessToken() {
             await apiClient.setAccessToken(token)
         }
 
         let response: PackagesResponse = try await apiClient.request(
             endpoint: "esim/packages",
-            requiresAuth: false
+            requiresAuth: true
         )
 
         let plans = response.obj?.packageList?.compactMap { pkg in
