@@ -61,6 +61,17 @@ final class AppCoordinator: ObservableObject {
 
     func checkAuthentication() async {
         isLoading = true
+        
+        #if DEBUG
+        // DEV MODE: Bypass login, auto-authenticate
+        isAuthenticated = true
+        user.name = "Dev User"
+        user.email = "dev@dxbconnect.com"
+        await loadAllData()
+        isLoading = false
+        return
+        #endif
+        
         isAuthenticated = await authService.isAuthenticated()
         if isAuthenticated {
             loadUserFromStorage()
@@ -110,7 +121,7 @@ final class AppCoordinator: ObservableObject {
         appLog("Signing in with email: \(email)", category: .auth)
         let response = try await apiService.signInWithPassword(email: email, password: password)
         user.email = email
-        user.name = response.user?.name ?? ""
+        user.name = response.user.name ?? ""
         saveUserToStorage()
         await loadAllData()
         isAuthenticated = true
@@ -119,7 +130,7 @@ final class AppCoordinator: ObservableObject {
     
     func signUpWithPassword(email: String, password: String, name: String) async throws {
         appLog("Signing up with email: \(email)", category: .auth)
-        let response = try await apiService.signUpWithPassword(email: email, password: password, name: name)
+        _ = try await apiService.signUpWithPassword(email: email, password: password, name: name)
         user.email = email
         user.name = name
         saveUserToStorage()
@@ -361,7 +372,11 @@ struct CoordinatorView: View {
     @ObservedObject var coordinator: AppCoordinator
 
     // Set to false to require auth, true to bypass for testing
+    #if DEBUG
+    private let bypassAuthForTesting = true
+    #else
     private let bypassAuthForTesting = false
+    #endif
 
     var body: some View {
         Group {
