@@ -31,10 +31,10 @@ export async function POST(request: Request) {
     }
 
     // Utiliser service role pour créer l'utilisateur avec email confirmé
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zgrgaruuwpxuxueffvck.supabase.co'
+    const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpncmdhcnV1d3B4dXh1ZWZmdmNrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTI3ODQ5MiwiZXhwIjoyMDg2ODU0NDkyfQ.4ZOGw8sZOlxnVBmt5wv5Bfa_6LYkJ0q2d1ZH-9HFP1Y'
+    
+    const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
     // Créer l'utilisateur avec email déjà confirmé
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
