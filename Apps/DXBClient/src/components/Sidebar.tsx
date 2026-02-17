@@ -19,10 +19,10 @@ import { useState } from 'react'
 import CartDrawer from './CartDrawer'
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/esim', label: 'Acheter eSIM', icon: Wifi },
-  { href: '/esim/orders', label: 'Mes eSIMs', icon: ClipboardList },
-  { href: '/customers', label: 'Clients', icon: Users },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Vue d\'ensemble' },
+  { href: '/esim', label: 'Acheter eSIM', icon: Wifi, description: 'Nouvelle commande' },
+  { href: '/esim/orders', label: 'Mes eSIMs', icon: ClipboardList, description: 'Historique' },
+  { href: '/customers', label: 'Clients', icon: Users, description: 'Gestion CRM' },
 ]
 
 interface SidebarProps {
@@ -44,78 +44,65 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
     <>
       <aside
         className={`
-          ${collapsed ? 'w-20' : 'w-72'}
+          ${collapsed ? 'w-[88px]' : 'w-[280px]'}
           relative flex flex-col h-screen
-          transition-all duration-500 ease-out
+          transition-all ease-hearst duration-500
         `}
       >
-        {/* Purple gradient background with blob effect */}
+        {/* Clean dark background */}
         <div
-          className="absolute inset-0 overflow-hidden"
+          className="absolute inset-0"
           style={{
-            background: 'linear-gradient(180deg, #7C3AED 0%, #6D28D9 50%, #5B21B6 100%)',
+            background: 'linear-gradient(180deg, #0F172A 0%, #1E293B 100%)',
           }}
-        >
-          {/* Decorative circles/blobs */}
-          <div
-            className="absolute -top-20 -left-20 w-64 h-64 rounded-full opacity-30"
-            style={{
-              background: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)',
-              filter: 'blur(40px)',
-            }}
-          />
-          <div
-            className="absolute top-1/3 -right-16 w-48 h-48 rounded-full opacity-25"
-            style={{
-              background: 'linear-gradient(135deg, #6366F1 0%, #818CF8 100%)',
-              filter: 'blur(30px)',
-            }}
-          />
-          <div
-            className="absolute bottom-20 -left-10 w-40 h-40 rounded-full opacity-20"
-            style={{
-              background: '#A78BFA',
-              filter: 'blur(35px)',
-            }}
-          />
-        </div>
+        />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col h-full">
-          {/* Header */}
-          <div className={`p-6 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+          {/* Header - Premium branding */}
+          <div className={`p-5 flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
             {!collapsed && (
               <div className="flex items-center gap-3 animate-fade-in-up overflow-hidden">
                 <div className="relative flex-shrink-0">
-                  <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <div 
+                    className="w-11 h-11 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
+                    }}
+                  >
                     <Wifi className="w-5 h-5 text-white" />
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-lg font-semibold text-white tracking-tight truncate">
+                  <h1 className="text-base font-bold text-white tracking-tight truncate">
                     DXB Connect
                   </h1>
-                  <p className="text-[11px] text-white/60 font-medium truncate">
+                  <p className="text-[11px] text-sky-400/80 font-semibold truncate uppercase tracking-wider">
                     Premium Suite
                   </p>
                 </div>
               </div>
             )}
             {collapsed && (
-              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <div 
+                className="w-11 h-11 rounded-xl flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
+                }}
+              >
                 <Wifi className="w-5 h-5 text-white" />
               </div>
             )}
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-2 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-all duration-300 flex-shrink-0"
+              className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all ease-hearst duration-300 flex-shrink-0 border border-white/5"
             >
-              {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
             </button>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+          {/* Navigation - Premium style */}
+          <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
             {navItems.map((item, index) => {
               const Icon = item.icon
               // Logique améliorée : exact match OU startsWith mais pas si un autre item est plus spécifique
@@ -135,76 +122,103 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
                   href={item.href}
                   onClick={handleNavClick}
                   className={`
-                    group relative flex items-center gap-3 px-4 py-3 rounded-2xl
-                    transition-all duration-300 ease-out
+                    group relative flex items-center gap-3 px-3 py-3 rounded-xl
+                    transition-all ease-hearst duration-300
                     animate-fade-in-up
                     ${isActive
-                      ? 'bg-white text-violet-600 shadow-lg shadow-violet-900/20'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                      ? 'bg-sky-500 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
                     }
                   `}
                   style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'backwards' }}
                 >
+                  {/* Active indicator line */}
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full" />
+                  )}
+                  
                   <div className={`
-                    flex items-center justify-center w-9 h-9 rounded-xl
-                    transition-all duration-300
+                    flex items-center justify-center w-10 h-10 rounded-lg
+                    transition-all ease-hearst duration-300
                     ${isActive
-                      ? 'bg-violet-100'
-                      : 'bg-white/10'
+                      ? 'bg-white/20'
+                      : 'bg-white/5 group-hover:bg-white/10'
                     }
                   `}>
-                    <Icon size={18} className={isActive ? 'text-violet-600' : 'text-current'} />
+                    <Icon size={20} className={isActive ? 'text-white' : 'text-current'} />
                   </div>
 
                   {!collapsed && (
-                    <span className="font-medium text-sm">
-                      {item.label}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-semibold text-sm block truncate">
+                        {item.label}
+                      </span>
+                      <span className={`text-[10px] truncate block ${isActive ? 'text-white/70' : 'text-gray-500'}`}>
+                        {item.description}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Hover arrow */}
+                  {!collapsed && !isActive && (
+                    <ChevronRight 
+                      size={16} 
+                      className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all ease-hearst duration-300 text-gray-500"
+                    />
                   )}
                 </Link>
               )
             })}
           </nav>
 
-          {/* Cart Button */}
-          <div className="px-4 pb-3">
+          {/* Cart Button - Premium style */}
+          <div className="px-3 pb-3">
             <button
               onClick={() => setCartOpen(true)}
               className={`
-                group w-full flex items-center gap-3 px-4 py-3 rounded-2xl
-                bg-white/10 backdrop-blur-sm
-                text-white hover:bg-white/20
-                transition-all duration-300
+                group w-full flex items-center gap-3 px-3 py-3 rounded-xl
+                bg-gradient-to-r from-amber-500/10 to-orange-500/10 
+                border border-amber-500/20
+                text-amber-400 hover:from-amber-500/20 hover:to-orange-500/20
+                transition-all ease-hearst duration-300
               `}
             >
-              <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-white/20">
+              <div className="relative flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/20">
                 <ShoppingCart size={18} />
                 {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full text-[10px] font-bold text-violet-600 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 rounded-full text-[10px] font-bold text-gray-900 flex items-center justify-center">
                     {itemCount > 9 ? '9+' : itemCount}
                   </span>
                 )}
               </div>
               {!collapsed && (
-                <span className="font-medium text-sm">Mon Panier</span>
+                <div className="flex-1 text-left">
+                  <span className="font-semibold text-sm block">Mon Panier</span>
+                  <span className="text-[10px] text-amber-500/70">{itemCount} article(s)</span>
+                </div>
               )}
             </button>
           </div>
 
+          {/* Divider */}
+          <div className="mx-5 border-t border-white/5" />
+
           {/* Footer */}
-          <div className="p-4 space-y-2">
-            {/* User info */}
+          <div className="p-3 space-y-1.5">
+            {/* User info - Compact premium style */}
             {!collapsed && user && (
-              <div className="px-4 py-3 rounded-2xl bg-white/10 backdrop-blur-sm">
+              <div className="px-3 py-3 rounded-xl bg-white/5 border border-white/5 mb-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white text-sm font-semibold">
+                  <div 
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold bg-sky-500"
+                  >
                     {user.email?.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white font-medium truncate">
+                    <p className="text-sm text-white font-semibold truncate">
                       {user.email?.split('@')[0]}
                     </p>
-                    <p className="text-[11px] text-white/50 truncate">
+                    <p className="text-[10px] text-gray-500 truncate">
                       {user.email}
                     </p>
                   </div>
@@ -216,12 +230,12 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
             <Link
               href="/settings"
               className={`
-                group flex items-center gap-3 px-4 py-3 rounded-2xl
-                text-white/70 hover:text-white hover:bg-white/10
-                transition-all duration-300
+                group flex items-center gap-3 px-3 py-2.5 rounded-xl
+                text-gray-400 hover:text-white hover:bg-white/5
+                transition-all ease-hearst duration-300
               `}
             >
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/10">
+              <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
                 <Settings size={18} className="group-hover:rotate-90 transition-transform duration-500" />
               </div>
               {!collapsed && <span className="font-medium text-sm">Paramètres</span>}
@@ -231,12 +245,12 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
             <button
               onClick={signOut}
               className={`
-                group w-full flex items-center gap-3 px-4 py-3 rounded-2xl
-                text-white/70 hover:text-white hover:bg-white/10
-                transition-all duration-300
+                group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+                text-gray-400 hover:text-red-400 hover:bg-red-500/10
+                transition-all ease-hearst duration-300
               `}
             >
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/10">
+              <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 group-hover:bg-red-500/20 transition-colors">
                 <LogOut size={18} />
               </div>
               {!collapsed && <span className="font-medium text-sm">Déconnexion</span>}

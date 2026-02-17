@@ -15,16 +15,16 @@ interface StatCardProps {
 
 const colorConfig = {
   blue: {
-    iconBg: 'bg-violet-100',
-    iconColor: 'text-violet-600',
+    iconBg: 'bg-sky-100',
+    iconColor: 'text-sky-600',
   },
   green: {
     iconBg: 'bg-emerald-100',
     iconColor: 'text-emerald-600',
   },
   purple: {
-    iconBg: 'bg-violet-100',
-    iconColor: 'text-violet-600',
+    iconBg: 'bg-sky-100',
+    iconColor: 'text-sky-600',
   },
   orange: {
     iconBg: 'bg-amber-100',
@@ -35,8 +35,8 @@ const colorConfig = {
     iconColor: 'text-rose-600',
   },
   indigo: {
-    iconBg: 'bg-indigo-100',
-    iconColor: 'text-indigo-600',
+    iconBg: 'bg-sky-100',
+    iconColor: 'text-sky-600',
   },
 }
 

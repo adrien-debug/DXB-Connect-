@@ -188,9 +188,9 @@ export const AD_PLATFORM_COLORS: Record<string, string> = {
 }
 
 export const SUPPLIER_CATEGORY_COLORS: Record<string, string> = {
-  [SUPPLIER_CATEGORY.TELECOM]: 'bg-violet-100 text-violet-700',
+  [SUPPLIER_CATEGORY.TELECOM]: 'bg-sky-100 text-sky-700',
   [SUPPLIER_CATEGORY.HARDWARE]: 'bg-amber-100 text-amber-700',
-  [SUPPLIER_CATEGORY.SOFTWARE]: 'bg-violet-100 text-violet-700',
+  [SUPPLIER_CATEGORY.SOFTWARE]: 'bg-sky-100 text-sky-700',
   [SUPPLIER_CATEGORY.LOGISTICS]: 'bg-indigo-100 text-indigo-700',
   [SUPPLIER_CATEGORY.SERVICES]: 'bg-emerald-100 text-emerald-700',
   [SUPPLIER_CATEGORY.OTHER]: 'bg-gray-100 text-gray-700',
@@ -231,7 +231,7 @@ export const ESIM_STATUS_LABELS: Record<string, string> = {
 export const ESIM_STATUS_COLORS: Record<string, string> = {
   [ESIM_STATUS.GOT_RESOURCE]: 'bg-emerald-100 text-emerald-700',
   [ESIM_STATUS.RELEASED]: 'bg-blue-100 text-blue-700',
-  [ESIM_STATUS.INSTALLED]: 'bg-purple-100 text-purple-700',
+  [ESIM_STATUS.INSTALLED]: 'bg-sky-100 text-sky-700',
   [ESIM_STATUS.IN_USE]: 'bg-green-100 text-green-700',
   [ESIM_STATUS.EXPIRED]: 'bg-rose-100 text-rose-700',
   [ESIM_STATUS.SUSPENDED]: 'bg-amber-100 text-amber-700',

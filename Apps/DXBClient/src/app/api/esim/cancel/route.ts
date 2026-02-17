@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     }
 
     // Vérifier que la commande appartient à l'utilisateur
-    const supabase = await createClient()
+    const supabase = await createClient() as SupabaseAny
     const { data: order } = await supabase
       .from('esim_orders')
       .select('id, order_no')

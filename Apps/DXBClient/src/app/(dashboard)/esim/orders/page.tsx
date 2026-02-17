@@ -92,7 +92,7 @@ export default function EsimOrdersPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center animate-pulse">
             <Smartphone className="w-8 h-8 text-white" />
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function EsimOrdersPage() {
         </div>
         <button 
           onClick={() => refetch()}
-          className="flex items-center gap-2 px-4 py-2 bg-violet-100 text-violet-600 rounded-xl hover:bg-violet-200 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-sky-100 text-sky-600 rounded-xl hover:bg-sky-200 transition-colors"
         >
           <RefreshCw size={16} />
           Actualiser
@@ -145,7 +145,7 @@ export default function EsimOrdersPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 appearance-none cursor-pointer text-sm"
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 appearance-none cursor-pointer text-sm"
             >
               <option value="">Tous les statuts</option>
               {statuses.map(s => (
@@ -171,7 +171,7 @@ export default function EsimOrdersPage() {
 
           {/* Compteur */}
           <div className="text-sm text-gray-500">
-            <span className="font-semibold text-violet-600">{totalOrders}</span> eSIM(s)
+            <span className="font-semibold text-sky-600">{totalOrders}</span> eSIM(s)
           </div>
         </div>
       </div>
@@ -358,7 +358,7 @@ function OrderRow({ order, onViewDetails }: { order: EsimOrder; onViewDetails: (
           <code className="text-xs font-mono text-gray-600 truncate max-w-[100px]">{order.iccid}</code>
           <button 
             onClick={() => copyToClipboard(order.iccid, 'iccid')}
-            className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-violet-600 transition-colors"
+            className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-sky-600 transition-colors"
           >
             {copied === 'iccid' ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
           </button>
@@ -480,7 +480,7 @@ function OrderDetailModal({ order, onClose }: { order: EsimOrder; onClose: () =>
             <div className="p-4 rounded-xl bg-gray-50">
               <div className="flex items-center justify-between mb-1">
                 <p className="text-xs text-gray-400 uppercase">ICCID</p>
-                <button onClick={() => copyToClipboard(order.iccid, 'iccid')} className="text-violet-600 hover:text-violet-700">
+                <button onClick={() => copyToClipboard(order.iccid, 'iccid')} className="text-sky-600 hover:text-sky-700">
                   {copied === 'iccid' ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
                 </button>
               </div>
@@ -490,7 +490,7 @@ function OrderDetailModal({ order, onClose }: { order: EsimOrder; onClose: () =>
             <div className="p-4 rounded-xl bg-gray-50">
               <div className="flex items-center justify-between mb-1">
                 <p className="text-xs text-gray-400 uppercase">Code LPA</p>
-                <button onClick={() => copyToClipboard(order.ac, 'lpa')} className="text-violet-600 hover:text-violet-700">
+                <button onClick={() => copyToClipboard(order.ac, 'lpa')} className="text-sky-600 hover:text-sky-700">
                   {copied === 'lpa' ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
                 </button>
               </div>
@@ -513,7 +513,7 @@ function OrderDetailModal({ order, onClose }: { order: EsimOrder; onClose: () =>
             href={order.shortUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors font-medium"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-sky-600 text-white rounded-xl hover:bg-sky-700 transition-colors font-medium"
           >
             <ExternalLink size={16} />
             Instructions d&apos;installation

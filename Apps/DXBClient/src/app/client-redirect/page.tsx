@@ -7,12 +7,12 @@ export default function ClientRedirectPage() {
   const { signOut, user } = useAuth()
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-white to-indigo-50">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-white to-indigo-50">
       <div className="max-w-md w-full mx-4">
         {/* Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-violet-500/10 p-8 text-center border border-gray-100">
+        <div className="bg-white rounded-3xl shadow-xl shadow-sky-500/10 p-8 text-center border border-gray-100">
           {/* Icon */}
-          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center">
             <Smartphone className="w-10 h-10 text-white" />
           </div>
 
@@ -55,19 +55,19 @@ export default function ClientRedirectPage() {
             </p>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="flex items-center gap-2 text-gray-600">
-                <div className="w-2 h-2 rounded-full bg-violet-500" />
+                <div className="w-2 h-2 rounded-full bg-sky-500" />
                 Acheter des eSIMs
               </div>
               <div className="flex items-center gap-2 text-gray-600">
-                <div className="w-2 h-2 rounded-full bg-violet-500" />
+                <div className="w-2 h-2 rounded-full bg-sky-500" />
                 Scanner le QR code
               </div>
               <div className="flex items-center gap-2 text-gray-600">
-                <div className="w-2 h-2 rounded-full bg-violet-500" />
+                <div className="w-2 h-2 rounded-full bg-sky-500" />
                 Suivre votre usage
               </div>
               <div className="flex items-center gap-2 text-gray-600">
-                <div className="w-2 h-2 rounded-full bg-violet-500" />
+                <div className="w-2 h-2 rounded-full bg-sky-500" />
                 Recharger vos plans
               </div>
             </div>
@@ -95,7 +95,7 @@ export default function ClientRedirectPage() {
         {/* Footer */}
         <p className="mt-6 text-center text-xs text-gray-400">
           Besoin d&apos;aide ? Contactez{' '}
-          <a href="mailto:support@dxbconnect.com" className="text-violet-600 hover:underline">
+          <a href="mailto:support@dxbconnect.com" className="text-sky-600 hover:underline">
             support@dxbconnect.com
           </a>
         </p>

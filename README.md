@@ -254,25 +254,63 @@ npm install
 
 ## Configuration
 
-Fichier `.env.local` :
+### 1. Variables d'environnement
+
+Créer `.env.local` depuis `.env.example` :
 
 ```env
+# Railway Backend (POINT CENTRAL)
+NEXT_PUBLIC_RAILWAY_URL=https://web-production-14c51.up.railway.app
+NEXT_PUBLIC_API_URL=http://localhost:4000/api
+
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
-SUPABASE_SERVICE_ROLE_KEY=xxx
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx...
+SUPABASE_SERVICE_ROLE_KEY=eyJxxx...
 
-# eSIM Access API (https://docs.esimaccess.com/)
+# eSIM Access API
 ESIM_ACCESS_CODE=xxx
 ESIM_SECRET_KEY=xxx
 
-# API URL pour iOS (production)
-NEXT_PUBLIC_API_URL=https://your-app.vercel.app
-
-# Stripe (optionnel - mode simulation si absent)
-STRIPE_SECRET_KEY=sk_live_xxx
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
+# Stripe (optionnel)
+STRIPE_SECRET_KEY=sk_test_xxx
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
+```
+
+### 2. Configuration Supabase
+
+**a) Exécuter le script SQL** (`supabase-setup.sql`) :
+```bash
+# Dans Supabase Dashboard > SQL Editor, exécuter :
+# Apps/DXBClient/supabase-setup.sql
+```
+
+**b) Activer Apple Sign-In** :
+1. Aller dans **Supabase Dashboard > Authentication > Providers**
+2. Activer **Apple**
+3. Configurer :
+   - **Service ID** : `com.dxbconnect.client`
+   - **Team ID** : Votre Apple Team ID
+   - **Key ID** : ID de la clé `.p8`
+   - **Private Key** : Contenu du fichier `.p8`
+
+**c) Configurer Email OTP** :
+1. Aller dans **Authentication > Email Templates**
+2. Configurer le template "Magic Link / OTP"
+3. Dans **Authentication > Settings** :
+   - Activer "Enable email confirmations"
+   - Configurer SMTP si besoin (ou utiliser Supabase par défaut)
+
+### 3. iOS - Config.swift
+
+L'app iOS pointe vers Railway automatiquement :
+```swift
+// Production (défaut)
+https://web-production-14c51.up.railway.app/api
+
+// Development (localhost)
+http://localhost:4000/api
 ```
 
 ## Scripts

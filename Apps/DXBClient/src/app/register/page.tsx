@@ -52,7 +52,7 @@ export default function RegisterPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F3F4FA]">
         <div className="relative">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center animate-pulse">
             <Wifi className="w-8 h-8 text-white" />
           </div>
         </div>
@@ -62,30 +62,12 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#F3F4FA]">
-        {/* Background blobs */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div
-            className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-50"
-            style={{
-              background: 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 50%, #A78BFA 100%)',
-              filter: 'blur(80px)',
-            }}
-          />
-          <div
-            className="absolute -bottom-32 -left-32 w-[400px] h-[400px] rounded-full opacity-40"
-            style={{
-              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-              filter: 'blur(100px)',
-            }}
-          />
-        </div>
-
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         {/* Success card */}
-        <div className="w-full max-w-md px-4 sm:px-6 relative z-10 animate-fade-in-up">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-violet-500/10 border border-gray-100/50 text-center">
+        <div className="w-full max-w-md px-4 sm:px-6 animate-fade-in-up">
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-200 text-center">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-xl bg-green-500 flex items-center justify-center">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
@@ -104,13 +86,11 @@ export default function RegisterPage() {
               href="/login"
               className="
                 inline-flex items-center justify-center gap-2
-                w-full py-3.5 rounded-2xl
-                bg-gradient-to-r from-violet-600 to-violet-500
+                w-full h-12 rounded-full
+                bg-sky-500 hover:bg-sky-600
                 text-white font-medium text-sm
-                shadow-lg shadow-violet-500/25
-                hover:shadow-xl hover:shadow-violet-500/30
-                hover:-translate-y-0.5 active:translate-y-0
-                transition-all duration-300
+                shadow-md hover:shadow-lg
+                transition-all duration-200
               "
             >
               <ArrowLeft className="w-4 h-4" />
@@ -123,32 +103,14 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#F3F4FA]">
-      {/* Soft background with purple blobs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div
-          className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-50"
-          style={{
-            background: 'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 50%, #A78BFA 100%)',
-            filter: 'blur(80px)',
-          }}
-        />
-        <div
-          className="absolute -bottom-32 -left-32 w-[400px] h-[400px] rounded-full opacity-40"
-          style={{
-            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-            filter: 'blur(100px)',
-          }}
-        />
-      </div>
-
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
       {/* Register card */}
-      <div className="w-full max-w-md px-4 sm:px-6 relative z-10 animate-fade-in-up">
-        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-violet-500/10 border border-gray-100/50">
+      <div className="w-full max-w-md px-4 sm:px-6 animate-fade-in-up">
+        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-200">
           {/* Logo */}
           <div className="flex justify-center mb-6 sm:mb-8">
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-sky-500 flex items-center justify-center flex-shrink-0">
                 <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div className="min-w-0">
@@ -175,7 +137,7 @@ export default function RegisterPage() {
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'email' ? 'text-violet-500' : 'text-gray-300'}
+                  ${focused === 'email' ? 'text-sky-500' : 'text-gray-300'}
                 `}>
                   <Mail size={18} />
                 </div>
@@ -187,15 +149,15 @@ export default function RegisterPage() {
                   onBlur={() => setFocused(null)}
                   placeholder="votre@email.com"
                   className={`
-                    w-full pl-12 pr-4 py-3.5
-                    bg-gray-50 border rounded-2xl
+                    w-full pl-12 pr-4 py-3 min-h-[2.75rem]
+                    bg-white border rounded-xl
                     focus:outline-none focus:bg-white
-                    transition-all duration-300
+                    transition-all ease-hearst duration-300
                     ${errors.email
                       ? 'border-red-300 bg-red-50/50'
                       : focused === 'email'
-                        ? 'border-violet-300 ring-2 ring-violet-500/10'
-                        : 'border-gray-100 hover:border-gray-200'
+                        ? 'border-sky-400 ring-[3px] ring-sky-500/10'
+                        : 'border-gray-200/60 hover:border-gray-300'
                     }
                   `}
                 />
@@ -217,7 +179,7 @@ export default function RegisterPage() {
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'password' ? 'text-violet-500' : 'text-gray-300'}
+                  ${focused === 'password' ? 'text-sky-500' : 'text-gray-300'}
                 `}>
                   <Lock size={18} />
                 </div>
@@ -229,15 +191,15 @@ export default function RegisterPage() {
                   onBlur={() => setFocused(null)}
                   placeholder="••••••••"
                   className={`
-                    w-full pl-12 pr-4 py-3.5
-                    bg-gray-50 border rounded-2xl
+                    w-full pl-12 pr-4 py-3 min-h-[2.75rem]
+                    bg-white border rounded-xl
                     focus:outline-none focus:bg-white
-                    transition-all duration-300
+                    transition-all ease-hearst duration-300
                     ${errors.password
                       ? 'border-red-300 bg-red-50/50'
                       : focused === 'password'
-                        ? 'border-violet-300 ring-2 ring-violet-500/10'
-                        : 'border-gray-100 hover:border-gray-200'
+                        ? 'border-sky-400 ring-[3px] ring-sky-500/10'
+                        : 'border-gray-200/60 hover:border-gray-300'
                     }
                   `}
                 />
@@ -259,7 +221,7 @@ export default function RegisterPage() {
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'confirmPassword' ? 'text-violet-500' : 'text-gray-300'}
+                  ${focused === 'confirmPassword' ? 'text-sky-500' : 'text-gray-300'}
                 `}>
                   <Lock size={18} />
                 </div>
@@ -271,15 +233,15 @@ export default function RegisterPage() {
                   onBlur={() => setFocused(null)}
                   placeholder="••••••••"
                   className={`
-                    w-full pl-12 pr-4 py-3.5
-                    bg-gray-50 border rounded-2xl
+                    w-full pl-12 pr-4 py-3 min-h-[2.75rem]
+                    bg-white border rounded-xl
                     focus:outline-none focus:bg-white
-                    transition-all duration-300
+                    transition-all ease-hearst duration-300
                     ${errors.confirmPassword
                       ? 'border-red-300 bg-red-50/50'
                       : focused === 'confirmPassword'
-                        ? 'border-violet-300 ring-2 ring-violet-500/10'
-                        : 'border-gray-100 hover:border-gray-200'
+                        ? 'border-sky-400 ring-[3px] ring-sky-500/10'
+                        : 'border-gray-200/60 hover:border-gray-300'
                     }
                   `}
                 />
@@ -298,14 +260,13 @@ export default function RegisterPage() {
                 type="submit"
                 disabled={submitting}
                 className="
-                  w-full py-3.5 rounded-2xl
-                  bg-gradient-to-r from-violet-600 to-violet-500
+                  w-full h-12 rounded-full
+                  bg-sky-500 hover:bg-sky-600
                   text-white font-medium text-sm
-                  shadow-lg shadow-violet-500/25
-                  hover:shadow-xl hover:shadow-violet-500/30
-                  hover:-translate-y-0.5 active:translate-y-0
-                  transition-all duration-300
-                  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
+                  shadow-md hover:shadow-lg
+                  transition-all duration-200
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  flex items-center justify-center
                 "
               >
                 <span className="flex items-center justify-center gap-2">
@@ -337,7 +298,7 @@ export default function RegisterPage() {
 
             <p className="mt-6 text-center text-sm text-gray-500">
               Vous avez déjà un compte ?{' '}
-              <Link href="/login" className="font-medium text-violet-600 hover:text-violet-700 transition-colors">
+              <Link href="/login" className="font-medium text-sky-600 hover:text-sky-700 transition-colors">
                 Se connecter
               </Link>
             </p>

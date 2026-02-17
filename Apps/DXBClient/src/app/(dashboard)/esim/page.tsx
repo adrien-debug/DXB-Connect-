@@ -145,23 +145,23 @@ function ProviderCard({
     >
       {/* Header */}
       <div className="p-6 pb-4">
-        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
             <div className={`
               w-14 h-14 rounded-2xl flex items-center justify-center
-              ${disabled ? 'bg-gray-100' : 'bg-gradient-to-br from-violet-500 to-violet-600'}
+              ${disabled ? 'bg-gray-100' : 'bg-gradient-to-br from-sky-500 to-sky-600'}
             `}>
               <Wifi className={`w-7 h-7 ${disabled ? 'text-gray-400' : 'text-white'}`} />
             </div>
             <div>
-              <h3 className={`font-semibold text-lg ${disabled ? 'text-gray-500' : 'text-gray-800 group-hover:text-violet-600'} transition-colors`}>
+              <h3 className={`font-semibold text-lg ${disabled ? 'text-gray-500' : 'text-gray-800 group-hover:text-sky-600'} transition-colors`}>
                 {provider.name}
               </h3>
               <p className="text-sm text-gray-400">{provider.coverage}</p>
             </div>
           </div>
           {!disabled && (
-            <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-violet-500 group-hover:translate-x-1 transition-all" />
+            <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
           )}
         </div>
 
@@ -173,10 +173,10 @@ function ProviderCard({
         <div className="space-y-2">
           {provider.features.map((feature, i) => (
             <div key={i} className="flex items-center gap-2 text-sm">
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${disabled ? 'bg-gray-100' : 'bg-violet-50'}`}>
-                {i === 0 && <Zap size={12} className={disabled ? 'text-gray-400' : 'text-violet-500'} />}
-                {i === 1 && <Shield size={12} className={disabled ? 'text-gray-400' : 'text-violet-500'} />}
-                {i === 2 && <Globe size={12} className={disabled ? 'text-gray-400' : 'text-violet-500'} />}
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${disabled ? 'bg-gray-100' : 'bg-sky-50'}`}>
+                {i === 0 && <Zap size={12} className={disabled ? 'text-gray-400' : 'text-sky-500'} />}
+                {i === 1 && <Shield size={12} className={disabled ? 'text-gray-400' : 'text-sky-500'} />}
+                {i === 2 && <Globe size={12} className={disabled ? 'text-gray-400' : 'text-sky-500'} />}
               </div>
               <span className={disabled ? 'text-gray-400' : 'text-gray-600'}>{feature}</span>
             </div>
@@ -185,9 +185,9 @@ function ProviderCard({
       </div>
 
       {/* Footer */}
-      <div className={`px-6 py-4 border-t ${disabled ? 'bg-gray-50 border-gray-100' : 'bg-violet-50/50 border-violet-100/50'}`}>
+      <div className={`px-6 py-4 border-t ${disabled ? 'bg-gray-50 border-gray-100' : 'bg-sky-50/50 border-sky-100/50'}`}>
         <div className="flex items-center justify-between">
-          <span className={`text-sm font-medium ${disabled ? 'text-gray-400' : 'text-violet-600'}`}>
+          <span className={`text-sm font-medium ${disabled ? 'text-gray-400' : 'text-sky-600'}`}>
             {disabled ? 'Bientôt' : `${provider.packagesCount}+ packages`}
           </span>
           {!disabled && (

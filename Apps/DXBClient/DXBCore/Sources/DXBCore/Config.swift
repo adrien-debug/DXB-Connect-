@@ -27,8 +27,8 @@ public enum APIConfig {
             return URL(string: "http://localhost:4000/api")!
 
         case .staging:
-            // Preview deployment Vercel
-            return URL(string: "https://dxb-connect-staging.vercel.app/api")!
+            // Staging Railway - même architecture que production
+            return URL(string: "https://web-production-14c51.up.railway.app/api")!
 
         case .production:
             // ✅ PRODUCTION RAILWAY - NE JAMAIS CHANGER

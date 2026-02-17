@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DXB Connect - Flow & Architecture</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --card: #141414;
+            --border: #2a2a2a;
+            --text: #ffffff;
+            --text-secondary: #888;
+            --accent: #8b5cf6;
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f97316;
+            --blue: #3b82f6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 18px;
+            margin-bottom: 60px;
+        }
+        
+        .section {
+            margin-bottom: 80px;
+        }
+        
+        .section-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 28px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+        
+        /* Architecture Diagram */
+        .architecture {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            padding: 40px;
+            background: var(--card);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+        }
+        
+        .arch-row {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .arch-box {
+            padding: 24px 32px;
+            border-radius: 16px;
+            text-align: center;
+            min-width: 180px;
+            position: relative;
+        }
+        
+        .arch-box.client {
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d3d 100%);
+            border: 2px solid var(--blue);
+        }
+        
+        .arch-box.railway {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid var(--accent);
+            transform: scale(1.1);
+        }
+        
+        .arch-box.service {
+            background: linear-gradient(135deg, #1a2e1a 0%, #1e3e1e 100%);
+            border: 2px solid var(--green);
+        }
+        
+        .arch-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .arch-label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .arch-sublabel {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        .arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 24px;
+        }
+        
+        .arrow-down {
+            font-size: 32px;
+            text-align: center;
+            color: var(--accent);
+        }
+        
+        /* User Flow */
+        .flow-container {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+        
+        .flow-step {
+            flex: 0 0 280px;
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        
+        .flow-step:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+        
+        .flow-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--card) 0%, #1a1a1a 100%);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .flow-number {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .flow-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .flow-body {
+            padding: 20px;
+        }
+        
+        .flow-screen {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .flow-screen-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .flow-action {
+            font-size: 14px;
+            color: var(--text);
+        }
+        
+        .flow-api {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            font-family: 'SF Mono', monospace;
+            font-size: 11px;
+            color: var(--accent);
+            margin-top: 12px;
+        }
+        
+        /* Screens Grid */
+        .screens-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .screen-card {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .screen-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+        
+        .screen-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .screen-file {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-family: monospace;
+            background: #1a1a1a;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        /* Issues Table */
+        .issues-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .issues-table th,
+        .issues-table td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .issues-table th {
+            background: #1a1a1a;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+        
+        .issues-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .severity {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .severity.critical { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+        .severity.important { background: rgba(249, 115, 22, 0.2); color: var(--orange); }
+        .severity.minor { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+        
+        .code {
+            font-family: 'SF Mono', monospace;
+            font-size: 12px;
+            background: #1a1a1a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+        
+        /* Data Flow */
+        .data-flow {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        
+        .data-card {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 24px;
+        }
+        
+        .data-card h4 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+        
+        .data-item:last-child {
+            border-bottom: none;
+        }
+        
+        .data-key {
+            color: var(--text-secondary);
+        }
+        
+        .data-value {
+            color: var(--accent);
+            font-family: monospace;
+        }
+        
+        /* API Endpoints */
+        .api-list {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .api-endpoint {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        
+        .api-method {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .api-method.get { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+        .api-method.post { background: rgba(59, 130, 246, 0.2); color: var(--blue); }
+        
+        .api-path {
+            font-family: monospace;
+            font-size: 14px;
+            flex: 1;
+        }
+        
+        .api-desc {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            padding: 20px;
+            background: var(--card);
+            border-radius: 12px;
+            margin-bottom: 40px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .legend-dot.ios { background: var(--blue); }
+        .legend-dot.railway { background: var(--accent); }
+        .legend-dot.external { background: var(--green); }
+        
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover, .tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 32px; }
+            .data-flow { grid-template-columns: 1fr; }
+            .arch-row { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 DXB Connect</h1>
+        <p class="subtitle">Architecture Système & Flow Utilisateur - Application eSIM iOS</p>
+        
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot ios"></div>
+                <span>App iOS (SwiftUI)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot railway"></div>
+                <span>Railway Backend (Next.js)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot external"></div>
+                <span>Services Externes</span>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('architecture')">🏗️ Architecture</div>
+            <div class="tab" onclick="showTab('flow')">👤 Flow Utilisateur</div>
+            <div class="tab" onclick="showTab('screens')">📱 Écrans</div>
+            <div class="tab" onclick="showTab('api')">🔌 API Endpoints</div>
+            <div class="tab" onclick="showTab('data')">📊 Modèles de Données</div>
+            <div class="tab" onclick="showTab('issues')">⚠️ Problèmes</div>
+        </div>
+
+        <!-- Architecture Tab -->
+        <div id="architecture" class="tab-content active">
+            <div class="section">
+                <h2 class="section-title">Architecture Système</h2>
+                <div class="architecture">
+                    <!-- Row 1: Clients -->
+                    <div class="arch-row">
+                        <div class="arch-box client">
+                            <div class="arch-icon">📱</div>
+                            <div class="arch-label">iOS App</div>
+                            <div class="arch-sublabel">SwiftUI + DXBCore</div>
+                        </div>
+                        <div class="arch-box client">
+                            <div class="arch-icon">💻</div>
+                            <div class="arch-label">Admin Web</div>
+                            <div class="arch-sublabel">Next.js Dashboard</div>
+                        </div>
+                    </div>
+                    
+                    <div class="arrow-down">⬇️ HTTPS REST API ⬇️</div>
+                    
+                    <!-- Row 2: Railway -->
+                    <div class="arch-row">
+                        <div class="arch-box railway">
+                            <div class="arch-icon">🚂</div>
+                            <div class="arch-label">Railway Backend</div>
+                            <div class="arch-sublabel">https://web-production-14c51.up.railway.app</div>
+                            <div class="arch-sublabel" style="margin-top: 8px; color: var(--accent);">⚡ POINT CENTRAL - Toutes requêtes passent ici</div>
+                        </div>
+                    </div>
+                    
+                    <div class="arrow-down">⬇️ Server-side only ⬇️</div>
+                    
+                    <!-- Row 3: Services -->
+                    <div class="arch-row">
+                        <div class="arch-box service">
+                            <div class="arch-icon">🗄️</div>
+                            <div class="arch-label">Supabase</div>
+                            <div class="arch-sublabel">Auth + PostgreSQL</div>
+                        </div>
+                        <div class="arch-box service">
+                            <div class="arch-icon">📡</div>
+                            <div class="arch-label">eSIM Access API</div>
+                            <div class="arch-sublabel">Provider eSIM</div>
+                        </div>
+                        <div class="arch-box service">
+                            <div class="arch-icon">💳</div>
+                            <div class="arch-label">Stripe</div>
+                            <div class="arch-sublabel">Paiements</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flow Tab -->
+        <div id="flow" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Parcours Utilisateur Client</h2>
+                <div class="flow-container">
+                    <!-- Step 1 -->
+                    <div class="flow-step">
+                        <div class="flow-header">
+                            <div class="flow-number">1</div>
+                            <div class="flow-title">Découverte</div>
+                        </div>
+                        <div class="flow-body">
+                            <div class="flow-screen">
+                                <div class="flow-screen-title">SplashView</div>
+                                <div class="flow-action">Logo + Loading spinner</div>
+                            </div>
+                            <div class="flow-screen">
+                                <div class="flow-screen-title">AuthView</div>
+                                <div class="flow-action">
+                                    • Sign in with Apple<br>
+                                    • Continue with Email
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2 -->
+                    <div class="flow-step">
+                        <div class="flow-header">
+                            <div class="flow-number">2</div>
+                            <div class="flow-title">Authentification</div>
+                        </div>
+                        <div class="flow-body">
+                            <div class="flow-screen">
+                                <div class="flow-screen-title">Apple Sign In</div>
+                                <div class="flow-action">Système natif iOS → identityToken</div>
+                            </div>
+                            <div class="flow-screen">
+                                <div class="flow-screen-title">Email OTP</div>
+                                <div class="flow-action">
+                                    1. Saisir email<br>
+                                    2. Recevoir code 6 digits<br>
+                                    3. Vérifier OTP
+                                </div>
+                            </div>
+                            <div class="flow-api">
+                                POST /api/auth/apple<br>
+                                POST /api/auth/email/send-otp<br>
+                                POST /api/auth/email/verify
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3 -->
+                    <div class="flow-step">
+                        <div class="flow-header">
+                            <div class="flow-number">3</div>
+                            <div class="flow-title">Dashboard</div>
+                        </div>
+                        <div class="flow-body">
+                            <div class="flow-screen">
+                                <div class="flow-screen-title">DashboardView (Tab 0)</div>
+                                <div class="flow-action">
+                                    • Stats utilisateur<br>
+                                    • eSIMs actives<br>
+                                    • Actions rapides
+                                </div>
+                            </div>
+                            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 12px;">
+                                Données chargées au login via AppCoordinator
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4 -->
+                    <div class="flow-step">
+                        <div class="flow-header">
+                            <div class="flow-number">4</div>
+                            <div class="flow-title">Explorer Packages</div>
+                        </div>
+                        <div class="flow-body">
+                            <div class="flow-screen">
+                                <div class="flow-screen-title">PlanListView (Tab 1)</div>
+                                <div class="flow-action">
+                                    • Search par pays<br>
+                                    • Filtres région<br>
+                                    • Tri prix/data<br>
+                                    • Cards avec drapeaux
+                                </div>
+                            </div>
+                            <div class="flow-api">
+                                GET /api/esim/packages
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 5 -->
+                    <div class="flow-step">
+                        <div class="flow-header">
+                            <div class="flow-number">5</div>
+                            <div class="flow-title">Détail & Achat</div>
+                        </div>
+                        <div class="flow-body">
+                            <div class="flow-screen">
+                                <div class="flow-screen-title">PlanDetailView</div>
+                                <div class="flow-action">
+                                    • Info package<br>
+                                    • Prix USD<br>
+                                    • Réseaux supportés<br>
+                                    • Bouton "Buy Now"
+                                </div>
+                            </div>
+                            <div class="flow-api">
+                                POST /api/esim/purchase<br>
+                                POST /api/checkout
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 6 -->
+                    <div class="flow-step">
+                        <div class="flow-header">
+                            <div class="flow-number">6</div>
+                            <div class="flow-title">Mes eSIMs</div>
+                        </div>
+                        <div class="flow-body">
+                            <div class="flow-screen">
+                                <div class="flow-screen-title">MyESIMsView (Tab 2)</div>
+                                <div class="flow-action">
+                                    • Liste eSIMs achetées<br>
+                                    • Status (Active/Expired)<br>
+                                    • Usage data<br>
+                                    • Jours restants
+                                </div>
+                            </div>
+                            <div class="flow-api">
+                                GET /api/esim/orders
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 7 -->
+                    <div class="flow-step">
+                        <div class="flow-header">
+                            <div class="flow-number">7</div>
+                            <div class="flow-title">Activer eSIM</div>
+                        </div>
+                        <div class="flow-body">
+                            <div class="flow-screen">
+                                <div class="flow-screen-title">ESIMDetailView</div>
+                                <div class="flow-action">
+                                    • QR Code<br>
+                                    • Code LPA manuel<br>
+                                    • Instructions installation<br>
+                                    • ICCID
+                                </div>
+                            </div>
+                            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 12px;">
+                                L'utilisateur scanne le QR ou copie le code LPA dans Réglages iOS
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 8 -->
+                    <div class="flow-step">
+                        <div class="flow-header">
+                            <div class="flow-number">8</div>
+                            <div class="flow-title">Profil</div>
+                        </div>
+                        <div class="flow-body">
+                            <div class="flow-screen">
+                                <div class="flow-screen-title">ProfileView (Tab 3)</div>
+                                <div class="flow-action">
+                                    • Info utilisateur<br>
+                                    • Stats (eSIMs, pays, économies)<br>
+                                    • Moyens de paiement<br>
+                                    • Paramètres<br>
+                                    • Support
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screens Tab -->
+        <div id="screens" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Écrans de l'Application</h2>
+                <div class="screens-grid">
+                    <div class="screen-card">
+                        <div class="screen-icon">🚀</div>
+                        <div class="screen-name">Splash</div>
+                        <div class="screen-file">DXBClientApp.swift</div>
+                    </div>
+                    <div class="screen-card">
+                        <div class="screen-icon">🔐</div>
+                        <div class="screen-name">Auth</div>
+                        <div class="screen-file">AuthView.swift</div>
+                    </div>
+                    <div class="screen-card">
+                        <div class="screen-icon">📧</div>
+                        <div class="screen-name">Email OTP</div>
+                        <div class="screen-file">AuthView.swift</div>
+                    </div>
+                    <div class="screen-card">
+                        <div class="screen-icon">🏠</div>
+                        <div class="screen-name">Dashboard</div>
+                        <div class="screen-file">DashboardView.swift</div>
+                    </div>
+                    <div class="screen-card">
+                        <div class="screen-icon">🌍</div>
+                        <div class="screen-name">Explorer Plans</div>
+                        <div class="screen-file">PlanListView.swift</div>
+                    </div>
+                    <div class="screen-card">
+                        <div class="screen-icon">📋</div>
+                        <div class="screen-name">Détail Plan</div>
+                        <div class="screen-file">PlanDetailView.swift</div>
+                    </div>
+                    <div class="screen-card">
+                        <div class="screen-icon">📱</div>
+                        <div class="screen-name">Mes eSIMs</div>
+                        <div class="screen-file">MyESIMsView.swift</div>
+                    </div>
+                    <div class="screen-card">
+                        <div class="screen-icon">📲</div>
+                        <div class="screen-name">Détail eSIM</div>
+                        <div class="screen-file">ESIMDetailView.swift</div>
+                    </div>
+                    <div class="screen-card">
+                        <div class="screen-icon">👤</div>
+                        <div class="screen-name">Profil</div>
+                        <div class="screen-file">ProfileView.swift</div>
+                    </div>
+                    <div class="screen-card">
+                        <div class="screen-icon">❓</div>
+                        <div class="screen-name">Support</div>
+                        <div class="screen-file">SupportView.swift</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Navigation (TabBar)</h2>
+                <div class="architecture" style="padding: 30px;">
+                    <div class="arch-row" style="gap: 60px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; margin-bottom: 8px;">🏠</div>
+                            <div style="font-size: 12px; font-weight: 600;">Home</div>
+                            <div style="font-size: 10px; color: var(--text-secondary);">Tab 0</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; margin-bottom: 8px;">🌍</div>
+                            <div style="font-size: 12px; font-weight: 600;">Explore</div>
+                            <div style="font-size: 10px; color: var(--text-secondary);">Tab 1</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; margin-bottom: 8px;">📱</div>
+                            <div style="font-size: 12px; font-weight: 600;">eSIMs</div>
+                            <div style="font-size: 10px; color: var(--text-secondary);">Tab 2</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; margin-bottom: 8px;">👤</div>
+                            <div style="font-size: 12px; font-weight: 600;">Profile</div>
+                            <div style="font-size: 10px; color: var(--text-secondary);">Tab 3</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Tab -->
+        <div id="api" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Endpoints API (Railway)</h2>
+                <div class="api-list">
+                    <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">🔐 Authentication</div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span>
+                        <span class="api-path">/api/auth/apple</span>
+                        <span class="api-desc">Sign in with Apple</span>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span>
+                        <span class="api-path">/api/auth/email/send-otp</span>
+                        <span class="api-desc">Envoyer code OTP par email</span>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span>
+                        <span class="api-path">/api/auth/email/verify</span>
+                        <span class="api-desc">Vérifier code OTP</span>
+                    </div>
+                    
+                    <div style="color: var(--text-secondary); font-size: 12px; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: 1px;">📡 eSIM</div>
+                    <div class="api-endpoint">
+                        <span class="api-method get">GET</span>
+                        <span class="api-path">/api/esim/packages</span>
+                        <span class="api-desc">Liste des packages eSIM disponibles</span>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method get">GET</span>
+                        <span class="api-path">/api/esim/orders</span>
+                        <span class="api-desc">Mes eSIMs achetées (auth required)</span>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span>
+                        <span class="api-path">/api/esim/purchase</span>
+                        <span class="api-desc">Acheter un package eSIM</span>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method get">GET</span>
+                        <span class="api-path">/api/esim/balance</span>
+                        <span class="api-desc">Balance compte eSIM Access</span>
+                    </div>
+                    
+                    <div style="color: var(--text-secondary); font-size: 12px; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: 1px;">💳 Checkout</div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span>
+                        <span class="api-path">/api/checkout</span>
+                        <span class="api-desc">Créer session Stripe</span>
+                    </div>
+                    <div class="api-endpoint">
+                        <span class="api-method post">POST</span>
+                        <span class="api-path">/api/checkout/confirm</span>
+                        <span class="api-desc">Confirmer paiement</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Tab -->
+        <div id="data" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Modèles de Données</h2>
+                <div class="data-flow">
+                    <div class="data-card">
+                        <h4>📋 Plan (Package eSIM)</h4>
+                        <div class="data-item">
+                            <span class="data-key">id</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">name</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">dataGB</span>
+                            <span class="data-value">Int</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">durationDays</span>
+                            <span class="data-value">Int</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">priceUSD</span>
+                            <span class="data-value">Double</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">location</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">locationCode</span>
+                            <span class="data-value">String (ISO)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="data-card">
+                        <h4>📱 ESIMOrder</h4>
+                        <div class="data-item">
+                            <span class="data-key">id</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">orderNo</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">iccid</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">lpaCode</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">qrCodeUrl</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">status</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">packageName</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">totalVolume</span>
+                            <span class="data-value">String ⚠️</span>
+                        </div>
+                    </div>
+                    
+                    <div class="data-card">
+                        <h4>👤 UserProfile</h4>
+                        <div class="data-item">
+                            <span class="data-key">id</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">name</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">email</span>
+                            <span class="data-value">String</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">isPro</span>
+                            <span class="data-value">Bool</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">totalESIMs</span>
+                            <span class="data-value">Int</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">activeESIMs</span>
+                            <span class="data-value">Int</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-key">countriesVisited</span>
+                            <span class="data-value">Int</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Flux de Données</h2>
+                <div class="architecture">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                        <div style="background: var(--blue); padding: 12px 20px; border-radius: 10px; font-size: 14px;">
+                            📱 iOS App
+                        </div>
+                        <div style="color: var(--text-secondary);">→</div>
+                        <div style="background: #1a1a2e; padding: 12px 20px; border-radius: 10px; font-size: 14px; border: 1px solid var(--accent);">
+                            APIClient.request()
+                        </div>
+                        <div style="color: var(--text-secondary);">→</div>
+                        <div style="background: var(--accent); padding: 12px 20px; border-radius: 10px; font-size: 14px;">
+                            🚂 Railway /api/*
+                        </div>
+                        <div style="color: var(--text-secondary);">→</div>
+                        <div style="background: var(--green); padding: 12px 20px; border-radius: 10px; font-size: 14px;">
+                            📡 eSIM Access
+                        </div>
+                    </div>
+                    <div style="text-align: center; color: var(--text-secondary); font-size: 13px; margin-top: 20px;">
+                        Tokens JWT stockés via <code style="background: #1a1a1a; padding: 2px 6px; border-radius: 4px;">TokenManager</code> (Keychain)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issues Tab -->
+        <div id="issues" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Problèmes Identifiés</h2>
+                <table class="issues-table">
+                    <thead>
+                        <tr>
+                            <th>Sévérité</th>
+                            <th>Fichier</th>
+                            <th>Problème</th>
+                            <th>Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="severity critical">Critique</span></td>
+                            <td><span class="code">DXBClientApp.swift:1</span></td>
+                            <td>Typo <code>qimport</code> au lieu de <code>import</code></td>
+                            <td>Ne compile pas</td>
+                        </tr>
+                        <tr>
+                            <td><span class="severity critical">Critique</span></td>
+                            <td><span class="code">DXBAPIService.swift:125</span></td>
+                            <td>totalVolume divisé par 1024 (devrait être 1024³)</td>
+                            <td>Affiche "2097152 GB" au lieu de "2 GB"</td>
+                        </tr>
+                        <tr>
+                            <td><span class="severity critical">Critique</span></td>
+                            <td><span class="code">MyESIMsView.swift:279</span></td>
+                            <td>Usage "65% used" et "12 days left" hardcodés</td>
+                            <td>Données fausses affichées</td>
+                        </tr>
+                        <tr>
+                            <td><span class="severity important">Important</span></td>
+                            <td><span class="code">AppCoordinator:188</span></td>
+                            <td>Status check "RELEASED"/"IN_USE" mais API retourne "GOT_RESOURCE"</td>
+                            <td>eSIMs actives non détectées</td>
+                        </tr>
+                        <tr>
+                            <td><span class="severity important">Important</span></td>
+                            <td><span class="code">Config.swift:30</span></td>
+                            <td>Staging pointe vers Vercel au lieu de Railway</td>
+                            <td>Incohérence architecture</td>
+                        </tr>
+                        <tr>
+                            <td><span class="severity important">Important</span></td>
+                            <td><span class="code">ProfileView.swift:64</span></td>
+                            <td>Badge PRO toujours affiché (isPro: true par défaut)</td>
+                            <td>UX trompeuse</td>
+                        </tr>
+                        <tr>
+                            <td><span class="severity minor">Mineur</span></td>
+                            <td><span class="code">PlanListView.swift:20</span></td>
+                            <td>Régions hardcodées ne matchent pas les pays API</td>
+                            <td>Filtre inefficace</td>
+                        </tr>
+                        <tr>
+                            <td><span class="severity minor">Mineur</span></td>
+                            <td><span class="code">AuthView.swift:91-96</span></td>
+                            <td>Boutons Terms/Privacy sans action</td>
+                            <td>Liens morts</td>
+                        </tr>
+                        <tr>
+                            <td><span class="severity minor">Mineur</span></td>
+                            <td><span class="code">PaymentMethodsSheet</span></td>
+                            <td>Carte fictive "4242" hardcodée</td>
+                            <td>Pas de vrai Stripe</td>
+                        </tr>
+                        <tr>
+                            <td><span class="severity minor">Mineur</span></td>
+                            <td><span class="code">Multiple</span></td>
+                            <td>Mix anglais/français dans l'UI</td>
+                            <td>Pas de i18n</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Priorités de Correction</h2>
+                <div class="api-list">
+                    <div class="api-endpoint" style="border-left: 3px solid var(--red);">
+                        <span style="font-weight: 600; min-width: 30px;">1.</span>
+                        <span>Corriger typo <code>qimport</code> → <code>import</code></span>
+                    </div>
+                    <div class="api-endpoint" style="border-left: 3px solid var(--red);">
+                        <span style="font-weight: 600; min-width: 30px;">2.</span>
+                        <span>Corriger calcul totalVolume (bytes → GB)</span>
+                    </div>
+                    <div class="api-endpoint" style="border-left: 3px solid var(--red);">
+                        <span style="font-weight: 600; min-width: 30px;">3.</span>
+                        <span>Corriger mapping statuts ("GOT_RESOURCE" → "ACTIVE")</span>
+                    </div>
+                    <div class="api-endpoint" style="border-left: 3px solid var(--orange);">
+                        <span style="font-weight: 600; min-width: 30px;">4.</span>
+                        <span>Remplacer données hardcodées (usage, jours restants)</span>
+                    </div>
+                    <div class="api-endpoint" style="border-left: 3px solid var(--orange);">
+                        <span style="font-weight: 600; min-width: 30px;">5.</span>
+                        <span>Corriger staging URL → Railway</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

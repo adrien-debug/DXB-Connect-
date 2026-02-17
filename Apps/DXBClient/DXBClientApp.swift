@@ -1,4 +1,4 @@
-qimport SwiftUI
+import SwiftUI
 import DXBCore
 
 @main

@@ -112,7 +112,7 @@ export default function SuppliersPage() {
       label: 'Nom',
       render: (supplier: Supplier) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
             {supplier.name?.charAt(0)?.toUpperCase()}
           </div>
           <div>
@@ -178,7 +178,7 @@ export default function SuppliersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center animate-pulse">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center animate-pulse">
           <Truck className="w-7 h-7 text-white" />
         </div>
       </div>
@@ -288,9 +288,9 @@ export default function SuppliersPage() {
           </div>
 
           {/* Section API */}
-          <div className="bg-violet-50 rounded-xl p-5 space-y-4 border border-violet-100">
+          <div className="bg-sky-50 rounded-xl p-5 space-y-4 border border-sky-100">
             <div className="flex items-center gap-2 mb-2">
-              <Wifi size={18} className="text-violet-600" />
+              <Wifi size={18} className="text-sky-600" />
               <h4 className="font-semibold text-gray-800">Connexion API</h4>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -350,10 +350,10 @@ export default function SuppliersPage() {
               disabled={saving}
               className="
                 px-6 py-2.5
-                bg-gradient-to-r from-violet-600 to-violet-500
+                bg-gradient-to-r from-sky-600 to-sky-500
                 text-white font-medium rounded-2xl
-                shadow-md shadow-violet-500/20
-                hover:shadow-lg hover:shadow-violet-500/25 hover:-translate-y-0.5
+                shadow-md shadow-sky-500/20
+                hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5
                 transition-all duration-300
                 disabled:opacity-50 disabled:cursor-not-allowed
               "

@@ -1,6 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+// Cast ciblé — types Supabase générés en décalage avec la version du client
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseAny = any
+
 /**
  * Webhook endpoint pour recevoir les notifications eSIM Access
  * 
@@ -25,7 +29,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 })
     }
     
-    const supabase = await createClient()
+    const supabase = await createClient() as SupabaseAny
     
     // Traiter selon le type d'événement
     switch (eventType) {

@@ -68,7 +68,7 @@ export default function DataTable<T extends { id: string }>({
           <div className="flex gap-3 w-full sm:w-auto">
             {/* Search */}
             <div className="relative flex-1 sm:flex-initial group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-violet-500 transition-colors" size={18} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-sky-500 transition-colors" size={18} />
               <input
                 type="text"
                 placeholder={searchPlaceholder}
@@ -81,7 +81,7 @@ export default function DataTable<T extends { id: string }>({
                   pl-11 pr-4 py-2.5 
                   bg-gray-50 border border-gray-100 rounded-2xl 
                   w-full sm:w-72 
-                  focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 focus:bg-white
+                  focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 focus:bg-white
                   transition-all duration-300
                   placeholder:text-gray-300
                 "
@@ -94,10 +94,10 @@ export default function DataTable<T extends { id: string }>({
                 onClick={onAdd}
                 className="
                   flex items-center gap-2 px-5 py-2.5 
-                  bg-gradient-to-r from-violet-600 to-violet-500
+                  bg-gradient-to-r from-sky-600 to-sky-500
                   text-white font-medium rounded-2xl 
-                  shadow-md shadow-violet-500/20
-                  hover:shadow-lg hover:shadow-violet-500/25
+                  shadow-md shadow-sky-500/20
+                  hover:shadow-lg hover:shadow-sky-500/25
                   hover:-translate-y-0.5 active:translate-y-0
                   transition-all duration-300 
                   whitespace-nowrap
@@ -149,7 +149,7 @@ export default function DataTable<T extends { id: string }>({
                 <tr 
                   key={item.id} 
                   className="
-                    group hover:bg-violet-50/30 
+                    group hover:bg-sky-50/30 
                     transition-colors duration-200
                     animate-fade-in-up
                   "
@@ -171,8 +171,8 @@ export default function DataTable<T extends { id: string }>({
                             onClick={() => onEdit(item)}
                             className="
                               p-2 rounded-xl
-                              text-gray-400 hover:text-violet-600 
-                              hover:bg-violet-50
+                              text-gray-400 hover:text-sky-600 
+                              hover:bg-sky-50
                               transition-all duration-200
                             "
                             aria-label="Modifier"
@@ -250,7 +250,7 @@ export default function DataTable<T extends { id: string }>({
                         w-9 h-9 rounded-xl font-medium text-sm
                         transition-all duration-200
                         ${currentPage === pageNum
-                          ? 'bg-violet-600 text-white shadow-md shadow-violet-500/20'
+                          ? 'bg-sky-600 text-white shadow-md shadow-sky-500/20'
                           : 'bg-gray-50 border border-gray-100 text-gray-500 hover:bg-gray-100 hover:border-gray-200'
                         }
                       `}

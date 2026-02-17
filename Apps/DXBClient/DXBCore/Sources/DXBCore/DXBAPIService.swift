@@ -122,7 +122,7 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
                 qrCodeUrl: order.esimList?.first?.qrCodeUrl ?? "",
                 status: order.esimList?.first?.smdpStatus ?? "UNKNOWN",
                 packageName: order.packageList?.first?.packageName ?? "eSIM",
-                totalVolume: "\((order.packageList?.first?.totalVolume ?? 0) / 1024) GB",
+                totalVolume: "\((order.packageList?.first?.totalVolume ?? 0) / 1_073_741_824) GB", // bytes to GB
                 expiredTime: order.packageList?.first?.expiredTime ?? "",
                 createdAt: Date()
             )

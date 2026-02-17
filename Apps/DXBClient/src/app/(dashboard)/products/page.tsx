@@ -152,7 +152,7 @@ export default function ProductsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center animate-pulse">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center animate-pulse">
           <Package className="w-7 h-7 text-white" />
         </div>
       </div>
@@ -172,10 +172,10 @@ export default function ProductsPage() {
             onClick={handleAdd}
             className="
               flex items-center gap-2 px-5 py-2.5
-              bg-gradient-to-r from-violet-600 to-violet-500
+              bg-gradient-to-r from-sky-600 to-sky-500
               text-white font-medium rounded-2xl
-              shadow-md shadow-violet-500/20
-              hover:shadow-lg hover:shadow-violet-500/25
+              shadow-md shadow-sky-500/20
+              hover:shadow-lg hover:shadow-sky-500/25
               hover:-translate-y-0.5 active:translate-y-0
               transition-all duration-300
             "
@@ -190,20 +190,20 @@ export default function ProductsPage() {
       <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100/50 animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'backwards' }}>
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-violet-500 transition-colors" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-sky-500 transition-colors" size={18} />
             <input
               type="text"
               placeholder="Rechercher un produit..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 focus:bg-white transition-all placeholder:text-gray-300"
+              className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 focus:bg-white transition-all placeholder:text-gray-300"
             />
           </div>
           <div className="flex gap-3">
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 appearance-none cursor-pointer min-w-[150px]"
+              className="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 appearance-none cursor-pointer min-w-[150px]"
             >
               <option value="">Toutes catégories</option>
               {categories.map(cat => (
@@ -213,7 +213,7 @@ export default function ProductsPage() {
             <select
               value={supplierFilter}
               onChange={(e) => setSupplierFilter(e.target.value)}
-              className="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 appearance-none cursor-pointer min-w-[180px]"
+              className="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 appearance-none cursor-pointer min-w-[180px]"
             >
               <option value="">Tous fournisseurs</option>
               {suppliers.map(s => (
@@ -383,10 +383,10 @@ export default function ProductsPage() {
               disabled={saving}
               className="
                 px-6 py-2.5
-                bg-gradient-to-r from-violet-600 to-violet-500
+                bg-gradient-to-r from-sky-600 to-sky-500
                 text-white font-medium rounded-2xl
-                shadow-md shadow-violet-500/20
-                hover:shadow-lg hover:shadow-violet-500/25 hover:-translate-y-0.5
+                shadow-md shadow-sky-500/20
+                hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5
                 transition-all duration-300
                 disabled:opacity-50 disabled:cursor-not-allowed
               "
@@ -459,7 +459,7 @@ function ProductCard({
         <div className="absolute top-2 sm:top-3 right-2 sm:right-3 flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="p-2 bg-white rounded-xl text-gray-400 hover:text-violet-600 shadow-sm transition-all"
+            className="p-2 bg-white rounded-xl text-gray-400 hover:text-sky-600 shadow-sm transition-all"
             aria-label="Modifier"
           >
             <Edit2 size={14} />
@@ -478,14 +478,14 @@ function ProductCard({
       <div className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-800 text-sm sm:text-base truncate group-hover:text-violet-600 transition-colors">
+            <h3 className="font-semibold text-gray-800 text-sm sm:text-base truncate group-hover:text-sky-600 transition-colors">
               {product.name}
             </h3>
             {product.sku && (
               <p className="text-xs text-gray-400 truncate">SKU: {product.sku}</p>
             )}
           </div>
-          <span className="flex-shrink-0 text-sm sm:text-base font-semibold text-violet-600 whitespace-nowrap">
+          <span className="flex-shrink-0 text-sm sm:text-base font-semibold text-sky-600 whitespace-nowrap">
             {product.price.toFixed(2)} €
           </span>
         </div>
@@ -525,10 +525,10 @@ function ProductCard({
             disabled={isOutOfStock}
             className="
               flex items-center gap-1.5 px-3 py-2
-              bg-gradient-to-r from-violet-600 to-violet-500
+              bg-gradient-to-r from-sky-600 to-sky-500
               text-white text-xs font-medium rounded-xl
-              shadow-sm shadow-violet-500/20
-              hover:shadow-md hover:shadow-violet-500/25 hover:-translate-y-0.5
+              shadow-sm shadow-sky-500/20
+              hover:shadow-md hover:shadow-sky-500/25 hover:-translate-y-0.5
               transition-all duration-200
               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
               whitespace-nowrap

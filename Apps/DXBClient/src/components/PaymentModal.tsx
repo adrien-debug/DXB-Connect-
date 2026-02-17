@@ -201,8 +201,8 @@ export default function PaymentModal({
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-violet-100 flex items-center justify-center">
-                <ShoppingBag className="w-5 h-5 text-violet-600" />
+              <div className="w-10 h-10 rounded-2xl bg-sky-100 flex items-center justify-center">
+                <ShoppingBag className="w-5 h-5 text-sky-600" />
               </div>
               <div>
                 <h2 className="text-base font-semibold text-gray-800">
@@ -219,7 +219,7 @@ export default function PaymentModal({
             {step !== 'processing' && (
               <button
                 onClick={handleClose}
-                className="p-2 rounded-xl text-gray-400 hover:text-violet-600 hover:bg-violet-50 transition-all"
+                className="p-2 rounded-xl text-gray-400 hover:text-sky-600 hover:bg-sky-50 transition-all"
               >
                 <X size={18} />
               </button>
@@ -229,8 +229,8 @@ export default function PaymentModal({
           {/* Steps indicator */}
           {step !== 'success' && step !== 'processing' && (
             <div className="flex items-center gap-2 mt-4">
-              <div className={`flex-1 h-1 rounded-full ${step === 'review' ? 'bg-violet-500' : 'bg-violet-500'}`} />
-              <div className={`flex-1 h-1 rounded-full ${step === 'payment' ? 'bg-violet-500' : 'bg-gray-100'}`} />
+              <div className={`flex-1 h-1 rounded-full ${step === 'review' ? 'bg-sky-500' : 'bg-sky-500'}`} />
+              <div className={`flex-1 h-1 rounded-full ${step === 'payment' ? 'bg-sky-500' : 'bg-gray-100'}`} />
             </div>
           )}
         </div>
@@ -274,14 +274,14 @@ export default function PaymentModal({
                 </div>
                 <div className="flex justify-between text-base font-semibold text-gray-800 pt-2 border-t border-gray-100">
                   <span>Total</span>
-                  <span className="text-violet-600">{formatPrice(total)}</span>
+                  <span className="text-sky-600">{formatPrice(total)}</span>
                 </div>
               </div>
 
               {/* Continue button */}
               <button
                 onClick={() => setStep('payment')}
-                className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-violet-500 text-white font-medium rounded-2xl shadow-md shadow-violet-500/20 hover:shadow-lg hover:shadow-violet-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-gradient-to-r from-sky-600 to-sky-500 text-white font-medium rounded-2xl shadow-md shadow-sky-500/20 hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
               >
                 Continuer vers le paiement
                 <ChevronRight size={16} />
@@ -309,7 +309,7 @@ export default function PaymentModal({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="votre@email.com"
-                    className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 bg-gray-50 focus:bg-white transition-all"
+                    className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 bg-gray-50 focus:bg-white transition-all"
                   />
                 </div>
                 <div>
@@ -319,7 +319,7 @@ export default function PaymentModal({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="John Doe"
-                    className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 bg-gray-50 focus:bg-white transition-all"
+                    className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 bg-gray-50 focus:bg-white transition-all"
                   />
                 </div>
               </div>
@@ -333,12 +333,12 @@ export default function PaymentModal({
                     onClick={() => setSelectedMethod('card')}
                     className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${
                       selectedMethod === 'card'
-                        ? 'border-violet-300 bg-violet-50'
+                        ? 'border-sky-300 bg-sky-50'
                         : 'border-gray-100 hover:border-gray-200 bg-gray-50'
                     }`}
                   >
-                    <CreditCard className={`w-5 h-5 ${selectedMethod === 'card' ? 'text-violet-600' : 'text-gray-400'}`} />
-                    <span className={`text-xs font-medium ${selectedMethod === 'card' ? 'text-violet-600' : 'text-gray-500'}`}>
+                    <CreditCard className={`w-5 h-5 ${selectedMethod === 'card' ? 'text-sky-600' : 'text-gray-400'}`} />
+                    <span className={`text-xs font-medium ${selectedMethod === 'card' ? 'text-sky-600' : 'text-gray-500'}`}>
                       Carte bancaire
                     </span>
                   </button>
@@ -348,12 +348,12 @@ export default function PaymentModal({
                     onClick={() => setSelectedMethod('apple_pay')}
                     className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${
                       selectedMethod === 'apple_pay'
-                        ? 'border-violet-300 bg-violet-50'
+                        ? 'border-sky-300 bg-sky-50'
                         : 'border-gray-100 hover:border-gray-200 bg-gray-50'
                     }`}
                   >
                     <ApplePayIcon />
-                    <span className={`text-xs font-medium ${selectedMethod === 'apple_pay' ? 'text-violet-600' : 'text-gray-500'}`}>
+                    <span className={`text-xs font-medium ${selectedMethod === 'apple_pay' ? 'text-sky-600' : 'text-gray-500'}`}>
                       Apple Pay
                     </span>
                   </button>
@@ -363,12 +363,12 @@ export default function PaymentModal({
                     onClick={() => setSelectedMethod('google_pay')}
                     className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${
                       selectedMethod === 'google_pay'
-                        ? 'border-violet-300 bg-violet-50'
+                        ? 'border-sky-300 bg-sky-50'
                         : 'border-gray-100 hover:border-gray-200 bg-gray-50'
                     }`}
                   >
                     <GooglePayIcon />
-                    <span className={`text-xs font-medium ${selectedMethod === 'google_pay' ? 'text-violet-600' : 'text-gray-500'}`}>
+                    <span className={`text-xs font-medium ${selectedMethod === 'google_pay' ? 'text-sky-600' : 'text-gray-500'}`}>
                       Google Pay
                     </span>
                   </button>
@@ -378,12 +378,12 @@ export default function PaymentModal({
                     onClick={() => setSelectedMethod('paypal')}
                     className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${
                       selectedMethod === 'paypal'
-                        ? 'border-violet-300 bg-violet-50'
+                        ? 'border-sky-300 bg-sky-50'
                         : 'border-gray-100 hover:border-gray-200 bg-gray-50'
                     }`}
                   >
                     <PayPalIcon />
-                    <span className={`text-xs font-medium ${selectedMethod === 'paypal' ? 'text-violet-600' : 'text-gray-500'}`}>
+                    <span className={`text-xs font-medium ${selectedMethod === 'paypal' ? 'text-sky-600' : 'text-gray-500'}`}>
                       PayPal
                     </span>
                   </button>
@@ -401,7 +401,7 @@ export default function PaymentModal({
                       onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                       placeholder="1234 5678 9012 3456"
                       maxLength={19}
-                      className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 bg-white"
+                      className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 bg-white"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -413,7 +413,7 @@ export default function PaymentModal({
                         onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
                         placeholder="MM/YY"
                         maxLength={5}
-                        className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 bg-white"
+                        className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 bg-white"
                       />
                     </div>
                     <div>
@@ -424,7 +424,7 @@ export default function PaymentModal({
                         onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
                         placeholder="123"
                         maxLength={4}
-                        className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 bg-white"
+                        className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 bg-white"
                       />
                     </div>
                   </div>
@@ -455,12 +455,12 @@ export default function PaymentModal({
               <div className="border-t border-gray-100 pt-4">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-gray-500">Total à payer</span>
-                  <span className="text-xl font-semibold text-violet-600">{formatPrice(total)}</span>
+                  <span className="text-xl font-semibold text-sky-600">{formatPrice(total)}</span>
                 </div>
 
                 <button
                   onClick={handlePayment}
-                  className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-violet-500 text-white font-medium rounded-2xl shadow-md shadow-violet-500/20 hover:shadow-lg hover:shadow-violet-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-gradient-to-r from-sky-600 to-sky-500 text-white font-medium rounded-2xl shadow-md shadow-sky-500/20 hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
                 >
                   <Lock size={16} />
                   Payer maintenant
@@ -479,8 +479,8 @@ export default function PaymentModal({
           {step === 'processing' && (
             <div className="py-12 text-center">
               <div className="relative w-16 h-16 mx-auto mb-6">
-                <div className="absolute inset-0 rounded-full bg-violet-500 animate-ping opacity-20" />
-                <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-sky-500 animate-ping opacity-20" />
+                <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center">
                   <Loader2 className="w-8 h-8 text-white animate-spin" />
                 </div>
               </div>
@@ -501,7 +501,7 @@ export default function PaymentModal({
               </p>
               <button
                 onClick={handleClose}
-                className="px-8 py-3 bg-gradient-to-r from-violet-600 to-violet-500 text-white font-medium rounded-2xl shadow-md shadow-violet-500/20 hover:shadow-lg hover:shadow-violet-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all"
+                className="px-8 py-3 bg-gradient-to-r from-sky-600 to-sky-500 text-white font-medium rounded-2xl shadow-md shadow-sky-500/20 hover:shadow-lg hover:shadow-sky-500/25 hover:-translate-y-0.5 active:translate-y-0 transition-all"
               >
                 Fermer
               </button>

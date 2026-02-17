@@ -1,6 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+// Cast ciblé — types Supabase générés en décalage avec la version du client
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseAny = any
+
 /**
  * Middleware d'authentification pour les routes API
  * Vérifie le token Bearer et retourne l'utilisateur authentifié
@@ -24,7 +28,7 @@ export async function requireAuth(request: Request) {
 
   try {
     // Vérifier le token avec Supabase
-    const supabase = await createClient()
+    const supabase = await createClient() as SupabaseAny
     const { data: { user }, error } = await supabase.auth.getUser(token)
 
     if (error || !user) {
@@ -68,7 +72,7 @@ export async function optionalAuth(request: Request) {
   const token = authHeader.replace('Bearer ', '')
 
   try {
-    const supabase = await createClient()
+    const supabase = await createClient() as SupabaseAny
     const { data: { user }, error } = await supabase.auth.getUser(token)
 
     if (error || !user) {
@@ -94,7 +98,7 @@ export async function requireAuthFlexible(request: Request) {
     const token = authHeader.replace('Bearer ', '')
 
     try {
-      const supabase = await createClient()
+      const supabase = await createClient() as SupabaseAny
       const { data: { user }, error } = await supabase.auth.getUser(token)
 
       if (!error && user) {
@@ -107,7 +111,7 @@ export async function requireAuthFlexible(request: Request) {
 
   // 2. Essayer Cookie SSR (Web)
   try {
-    const supabase = await createClient()
+    const supabase = await createClient() as SupabaseAny
     const { data: { user }, error } = await supabase.auth.getUser()
 
     console.log('[Auth] Cookie check - User:', user?.email, 'Error:', error?.message)
@@ -144,7 +148,7 @@ export async function requireAdmin(request: Request) {
       user: null
     }
   }
-  const supabase = await createClient()
+  const supabase = await createClient() as SupabaseAny as SupabaseAny
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('role')

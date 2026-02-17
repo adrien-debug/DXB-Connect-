@@ -16,7 +16,7 @@ export default function UnauthorizedPage() {
         </p>
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Retour à la connexion

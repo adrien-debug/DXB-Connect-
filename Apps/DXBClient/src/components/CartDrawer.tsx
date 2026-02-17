@@ -52,8 +52,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-violet-100 flex items-center justify-center">
-                <ShoppingCart className="w-5 h-5 text-violet-600" />
+              <div className="w-10 h-10 rounded-2xl bg-sky-100 flex items-center justify-center">
+                <ShoppingCart className="w-5 h-5 text-sky-600" />
               </div>
               <div>
                 <h2 className="text-base font-semibold text-gray-800">Mon Panier</h2>
@@ -62,7 +62,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-gray-400 hover:text-violet-600 hover:bg-violet-50 transition-all"
+              className="p-2 rounded-xl text-gray-400 hover:text-sky-600 hover:bg-sky-50 transition-all"
             >
               <X size={18} />
             </button>
@@ -73,7 +73,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         <div className="flex-1 overflow-y-auto p-5 bg-gray-50/50">
           {isLoading ? (
             <div className="flex items-center justify-center h-40">
-              <div className="w-8 h-8 rounded-full border-2 border-violet-500 border-t-transparent animate-spin" />
+              <div className="w-8 h-8 rounded-full border-2 border-sky-500 border-t-transparent animate-spin" />
             </div>
           ) : !cartItems?.length ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
@@ -115,7 +115,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                           {item.product.supplier.name}
                         </p>
                       )}
-                      <p className="text-sm font-semibold text-violet-600 mt-1">
+                      <p className="text-sm font-semibold text-sky-600 mt-1">
                         {item.product?.price?.toFixed(2) || 0} €
                       </p>
                     </div>
@@ -174,10 +174,10 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 onClick={() => setPaymentOpen(true)}
                 className="
                   flex-[2] py-3 px-4 
-                  bg-gradient-to-r from-violet-600 to-violet-500
+                  bg-gradient-to-r from-sky-600 to-sky-500
                   text-white font-medium rounded-2xl
-                  shadow-md shadow-violet-500/20
-                  hover:shadow-lg hover:shadow-violet-500/25
+                  shadow-md shadow-sky-500/20
+                  hover:shadow-lg hover:shadow-sky-500/25
                   hover:-translate-y-0.5 active:translate-y-0
                   transition-all duration-300
                 "

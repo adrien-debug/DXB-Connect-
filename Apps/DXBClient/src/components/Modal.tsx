@@ -85,8 +85,8 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
                 onClick={onClose}
                 className="
                   p-2 rounded-xl flex-shrink-0
-                  text-gray-400 hover:text-violet-600
-                  hover:bg-violet-50
+                  text-gray-400 hover:text-sky-600
+                  hover:bg-sky-50
                   transition-all duration-200
                 "
                 aria-label="Fermer"

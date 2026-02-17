@@ -49,7 +49,7 @@ export async function GET(request: Request) {
     // Enrichir avec les données locales si disponibles
     if (data.success && data.obj) {
       try {
-        const supabaseDB = await createClient()
+        const supabaseDB = await createClient() as SupabaseAny
         let localQuery = supabaseDB
           .from('esim_orders')
           .select('purchase_price, currency, created_at')

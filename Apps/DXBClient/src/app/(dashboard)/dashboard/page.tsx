@@ -113,7 +113,7 @@ export default function DashboardPage() {
     }
   }
 
-  const COLORS = ['#7C3AED', '#8B5CF6', '#A78BFA', '#C4B5FD', '#DDD6FE', '#EDE9FE']
+  const COLORS = ['#0EA5E9', '#38BDF8', '#7DD3FC', '#BAE6FD', '#E0F2FE', '#F0F9FF']
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -128,7 +128,7 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="relative">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center animate-pulse">
             <LayoutDashboard className="w-8 h-8 text-white" />
           </div>
         </div>
@@ -206,7 +206,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400 mt-0.5">Évolution des ventes eSIM</p>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <div className="w-2.5 h-2.5 rounded-full bg-violet-500" />
+              <div className="w-2.5 h-2.5 rounded-full bg-sky-500" />
               <span className="text-gray-500">Commandes</span>
             </div>
           </div>
@@ -216,8 +216,8 @@ export default function DashboardPage() {
               <BarChart data={stats.ordersByDay} barGap={8} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                 <defs>
                   <linearGradient id="ordersGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#7C3AED" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.8} />
+                    <stop offset="0%" stopColor="#0EA5E9" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#38BDF8" stopOpacity={0.8} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -239,7 +239,7 @@ export default function DashboardPage() {
                     backgroundColor: 'white',
                     borderRadius: '16px',
                     border: 'none',
-                    boxShadow: '0 4px 20px rgba(124, 58, 237, 0.15)',
+                    boxShadow: '0 4px 20px rgba(14, 165, 233, 0.15)',
                     fontSize: '12px'
                   }}
                 />
@@ -286,7 +286,7 @@ export default function DashboardPage() {
                       {(pkg.volume / (1024 * 1024 * 1024)).toFixed(0)}GB
                     </p>
                   </div>
-                  <span className="text-sm font-semibold text-violet-600">
+                  <span className="text-sm font-semibold text-sky-600">
                     {pkg.count}
                   </span>
                 </div>
@@ -316,7 +316,7 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/esim/orders"
-              className="text-sm text-violet-600 hover:text-violet-700 font-medium"
+              className="text-sm text-sky-600 hover:text-sky-700 font-medium"
             >
               Voir tout
             </Link>
@@ -326,8 +326,8 @@ export default function DashboardPage() {
             <div className="space-y-3 max-h-80 overflow-y-auto">
               {stock.esimList.slice(0, 5).map((esim: any) => (
                 <div key={esim.iccid} className="flex items-center gap-4 p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
-                  <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-                    <Wifi size={18} className="text-violet-600" />
+                  <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center">
+                    <Wifi size={18} className="text-sky-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-800 text-sm truncate">
@@ -370,9 +370,9 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 gap-3">
             <Link
               href="/esim"
-              className="group p-4 bg-gradient-to-br from-violet-50 to-violet-100/50 rounded-2xl hover:shadow-md transition-all"
+              className="group p-4 bg-gradient-to-br from-sky-50 to-sky-100/50 rounded-2xl hover:shadow-md transition-all"
             >
-              <div className="w-10 h-10 rounded-xl bg-violet-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                 <Wifi size={18} className="text-white" />
               </div>
               <p className="font-medium text-gray-800 text-sm">Acheter eSIM</p>

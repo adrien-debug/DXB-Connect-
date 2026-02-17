@@ -16,7 +16,7 @@ type SupabaseAny = any
  */
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient() as SupabaseAny
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
@@ -36,7 +36,6 @@ export async function POST(request: Request) {
     }
 
     // Vérifier que la commande appartient à l'utilisateur
-    const supabase = await createClient()
     let orderQuery = supabase.from('esim_orders').select('id, order_no').eq('user_id', user!.id)
     if (body.orderNo) orderQuery = orderQuery.eq('order_no', body.orderNo)
     else if (body.iccid) orderQuery = orderQuery.eq('iccid', body.iccid)

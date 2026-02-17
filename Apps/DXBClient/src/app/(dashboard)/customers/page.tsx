@@ -91,7 +91,7 @@ export default function CustomersPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center animate-pulse">
             <Users className="w-8 h-8 text-white" />
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function CustomersPage() {
       {/* Header */}
       <div className="animate-fade-in-up">
         <h1 className="text-2xl font-semibold text-gray-800">Clients</h1>
-        <p className="text-gray-400 text-sm mt-1">Utilisateurs inscrits via l'app iOS</p>
+        <p className="text-gray-400 text-sm mt-1">Utilisateurs inscrits via l&apos;app iOS</p>
       </div>
 
       {/* Stats */}
@@ -144,7 +144,7 @@ export default function CustomersPage() {
             placeholder="Rechercher un client par nom ou email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 focus:bg-white transition-all placeholder:text-gray-300"
+            className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 focus:bg-white transition-all placeholder:text-gray-300"
           />
         </div>
         <p className="text-sm text-gray-400 mt-3">
@@ -170,7 +170,7 @@ export default function CustomersPage() {
             <Users className="w-8 h-8 text-gray-300" />
           </div>
           <p className="text-gray-500 font-medium">Aucun client trouvé</p>
-          <p className="text-sm text-gray-400 mt-1">Les clients apparaîtront ici après inscription via l'app iOS</p>
+          <p className="text-sm text-gray-400 mt-1">Les clients apparaîtront ici après inscription via l&apos;app iOS</p>
         </div>
       )}
 
@@ -215,29 +215,29 @@ function ClientCard({
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-bold shadow-lg shadow-violet-500/20">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center text-white font-bold shadow-lg shadow-sky-500/20">
             {client.full_name?.charAt(0).toUpperCase() || client.email?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-800 group-hover:text-violet-600 transition-colors">
+            <h3 className="font-semibold text-gray-800 group-hover:text-sky-600 transition-colors">
               {client.full_name || 'Utilisateur'}
             </h3>
             <p className="text-sm text-gray-400 truncate max-w-[180px]">{client.email}</p>
           </div>
         </div>
-        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-violet-500 group-hover:translate-x-1 transition-all" />
+        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-sm">
-          <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center">
-            <Wifi size={14} className="text-violet-500" />
+          <div className="w-8 h-8 rounded-xl bg-sky-50 flex items-center justify-center">
+            <Wifi size={14} className="text-sky-500" />
           </div>
           <span className="text-gray-600">{client.esim_count || 0} eSIM(s) achetée(s)</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center">
-            <Calendar size={14} className="text-violet-500" />
+          <div className="w-8 h-8 rounded-xl bg-sky-50 flex items-center justify-center">
+            <Calendar size={14} className="text-sky-500" />
           </div>
           <span className="text-gray-600">Inscrit le {formatDate(client.created_at)}</span>
         </div>
@@ -295,9 +295,9 @@ function ClientDetailModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-violet-50 to-white">
+        <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-sky-50 to-white">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-violet-500/30">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-sky-500/30">
               {client.full_name?.charAt(0).toUpperCase() || client.email?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div>
@@ -316,9 +316,9 @@ function ClientDetailModal({
         <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)]">
           {/* Stats */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-violet-50 rounded-2xl p-4">
-              <p className="text-sm text-violet-600 mb-1">eSIMs achetées</p>
-              <p className="text-2xl font-bold text-violet-700">{client.esim_count || 0}</p>
+            <div className="bg-sky-50 rounded-2xl p-4">
+              <p className="text-sm text-sky-600 mb-1">eSIMs achetées</p>
+              <p className="text-2xl font-bold text-sky-700">{client.esim_count || 0}</p>
             </div>
             <div className="bg-gray-50 rounded-2xl p-4">
               <p className="text-sm text-gray-500 mb-1">Membre depuis</p>
