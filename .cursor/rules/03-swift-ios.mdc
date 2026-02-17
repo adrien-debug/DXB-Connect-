@@ -1,0 +1,252 @@
+---
+description: Standards Swift/SwiftUI pour app iOS
+globs: "**/*.swift"
+alwaysApply: false
+---
+
+# Swift/SwiftUI - Standards iOS
+
+## 📦 Structure DXBCore Package
+
+```
+DXBCore/
+├── Sources/DXBCore/
+│   ├── Models.swift        # Plan, ESIMOrder, Auth
+│   ├── Config.swift        # Environnements API
+│   ├── APIClient.swift     # Client HTTP
+│   ├── AuthService.swift   # Auth Apple/Email
+│   ├── DXBAPIService.swift # Endpoints eSIM
+│   ├── TokenManager.swift  # Refresh auto
+│   └── Logger.swift        # Logs structurés
+└── Tests/DXBCoreTests/
+```
+
+## 🔧 Configuration API
+
+```swift
+// ✅ Config.swift - Environnements
+public enum APIEnvironment {
+    case development   // http://localhost:4000/api
+    case staging       // https://staging.vercel.app/api
+    case production    // https://prod.vercel.app/api
+
+    public var baseURL: String {
+        switch self {
+        case .development: return "http://localhost:4000/api"
+        case .staging: return "https://dxb-connect-staging.vercel.app/api"
+        case .production: return "https://your-prod-url.vercel.app/api"
+        }
+    }
+}
+
+// ✅ DXBClientApp.swift - Config selon build
+#if DEBUG
+APIConfig.current = .development
+#else
+APIConfig.current = .production
+#endif
+```
+
+## 🔐 Authentification
+
+### Pattern AuthService
+```swift
+// ✅ Gestion tokens
+public class AuthService {
+    public func signInWithApple(
+        userIdentifier: String,
+        identityToken: String,
+        userInfo: AppleUserInfo?
+    ) async throws -> AuthResponse {
+        let response = try await apiClient.post(
+            "/auth/apple",
+            body: ["idToken": identityToken, ...]
+        )
+
+        // ✅ Sauvegarder tokens
+        TokenManager.shared.saveTokens(
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken
+        )
+
+        return response
+    }
+}
+```
+
+### Refresh Token Automatique
+```swift
+// ✅ TokenManager vérifie expiration
+public class TokenManager {
+    public func ensureValidToken() async throws -> String {
+        if isTokenExpired() {
+            try await refreshToken()
+        }
+        return getAccessToken()
+    }
+}
+
+// ✅ APIClient utilise TokenManager
+let token = try await TokenManager.shared.ensureValidToken()
+request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+```
+
+## 📡 API Client
+
+```swift
+// ✅ Pattern APIClient.swift
+public class APIClient {
+    public func get<T: Decodable>(
+        _ endpoint: String,
+        requiresAuth: Bool = true
+    ) async throws -> T {
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        if requiresAuth {
+            let token = try await TokenManager.shared.ensureValidToken()
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        // ✅ Gestion erreurs HTTP
+        guard (200...299).contains(httpResponse.statusCode) else {
+            Logger.api.error("API error: \(httpResponse.statusCode)")
+            throw APIError.httpError(httpResponse.statusCode)
+        }
+
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+}
+```
+
+## 📝 Logging Structuré
+
+```swift
+// ✅ Logger.swift - OSLog
+import OSLog
+
+public enum Logger {
+    public static let api = OSLog(subsystem: "com.dxb", category: "API")
+    public static let auth = OSLog(subsystem: "com.dxb", category: "Auth")
+    public static let ui = OSLog(subsystem: "com.dxb", category: "UI")
+}
+
+// ✅ Utilisation
+Logger.api.info("Fetching packages")
+Logger.auth.error("Login failed: \(error.localizedDescription)")
+
+// ❌ Ne JAMAIS logger
+Logger.api.debug("Token: \(token)")  // ❌ Secret
+Logger.auth.info("Email: \(email)")  // ❌ PII
+```
+
+## 🎨 SwiftUI Views
+
+### Structure View
+```swift
+// ✅ Pattern standard
+struct PlanListView: View {
+    @StateObject private var viewModel = PlanListViewModel()
+    @State private var selectedPlan: Plan?
+
+    var body: some View {
+        NavigationView {
+            Group {
+                if viewModel.isLoading {
+                    ProgressView()
+                } else if let error = viewModel.error {
+                    ErrorView(message: error.localizedDescription)
+                } else {
+                    List(viewModel.plans) { plan in
+                        PlanRow(plan: plan)
+                    }
+                }
+            }
+            .navigationTitle("Plans eSIM")
+        }
+        .task {
+            await viewModel.loadPlans()
+        }
+    }
+}
+```
+
+### Gestion État
+```swift
+// ✅ ViewModel avec @MainActor
+@MainActor
+class PlanListViewModel: ObservableObject {
+    @Published var plans: [Plan] = []
+    @Published var isLoading = false
+    @Published var error: Error?
+
+    func loadPlans() async {
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            plans = try await DXBAPIService.shared.fetchPlans()
+        } catch {
+            self.error = error
+            Logger.ui.error("Failed to load plans: \(error.localizedDescription)")
+        }
+    }
+}
+```
+
+## 🧪 Tests
+
+```swift
+// ✅ Tests dans DXBCoreTests/
+import XCTest
+@testable import DXBCore
+
+final class APIClientTests: XCTestCase {
+    func testFetchPlans() async throws {
+        let client = APIClient()
+        let plans: [Plan] = try await client.get("/esim/packages")
+        XCTAssertFalse(plans.isEmpty)
+    }
+}
+```
+
+## 🔄 Modèles Partagés iOS/Next.js
+
+```swift
+// ✅ Models.swift - Aligné avec Next.js
+public struct Plan: Identifiable, Codable {
+    public let id: String           // packageCode
+    public let name: String
+    public let dataGB: Int           // Converti depuis bytes
+    public let durationDays: Int
+    public let priceUSD: Double      // Converti depuis centimes
+    public let location: String
+    public let locationCode: String
+}
+
+public struct ESIMOrder: Identifiable, Codable {
+    public let id: String
+    public let orderNo: String
+    public let iccid: String
+    public let lpaCode: String       // Code activation
+    public let qrCodeUrl: String
+    public let status: String        // SMDPStatus
+    public let packageName: String
+    public let totalVolume: String   // "5 GB"
+}
+```
+
+## 🎯 Best Practices
+
+1. **Toujours utiliser TokenManager** pour auth
+2. **Logger structuré** sans données sensibles
+3. **@MainActor** pour ViewModels
+4. **async/await** pour API calls
+5. **Gestion erreurs** avec do/catch
+6. **Tests unitaires** pour logique critique

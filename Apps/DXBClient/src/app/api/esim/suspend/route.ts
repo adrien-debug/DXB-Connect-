@@ -1,22 +1,19 @@
-import { NextResponse } from 'next/server'
+import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
+import type { SuspendRequest } from '@/lib/esim-types'
 import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
 
-const ESIM_API_URL = 'https://api.esimaccess.com/api/v1'
-
-interface SuspendRequest {
-  orderNo?: string
-  iccid?: string
-  action: 'suspend' | 'resume'
-}
+// Cast ciblé — types Supabase générés en décalage avec la version du client
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseAny = any
 
 /**
  * POST /api/esim/suspend
- * Suspendre ou réactiver temporairement une eSIM
- * Body: { orderNo, action: 'suspend' | 'resume' } ou { iccid, action }
+ * Suspendre ou réactiver temporairement une eSIM.
+ * Body: { orderNo?, iccid?, action: 'suspend' | 'resume' }
  */
 export async function POST(request: Request) {
   try {
-    // Vérifier authentification
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
@@ -43,17 +40,13 @@ export async function POST(request: Request) {
       )
     }
 
-    // Vérifier que l'ordre appartient à l'utilisateur
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const query = (supabase.from('esim_orders') as any).select('*').eq('user_id', user.id)
-    
-    if (body.orderNo) {
-      query.eq('order_no', body.orderNo)
-    } else if (body.iccid) {
-      query.eq('iccid', body.iccid)
-    }
+    // Vérifier que la commande appartient à l'utilisateur
+    const supabase = await createClient()
+    let orderQuery = supabase.from('esim_orders').select('id, order_no').eq('user_id', user!.id)
+    if (body.orderNo) orderQuery = orderQuery.eq('order_no', body.orderNo)
+    else if (body.iccid) orderQuery = orderQuery.eq('iccid', body.iccid)
 
-    const { data: order } = await query.single()
+    const { data: order } = await orderQuery.single()
 
     if (!order) {
       return NextResponse.json(
@@ -62,58 +55,34 @@ export async function POST(request: Request) {
       )
     }
 
-    const endpoint = body.action === 'suspend' 
-      ? '/open/esim/suspend' 
-      : '/open/esim/resume'
+    const endpoint = body.action === 'suspend' ? '/open/esim/suspend' : '/open/esim/resume'
 
-    const response = await fetch(`${ESIM_API_URL}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'RT-AccessCode': process.env.ESIM_ACCESS_CODE || '',
-        'RT-SecretKey': process.env.ESIM_SECRET_KEY || '',
-      },
-      body: JSON.stringify({
-        ...(body.orderNo && { orderNo: body.orderNo }),
-        ...(body.iccid && { iccid: body.iccid }),
-      }),
+    const data = await esimPost<{ success: boolean }>(endpoint, {
+      ...(body.orderNo && { orderNo: body.orderNo }),
+      ...(body.iccid && { iccid: body.iccid }),
     })
-
-    if (!response.ok) {
-      console.error('[esim/suspend] API error:', response.status)
-      return NextResponse.json(
-        { success: false, error: 'eSIM API error' },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
 
     if (data.success) {
       const newStatus = body.action === 'suspend' ? 'SUSPENDED' : 'ACTIVE'
-      
-      console.log(`[esim/suspend] ${body.action} successful:`, {
-        orderNo: body.orderNo || order.order_no,
-        userId: user.id,
-      })
+      console.log('[esim/suspend] %s réussi orderNo=%s user=%s', body.action, body.orderNo ?? order.order_no, user!.id)
 
-      // Mettre à jour le statut
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from('esim_orders') as any)
-          .update({
-            status: newStatus,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', order.id)
-      } catch (dbError) {
-        console.warn('[esim/suspend] DB update error:', dbError)
-      }
+      const { error: dbError } = await supabase
+        .from('esim_orders')
+        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .eq('id', order.id)
+      if (dbError) console.warn('[esim/suspend] DB update error:', dbError.message)
     }
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('[esim/suspend] Error:', error)
+    if (error instanceof ESIMAccessError) {
+      console.error('[esim/suspend] eSIM API error %d:', error.status, error.body)
+      return NextResponse.json(
+        { success: false, error: 'eSIM provider error' },
+        { status: error.status }
+      )
+    }
+    console.error('[esim/suspend] Unexpected error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

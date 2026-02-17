@@ -1,0 +1,159 @@
+---
+description: Standards API Next.js pour routes backend
+globs: **/app/api/**/*.ts
+alwaysApply: false
+---
+
+# API Routes Next.js - Standards
+
+## 🔐 Authentification
+
+### Fonction Unifiée (iOS + Web)
+```typescript
+// ✅ TOUJOURS utiliser requireAuthFlexible
+import { requireAuthFlexible } from '@/lib/auth-middleware';
+
+export async function GET(request: Request) {
+  const { user, error } = await requireAuthFlexible(request);
+  if (error) return NextResponse.json({ error }, { status: 401 });
+
+  // user.id disponible
+}
+```
+
+### Types d'Auth Supportés
+- **Bearer Token**: `Authorization: Bearer <token>` (iOS)
+- **Cookie Session**: Session Supabase (Web)
+
+## 📋 Structure Route
+
+```typescript
+// ✅ BON - Structure complète
+export async function POST(request: Request) {
+  try {
+    // 1. Auth
+    const { user, error } = await requireAuthFlexible(request);
+    if (error) return NextResponse.json({ error }, { status: 401 });
+
+    // 2. Validation
+    const body = await request.json();
+    const validated = schema.parse(body);
+
+    // 3. Vérification ownership
+    const { data } = await supabase
+      .from('table')
+      .select()
+      .eq('id', validated.id)
+      .eq('user_id', user.id)  // ✅ CRITIQUE
+      .single();
+
+    if (!data) return NextResponse.json(
+      { error: 'Not found or unauthorized' },
+      { status: 404 }
+    );
+
+    // 4. Logique métier
+    const result = await doSomething(data);
+
+    // 5. Réponse
+    return NextResponse.json({ data: result });
+
+  } catch (error) {
+    // ❌ Ne JAMAIS logger error.message directement (peut contenir secrets)
+    console.error('[API] Operation failed:', {
+      endpoint: '/api/route',
+      userId: user?.id,
+      // Ne PAS logger: email, tokens, données sensibles
+    });
+
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+## 🚨 Sécurité Critique
+
+### ❌ INTERDIT
+```typescript
+// ❌ Accepter user_id du client
+const { user_id } = await request.json();
+await supabase.from('orders').select().eq('user_id', user_id);
+
+// ❌ Logs avec données sensibles
+console.log('User email:', user.email);
+console.log('Token:', token);
+
+// ❌ Erreurs détaillées en production
+return NextResponse.json({ error: error.message }, { status: 500 });
+```
+
+### ✅ OBLIGATOIRE
+```typescript
+// ✅ user_id depuis auth
+const { user } = await requireAuthFlexible(request);
+await supabase.from('orders').select().eq('user_id', user.id);
+
+// ✅ Logs sans données sensibles
+console.error('[API] Failed:', { endpoint, userId: user.id });
+
+// ✅ Erreurs génériques
+return NextResponse.json({ error: 'Operation failed' }, { status: 500 });
+```
+
+## 🔄 Gestion Erreurs
+
+```typescript
+// ✅ Pattern standard
+try {
+  // logique
+} catch (error) {
+  if (error instanceof ZodError) {
+    return NextResponse.json(
+      { error: 'Invalid input', details: error.errors },
+      { status: 400 }
+    );
+  }
+
+  console.error('[API] Error:', {
+    endpoint: request.url,
+    method: request.method,
+    userId: user?.id,
+    // Ne PAS inclure: error.message, stack, données user
+  });
+
+  return NextResponse.json(
+    { error: 'Internal server error' },
+    { status: 500 }
+  );
+}
+```
+
+## 📊 Headers Réponse
+
+```typescript
+// ✅ Headers sécurité
+return NextResponse.json(data, {
+  status: 200,
+  headers: {
+    'Cache-Control': 'private, no-cache',
+    'X-Content-Type-Options': 'nosniff',
+  },
+});
+```
+
+## 🧪 Validation Zod
+
+```typescript
+import { z } from 'zod';
+
+const schema = z.object({
+  iccid: z.string().length(19),
+  amount: z.number().positive(),
+});
+
+// ✅ Valider avant utilisation
+const validated = schema.parse(body);
+```

@@ -1,0 +1,185 @@
+---
+description: Standards React Query hooks et composants
+globs: "**/src/{hooks,components}/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# React Query & Hooks - Standards
+
+## 🎣 Structure Hook Custom
+
+```typescript
+// ✅ Pattern standard dans src/hooks/
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createClient } from '@/lib/supabase/client';
+
+export function useResource() {
+  const supabase = createClient();
+  const queryClient = useQueryClient();
+
+  // Query
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['resource'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('table')
+        .select('*');
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Mutation
+  const createMutation = useMutation({
+    mutationFn: async (payload: CreatePayload) => {
+      const { data, error } = await supabase
+        .from('table')
+        .insert(payload)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['resource'] });
+    },
+  });
+
+  return {
+    data,
+    isLoading,
+    error,
+    create: createMutation.mutate,
+    isCreating: createMutation.isPending,
+  };
+}
+```
+
+## 🔑 Query Keys
+
+```typescript
+// ✅ BON - Hiérarchie claire
+['esim', 'orders']                    // Liste orders
+['esim', 'orders', orderId]           // Order spécifique
+['esim', 'orders', { status: 'active' }]  // Filtré
+
+// ❌ MAUVAIS
+['orders']                            // Trop vague
+['getOrders']                         // Pas de verbe
+```
+
+## 🔄 Invalidation Cache
+
+```typescript
+// ✅ Invalider après mutation
+onSuccess: () => {
+  // Invalide toutes les queries commençant par ['esim']
+  queryClient.invalidateQueries({ queryKey: ['esim'] });
+
+  // OU spécifique
+  queryClient.invalidateQueries({ queryKey: ['esim', 'orders'] });
+}
+```
+
+## 🎨 Composants React
+
+### Structure Composant
+```tsx
+// ✅ Pattern standard
+interface Props {
+  title: string;
+  onAction?: () => void;
+}
+
+export function Component({ title, onAction }: Props) {
+  const [state, setState] = useState<Type>(initialValue);
+  const { data, isLoading } = useCustomHook();
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold">{title}</h2>
+      {/* contenu */}
+    </div>
+  );
+}
+```
+
+### Gestion Erreurs
+```tsx
+// ✅ Affichage erreur user-friendly
+if (error) {
+  return (
+    <div className="p-4 bg-red-50 text-red-600 rounded">
+      Une erreur est survenue. Veuillez réessayer.
+    </div>
+  );
+}
+
+// ❌ Ne JAMAIS afficher error.message brut (peut contenir infos sensibles)
+```
+
+## 🔐 Auth dans Hooks
+
+```typescript
+// ✅ Vérifier auth dans hooks API
+export function useProtectedResource() {
+  return useQuery({
+    queryKey: ['protected'],
+    queryFn: async () => {
+      const response = await fetch('/api/resource', {
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,  // ✅ Token depuis storage
+        },
+      });
+
+      if (!response.ok) throw new Error('Unauthorized');
+      return response.json();
+    },
+  });
+}
+```
+
+## 📱 Hooks eSIM Spécifiques
+
+### Pattern useEsimAccess
+```typescript
+// ✅ Hooks dans src/hooks/useEsimAccess.ts
+export function useEsimOrders() {
+  return useQuery({
+    queryKey: ['esim', 'orders'],
+    queryFn: async () => {
+      const response = await fetch('/api/esim/orders', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const { esimList } = await response.json();  // ✅ Respecter shape API
+      return esimList;
+    },
+  });
+}
+```
+
+## 🧪 Tests Composants
+
+```typescript
+// ✅ Test basique avec Testing Library
+import { render, screen } from '@testing-library/react';
+
+describe('Component', () => {
+  it('renders title', () => {
+    render(<Component title="Test" />);
+    expect(screen.getByText('Test')).toBeInTheDocument();
+  });
+});
+```
+
+## 🎯 Best Practices
+
+1. **Un hook = une responsabilité**
+2. **Toujours typer les retours**
+3. **Gérer loading/error states**
+4. **Invalider cache après mutations**
+5. **Ne jamais exposer erreurs techniques au user**

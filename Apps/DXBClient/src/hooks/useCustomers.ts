@@ -1,8 +1,12 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase/client'
-import { Customer, CustomerInsert, CustomerUpdate } from '@/lib/database.types'
+import { supabase, supabaseAny } from '@/lib/supabase/client'
+import { Customer } from '@/lib/types'
+
+// Types pour les opérations CRUD
+type CustomerInsert = Partial<Customer>
+type CustomerUpdate = Partial<Customer>
 import { toast } from 'sonner'
 
 const QUERY_KEY = ['customers']
@@ -22,9 +26,9 @@ async function fetchCustomers(): Promise<Customer[]> {
 }
 
 async function createCustomer(input: CustomerInsert): Promise<Customer> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('customers')
-    .insert(input)
+    .insert([input])
     .select()
     .single()
 
@@ -33,13 +37,14 @@ async function createCustomer(input: CustomerInsert): Promise<Customer> {
     throw new Error(error.message)
   }
 
-  return data
+  return data as Customer
 }
 
 async function updateCustomer({ id, ...input }: CustomerUpdate & { id: string }): Promise<Customer> {
-  const { data, error } = await supabase
+  const updateData = { ...input, updated_at: new Date().toISOString() }
+  const { data, error } = await supabaseAny
     .from('customers')
-    .update({ ...input, updated_at: new Date().toISOString() })
+    .update(updateData)
     .eq('id', id)
     .select()
     .single()
@@ -49,7 +54,7 @@ async function updateCustomer({ id, ...input }: CustomerUpdate & { id: string })
     throw new Error(error.message)
   }
 
-  return data
+  return data as Customer
 }
 
 async function deleteCustomer(id: string): Promise<void> {

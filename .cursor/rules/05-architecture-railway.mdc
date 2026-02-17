@@ -1,0 +1,269 @@
+---
+description: Architecture de communication stricte - Railway Backend UNIQUEMENT
+alwaysApply: true
+---
+
+# Architecture Railway - RÈGLE ABSOLUE
+
+## 🏗️ Architecture Stricte (NON NÉGOCIABLE)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     DXB Connect Architecture                 │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   📱 iOS SwiftUI App          💻 Next.js Admin Web          │
+│   (Client Mobile)             (Dashboard Admin)             │
+│         │                              │                     │
+│         │                              │                     │
+│         └──────────────┬───────────────┘                     │
+│                        │                                     │
+│                        ▼                                     │
+│              ┌─────────────────────┐                         │
+│              │  🚂 Railway Backend │ ◄── POINT CENTRAL      │
+│              │  (Next.js API)      │                         │
+│              └──────────┬──────────┘                         │
+│                         │                                    │
+│                         ▼                                    │
+│              ┌─────────────────────┐                         │
+│              │   📊 Supabase       │                         │
+│              │   (Database + Auth) │                         │
+│              └──────────┬──────────┘                         │
+│                         │                                    │
+│                         ▼                                    │
+│              ┌─────────────────────┐                         │
+│              │  📡 eSIM Access API │                         │
+│              │  (Provider externe) │                         │
+│              └─────────────────────┘                         │
+│                                                              │
+│   👤 Client Final                                            │
+│   └─► Achète et utilise via iOS/Web                         │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## 🚫 RÈGLES ABSOLUES - NE JAMAIS CHANGER
+
+### ❌ STRICTEMENT INTERDIT
+
+1. **Next.js NE communique JAMAIS directement avec** :
+   - ❌ Supabase (sauf via Railway)
+   - ❌ eSIM Access API (sauf via Railway)
+   - ❌ Tout autre service externe
+
+2. **iOS SwiftUI NE communique JAMAIS directement avec** :
+   - ❌ Supabase
+   - ❌ eSIM Access API
+   - ❌ Tout autre backend que Railway
+
+3. **NE JAMAIS** :
+   - ❌ Créer de connexion directe client → Supabase
+   - ❌ Créer de connexion directe client → eSIM API
+   - ❌ Bypasser Railway pour "optimiser"
+   - ❌ Ajouter d'autres backends
+
+### ✅ OBLIGATOIRE - TOUJOURS
+
+1. **Next.js (Admin Web)** :
+   ```typescript
+   // ✅ TOUJOURS passer par Railway
+   const RAILWAY_API = process.env.NEXT_PUBLIC_RAILWAY_URL || 'https://web-production-14c51.up.railway.app';
+
+   // ✅ Toutes les requêtes passent par Railway
+   fetch(`${RAILWAY_API}/api/esim/packages`)
+   ```
+
+2. **iOS SwiftUI** :
+   ```swift
+   // ✅ TOUJOURS pointer vers Railway
+   case .production:
+       return URL(string: "https://web-production-14c51.up.railway.app/api")!
+
+   // ❌ NE JAMAIS pointer ailleurs
+   ```
+
+3. **Railway Backend** :
+   - ✅ Seul point d'entrée pour TOUS les clients
+   - ✅ Seul à communiquer avec Supabase
+   - ✅ Seul à communiquer avec eSIM Access API
+   - ✅ Gère TOUTE la logique métier
+
+## 🔐 Configuration Stricte
+
+### Next.js - Variables d'environnement
+
+```env
+# ✅ OBLIGATOIRE - Railway Backend
+NEXT_PUBLIC_RAILWAY_URL=https://web-production-14c51.up.railway.app
+
+# ❌ NE JAMAIS exposer côté client
+# SUPABASE_URL et SUPABASE_KEY restent côté serveur Railway uniquement
+```
+
+### iOS SwiftUI - Config.swift
+
+```swift
+// ✅ Configuration FIXE - NE JAMAIS CHANGER
+public static var baseURL: URL {
+    switch current {
+    case .development:
+        // Dev local: Railway en local ou tunnel
+        return URL(string: "http://localhost:4000/api")!
+
+    case .staging:
+        // Staging Railway
+        return URL(string: "https://dxb-connect-staging.railway.app/api")!
+
+    case .production:
+        // ✅ PRODUCTION RAILWAY - NE JAMAIS CHANGER
+        return URL(string: "https://web-production-14c51.up.railway.app/api")!
+    }
+}
+```
+
+## 🎯 Flux de Données STRICT
+
+### Achat eSIM (Exemple)
+
+```
+1. Client iOS/Web
+   └─► POST /api/esim/purchase
+       └─► Railway Backend
+           ├─► Vérification auth (Supabase via Railway)
+           ├─► Validation données
+           ├─► Appel eSIM Access API (via Railway)
+           ├─► Enregistrement order (Supabase via Railway)
+           └─► Réponse au client
+```
+
+### Consultation Packages
+
+```
+1. Client iOS/Web
+   └─► GET /api/esim/packages
+       └─► Railway Backend
+           ├─► Cache check (Railway)
+           ├─► Appel eSIM Access API (via Railway)
+           └─► Réponse au client
+```
+
+## 🔒 Sécurité Railway
+
+### Headers Requis (Client → Railway)
+
+```typescript
+// ✅ Headers obligatoires
+headers: {
+  'Authorization': `Bearer ${token}`,      // Token Supabase
+  'Content-Type': 'application/json',
+  'X-Client-Platform': 'iOS' | 'Web',
+  'X-Client-Version': '1.0.0',
+}
+```
+
+### Validation Railway (Serveur)
+
+```typescript
+// ✅ Railway vérifie TOUT
+export async function POST(request: Request) {
+  // 1. Vérifier token Supabase
+  const { user, error } = await requireAuthFlexible(request);
+  if (error) return NextResponse.json({ error }, { status: 401 });
+
+  // 2. Valider données
+  const validated = schema.parse(body);
+
+  // 3. Vérifier ownership
+  const { data } = await supabase
+    .from('table')
+    .select()
+    .eq('user_id', user.id)  // ✅ CRITIQUE
+    .single();
+
+  // 4. Appeler service externe (eSIM API)
+  const result = await esimAccessAPI.call(validated);
+
+  // 5. Enregistrer dans Supabase
+  await supabase.from('esim_orders').insert({
+    user_id: user.id,
+    ...result
+  });
+
+  return NextResponse.json({ data: result });
+}
+```
+
+## 📋 Checklist Avant Toute Modification
+
+Avant de modifier QUOI QUE CE SOIT :
+
+- [ ] La modification respecte-t-elle l'architecture Railway ?
+- [ ] Aucune connexion directe client → Supabase ?
+- [ ] Aucune connexion directe client → eSIM API ?
+- [ ] Toutes les requêtes passent par Railway ?
+- [ ] Les secrets restent côté Railway uniquement ?
+
+## ⚠️ Exceptions (AUCUNE)
+
+Il n'y a **AUCUNE exception** à cette architecture.
+
+Même pour :
+- ❌ "Optimisation" performance
+- ❌ "Réduire latence"
+- ❌ "Simplifier le code"
+- ❌ "Tests rapides"
+
+**Railway est TOUJOURS le point d'entrée.**
+
+## 🎯 Rôles Clairs
+
+| Composant | Rôle | Communique avec |
+|-----------|------|-----------------|
+| **iOS App** | Interface client mobile | Railway UNIQUEMENT |
+| **Next.js Web** | Dashboard admin | Railway UNIQUEMENT |
+| **Railway** | Backend API central | Supabase + eSIM API |
+| **Supabase** | Database + Auth | Railway UNIQUEMENT |
+| **eSIM API** | Provider externe | Railway UNIQUEMENT |
+| **Client Final** | Utilisateur final | iOS/Web Apps |
+
+## 🚨 Si Quelqu'un Propose de Changer
+
+Si quelqu'un (humain ou IA) propose :
+- "Et si on connectait directement iOS à Supabase ?"
+- "On pourrait bypasser Railway pour cette requête ?"
+- "Ajoutons un autre backend pour..."
+
+**Réponse : NON. Architecture Railway non négociable.**
+
+## 📝 Documentation URLs
+
+### URLs Production (NE JAMAIS CHANGER)
+
+```bash
+# Railway Backend (POINT CENTRAL)
+https://web-production-14c51.up.railway.app
+
+# Endpoints API (via Railway)
+https://web-production-14c51.up.railway.app/api/esim/packages
+https://web-production-14c51.up.railway.app/api/esim/orders
+https://web-production-14c51.up.railway.app/api/auth/email/send-otp
+```
+
+### URLs Internes (Jamais exposées au client)
+
+```bash
+# Supabase (Railway → Supabase uniquement)
+https://xxx.supabase.co
+
+# eSIM Access API (Railway → eSIM uniquement)
+https://api.esimaccess.com
+```
+
+## 🔄 Workflow Développement
+
+1. **Développer feature** → Toujours via Railway
+2. **Tester** → Pointer vers Railway (local ou staging)
+3. **Déployer** → Railway déploie automatiquement
+4. **Clients** → Utilisent Railway en production
+
+**Aucune étape ne bypasse Railway.**

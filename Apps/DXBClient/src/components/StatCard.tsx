@@ -10,33 +10,83 @@ interface StatCardProps {
     value: number
     isPositive: boolean
   }
-  color?: 'blue' | 'green' | 'purple' | 'orange' | 'red'
+  color?: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'indigo'
 }
 
-export default function StatCard({ title, value, icon: Icon, trend, color = 'blue' }: StatCardProps) {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    purple: 'bg-purple-50 text-purple-600',
-    orange: 'bg-orange-50 text-orange-600',
-    red: 'bg-red-50 text-red-600'
-  }
+const colorConfig = {
+  blue: {
+    iconBg: 'bg-violet-100',
+    iconColor: 'text-violet-600',
+  },
+  green: {
+    iconBg: 'bg-emerald-100',
+    iconColor: 'text-emerald-600',
+  },
+  purple: {
+    iconBg: 'bg-violet-100',
+    iconColor: 'text-violet-600',
+  },
+  orange: {
+    iconBg: 'bg-amber-100',
+    iconColor: 'text-amber-600',
+  },
+  red: {
+    iconBg: 'bg-rose-100',
+    iconColor: 'text-rose-600',
+  },
+  indigo: {
+    iconBg: 'bg-indigo-100',
+    iconColor: 'text-indigo-600',
+  },
+}
+
+export default function StatCard({ title, value, icon: Icon, trend, color = 'purple' }: StatCardProps) {
+  const config = colorConfig[color]
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-slate-600">{title}</p>
-          <p className="text-2xl font-bold text-slate-800 mt-1">{value}</p>
+    <div 
+      className="
+        group relative bg-white rounded-3xl p-5 sm:p-6
+        shadow-sm hover:shadow-md
+        transition-all duration-300 ease-out
+        border border-gray-100/50
+      "
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-2 min-w-0 flex-1">
+          <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">
+            {title}
+          </p>
+          <p className="text-2xl sm:text-3xl font-semibold text-gray-800 tracking-tight break-words">
+            {value}
+          </p>
           {trend && (
-            <p className={`text-sm mt-2 ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-              {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
-              <span className="text-slate-500 ml-1">vs mois dernier</span>
-            </p>
+            <div className={`
+              inline-flex items-center gap-1.5 text-xs font-medium
+              ${trend.isPositive ? 'text-emerald-500' : 'text-rose-500'}
+            `}>
+              <svg 
+                className={`w-3 h-3 flex-shrink-0 ${!trend.isPositive && 'rotate-180'}`} 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
+              </svg>
+              {Math.abs(trend.value)}%
+              <span className="text-gray-300 font-normal ml-1 hidden sm:inline">vs dernier mois</span>
+            </div>
           )}
         </div>
-        <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
-          <Icon size={24} />
+        
+        {/* Icon container - Soft rounded */}
+        <div className={`
+          flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex-shrink-0
+          ${config.iconBg}
+          transition-all duration-300
+          group-hover:scale-105
+        `}>
+          <Icon size={20} className={`sm:w-[22px] sm:h-[22px] ${config.iconColor}`} />
         </div>
       </div>
     </div>

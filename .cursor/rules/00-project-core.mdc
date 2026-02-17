@@ -1,0 +1,92 @@
+---
+description: Règles fondamentales du projet DXB Connect
+alwaysApply: true
+---
+
+# Règles Fondamentales DXB Connect
+
+## 🎯 Objectif du Projet
+Plateforme eSIM avec app client iOS (SwiftUI) et dashboard admin (Next.js 14).
+
+## 🏗️ Architecture (NON NÉGOCIABLE)
+
+**RÈGLE ABSOLUE** : Tout passe par Railway Backend
+
+```
+iOS App (SwiftUI) ──┐
+                    ├──► 🚂 Railway Backend ──► Supabase ──► eSIM Access API
+Next.js Admin Web ──┘
+```
+
+- **iOS App**: SwiftUI + DXBCore → Communique UNIQUEMENT avec Railway
+- **Admin Web**: Next.js 14 → Communique UNIQUEMENT avec Railway
+- **Railway Backend**: Next.js API → Seul point d'entrée, connecté à Supabase
+- **Supabase**: Database + Auth → Accessible via Railway uniquement
+- **eSIM API**: Provider externe → Accessible via Railway uniquement
+
+❌ **INTERDIT** : Connexion directe client → Supabase ou eSIM API
+✅ **OBLIGATOIRE** : Railway est TOUJOURS le point d'entrée
+
+## 📁 Structure Clé
+```
+Apps/DXBClient/
+├── Views/              # SwiftUI (iOS)
+├── DXBCore/            # Swift Package
+└── src/                # Next.js (Admin Web)
+    ├── app/            # Routes Next.js 14
+    ├── components/     # Composants React
+    ├── hooks/          # React Query hooks
+    └── lib/            # Utils, Supabase, Stripe
+```
+
+## 🔒 Sécurité ABSOLUE
+
+### ❌ INTERDIT
+- Connexion directe client → Supabase (TOUJOURS via Railway)
+- Connexion directe client → eSIM API (TOUJOURS via Railway)
+- Bypasser Railway pour "optimiser"
+- Exposer secrets dans le code
+- Routes admin sans vérification rôle
+- Endpoints destructifs (DROP, DELETE) non protégés
+- Webhooks sans vérification signature
+- Logs contenant données sensibles (tokens, emails complets)
+
+### ✅ OBLIGATOIRE
+- Railway Backend comme SEUL point d'entrée (iOS + Web)
+- iOS pointe vers `https://web-production-14c51.up.railway.app/api`
+- Next.js utilise `NEXT_PUBLIC_RAILWAY_URL` pour toutes requêtes
+- `.env.local` pour secrets (jamais commité)
+- Middleware auth sur routes protégées
+- Vérification `user_id` dans requêtes DB
+- Headers sécurité (CSP, X-Frame-Options, HSTS)
+- Logs structurés sans données sensibles
+
+## 🚫 Règles Strictes
+
+### Ne JAMAIS
+1. Créer de fichiers `.md` non demandés
+2. Ajouter features "bonus" sans validation
+3. Inventer APIs/endpoints inexistants
+4. Modifier DB sans migration
+5. Faire `rm -rf`, `DROP TABLE`, `force push` sans confirmation
+
+### TOUJOURS
+1. Lire fichiers avant édition
+2. Vérifier lint/types après modifs
+3. Respecter conventions existantes
+4. Faire le changement minimal nécessaire
+5. Tester via terminal (pas MCP)
+
+## 📝 Communication
+- Réponses concises, structurées
+- Chemins fichiers en backticks
+- Mini-plan (2-4 étapes) puis exécution
+- Dire clairement fichiers impactés avant modif
+- Toujours en français
+
+## 🔧 Avant Modifications
+1. Lire fichiers concernés
+2. Vérifier conventions existantes
+3. Identifier dépendances
+4. Proposer plan minimal
+5. Demander confirmation si destructif

@@ -1,344 +1,434 @@
 import SwiftUI
-import CoreImage.CIFilterBuiltins
 import DXBCore
 
 struct ESIMDetailView: View {
-    let order: Order
-    @EnvironmentObject private var coordinator: AppCoordinator
-    @StateObject private var viewModel = ESIMDetailViewModel()
-    
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Status
-                HStack {
-                    Text("Status")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
-                    StatusBadge(status: order.status)
-                }
-                
-                Divider()
-                
-                // QR Code (if available)
-                if let esim = order.esim, order.status == .delivered || order.status == .active {
-                    VStack(spacing: 16) {
-                        Text("Scan to Install")
-                            .font(.headline)
-                        
-                        if let activationCode = esim.activationCode {
-                            QRCodeView(text: activationCode)
-                                .frame(width: 250, height: 250)
-                        }
-                        
-                        Text("Scan this QR code with your device's Camera app to install the eSIM")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                        
-                        Button {
-                            viewModel.showInstructions = true
-                        } label: {
-                            Label("Installation Instructions", systemImage: "info.circle")
-                        }
-                        .buttonStyle(.bordered)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(.secondarySystemBackground))
-                    .cornerRadius(12)
-                    
-                    Divider()
-                    
-                    // Manual Installation
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Manual Installation")
-                            .font(.headline)
-                        
-                        if let smdpAddress = esim.smdpAddress {
-                            InfoRow(title: "SM-DP+ Address", value: smdpAddress)
-                        }
-                        
-                        if let activationCode = esim.activationCode {
-                            InfoRow(title: "Activation Code", value: activationCode)
-                        }
-                    }
-                    
-                    Divider()
-                }
-                
-                // Usage (if available)
-                if let usage = order.esim?.usage {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Data Usage")
-                            .font(.headline)
-                        
-                        ProgressView(value: usage.usagePercentage) {
-                            HStack {
-                                Text("\(usage.dataUsedMB) MB used")
-                                Spacer()
-                                Text("\(usage.dataTotalMB) MB total")
-                            }
-                            .font(.subheadline)
-                        }
-                        .tint(usageColor(for: usage.usagePercentage))
-                        
-                        Text("Last updated: \(usage.lastUpdated.relativeFormatted)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Divider()
-                }
-                
-                // Order Details
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Order Details")
-                        .font(.headline)
-                    
-                    InfoRow(title: "Order ID", value: order.id)
-                    InfoRow(title: "Plan", value: order.plan.name)
-                    InfoRow(title: "Amount", value: order.amount.formattedPrice)
-                    InfoRow(title: "Date", value: order.createdAt.formattedLong)
-                }
-                
-                Divider()
-                
-                // Actions
-                VStack(spacing: 12) {
-                    if order.status == .delivered || order.status == .active {
-                        Button {
-                            Task {
-                                await viewModel.resendQR(orderId: order.id, apiService: coordinator.currentAPIService)
-                            }
-                        } label: {
-                            Label("Resend QR Code", systemImage: "arrow.clockwise")
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 44)
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(viewModel.isLoading)
-                    }
-                    
-                    NavigationLink {
-                        SupportView(prefilledOrderId: order.id)
-                    } label: {
-                        Label("Need Help?", systemImage: "questionmark.circle")
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 44)
-                    }
-                    .buttonStyle(.bordered)
-                }
-            }
-            .padding()
-        }
-        .navigationTitle("eSIM Details")
-        .navigationBarTitleDisplayMode(.inline)
-        .alert("Success", isPresented: $viewModel.showSuccess) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("QR code has been resent to your email")
-        }
-        .alert("Error", isPresented: $viewModel.showError) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(viewModel.errorMessage)
-        }
-        .sheet(isPresented: $viewModel.showInstructions) {
-            InstallationInstructionsView()
-        }
-    }
-    
-    private func usageColor(for percentage: Double) -> Color {
-        if percentage < 0.7 {
-            return .green
-        } else if percentage < 0.9 {
-            return .orange
-        } else {
-            return .red
-        }
-    }
-}
-
-// MARK: - QR Code View
-
-struct QRCodeView: View {
-    let text: String
-    
-    var body: some View {
-        if let qrImage = generateQRCode(from: text) {
-            Image(uiImage: qrImage)
-                .interpolation(.none)
-                .resizable()
-                .scaledToFit()
-        } else {
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .overlay {
-                    Text("QR Code Unavailable")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-        }
-    }
-    
-    private func generateQRCode(from string: String) -> UIImage? {
-        let context = CIContext()
-        let filter = CIFilter.qrCodeGenerator()
-        filter.message = Data(string.utf8)
-        filter.correctionLevel = "M"
-        
-        guard let outputImage = filter.outputImage else { return nil }
-        
-        let transform = CGAffineTransform(scaleX: 10, y: 10)
-        let scaledImage = outputImage.transformed(by: transform)
-        
-        guard let cgImage = context.createCGImage(scaledImage, from: scaledImage.extent) else { return nil }
-        
-        return UIImage(cgImage: cgImage)
-    }
-}
-
-// MARK: - Info Row
-
-struct InfoRow: View {
-    let title: String
-    let value: String
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Text(value)
-                .font(.subheadline)
-                .textSelection(.enabled)
-        }
-    }
-}
-
-// MARK: - Installation Instructions
-
-struct InstallationInstructionsView: View {
+    let order: ESIMOrder
     @Environment(\.dismiss) private var dismiss
-    
+    @State private var showCopiedToast = false
+    @State private var copiedText = ""
+
+    private var statusColor: Color {
+        switch order.status.uppercased() {
+        case "RELEASED", "IN_USE": return AppTheme.textPrimary
+        case "EXPIRED": return AppTheme.gray400
+        default: return AppTheme.gray500
+        }
+    }
+
+    private var statusText: String {
+        switch order.status.uppercased() {
+        case "RELEASED": return "ACTIVE"
+        case "IN_USE": return "IN USE"
+        case "EXPIRED": return "EXPIRED"
+        default: return order.status.uppercased()
+        }
+    }
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    InstructionStep(
-                        number: 1,
-                        title: "Open Camera App",
-                        description: "Open your device's Camera app and point it at the QR code"
-                    )
-                    
-                    InstructionStep(
-                        number: 2,
-                        title: "Tap Notification",
-                        description: "Tap the notification that appears at the top of your screen"
-                    )
-                    
-                    InstructionStep(
-                        number: 3,
-                        title: "Add Cellular Plan",
-                        description: "Tap 'Add Cellular Plan' and follow the on-screen instructions"
-                    )
-                    
-                    InstructionStep(
-                        number: 4,
-                        title: "Label Your Plan",
-                        description: "Give your eSIM a label (e.g., 'Dubai Travel') for easy identification"
-                    )
-                    
-                    InstructionStep(
-                        number: 5,
-                        title: "Activate",
-                        description: "Your eSIM will activate automatically when you arrive in Dubai"
-                    )
-                    
-                    Divider()
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Troubleshooting")
-                            .font(.headline)
-                        
-                        Text("• Make sure your device is connected to Wi-Fi\n• Ensure your device supports eSIM (iPhone XS or later)\n• If QR code doesn't scan, use manual installation")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .padding()
-            }
-            .navigationTitle("Installation Guide")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
+        ZStack {
+            Color.white
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Custom Nav Bar
+                HStack {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(AppTheme.textPrimary)
+                            .frame(width: 44, height: 44)
+                            .background(
+                                Circle()
+                                    .stroke(AppTheme.border, lineWidth: 1.5)
+                            )
+                    }
+
+                    Spacer()
+
+                    Text("ESIM DETAILS")
+                        .font(.system(size: 12, weight: .bold))
+                        .tracking(1.5)
+                        .foregroundColor(AppTheme.textTertiary)
+
+                    Spacer()
+
+                    Color.clear
+                        .frame(width: 44, height: 44)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 8)
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 24) {
+                        // QR Code Card
+                        VStack(spacing: 20) {
+                            // Status Badge
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(statusColor)
+                                    .frame(width: 8, height: 8)
+
+                                Text(statusText)
+                                    .font(.system(size: 11, weight: .bold))
+                                    .tracking(1)
+                                    .foregroundColor(statusColor)
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule()
+                                    .fill(statusColor.opacity(0.1))
+                            )
+
+                            // QR Code
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.white)
+                                    .frame(width: 200, height: 200)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .stroke(AppTheme.border, lineWidth: 1.5)
+                                    )
+
+                                AsyncImage(url: URL(string: order.qrCodeUrl)) { image in
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 180, height: 180)
+                                } placeholder: {
+                                    VStack(spacing: 12) {
+                                        ProgressView()
+                                            .tint(AppTheme.textPrimary)
+                                        Text("Loading QR...")
+                                            .font(.system(size: 12, weight: .medium))
+                                            .foregroundColor(AppTheme.textTertiary)
+                                    }
+                                }
+                            }
+
+                            Text("Scan to install eSIM")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(AppTheme.textTertiary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 28)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(AppTheme.gray50)
+                        )
+                        .padding(.horizontal, 24)
+                        .padding(.top, 16)
+                        .slideIn(delay: 0)
+
+                        // Package Info
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("PACKAGE")
+                                .font(.system(size: 11, weight: .bold))
+                                .tracking(1.5)
+                                .foregroundColor(AppTheme.textTertiary)
+
+                            HStack(spacing: 16) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(AppTheme.textPrimary)
+                                        .frame(width: 52, height: 52)
+
+                                    Image(systemName: "simcard.fill")
+                                        .font(.system(size: 22, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(order.packageName)
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundColor(AppTheme.textPrimary)
+
+                                    Text(order.totalVolume)
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(AppTheme.textTertiary)
+                                }
+
+                                Spacer()
+                            }
+
+                            // Info Grid
+                            HStack(spacing: 12) {
+                                InfoMiniCard(label: "EXPIRES", value: formatDate(order.expiredTime))
+                                InfoMiniCard(label: "ORDER", value: "#\(String(order.orderNo.suffix(6)))")
+                            }
+                        }
+                        .padding(20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Color.white)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .stroke(AppTheme.border, lineWidth: 1.5)
+                                )
+                        )
+                        .padding(.horizontal, 24)
+                        .slideIn(delay: 0.1)
+
+                        // Technical Info
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("TECHNICAL INFO")
+                                .font(.system(size: 11, weight: .bold))
+                                .tracking(1.5)
+                                .foregroundColor(AppTheme.textTertiary)
+
+                            VStack(spacing: 0) {
+                                TechInfoRow(label: "ICCID", value: order.iccid) {
+                                    copyToClipboard(order.iccid, label: "ICCID")
+                                }
+
+                                Divider()
+                                    .padding(.leading, 16)
+
+                                TechInfoRow(label: "LPA Code", value: order.lpaCode) {
+                                    copyToClipboard(order.lpaCode, label: "LPA Code")
+                                }
+
+                                Divider()
+                                    .padding(.leading, 16)
+
+                                TechInfoRow(label: "Order No", value: order.orderNo) {
+                                    copyToClipboard(order.orderNo, label: "Order No")
+                                }
+                            }
+                            .background(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(AppTheme.gray50)
+                            )
+                        }
+                        .padding(20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Color.white)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .stroke(AppTheme.border, lineWidth: 1.5)
+                                )
+                        )
+                        .padding(.horizontal, 24)
+                        .slideIn(delay: 0.15)
+
+                        // Installation Guide
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("INSTALLATION")
+                                .font(.system(size: 11, weight: .bold))
+                                .tracking(1.5)
+                                .foregroundColor(AppTheme.textTertiary)
+
+                            VStack(spacing: 18) {
+                                InstallStepTech(number: 1, text: "Go to Settings → Cellular")
+                                InstallStepTech(number: 2, text: "Tap 'Add eSIM' or 'Add Cellular Plan'")
+                                InstallStepTech(number: 3, text: "Scan the QR code above")
+                                InstallStepTech(number: 4, text: "Follow the on-screen instructions")
+                            }
+                        }
+                        .padding(20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Color.white)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .stroke(AppTheme.border, lineWidth: 1.5)
+                                )
+                        )
+                        .padding(.horizontal, 24)
+                        .slideIn(delay: 0.2)
+
+                        Spacer(minLength: 40)
                     }
                 }
             }
+
+            // Toast
+            if showCopiedToast {
+                VStack {
+                    Spacer()
+
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                        Text("\(copiedText) copied")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
+                    .background(
+                        Capsule()
+                            .fill(AppTheme.textPrimary)
+                    )
+                    .padding(.bottom, 100)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .navigationBarHidden(true)
+    }
+
+    private func copyToClipboard(_ value: String, label: String) {
+        UIPasteboard.general.string = value
+        copiedText = label
+        withAnimation(.spring(response: 0.3)) {
+            showCopiedToast = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation(.spring(response: 0.3)) {
+                showCopiedToast = false
+            }
+        }
+    }
+
+    private func formatDate(_ dateString: String) -> String {
+        if dateString.isEmpty { return "N/A" }
+        // Simple format - just return first 10 chars if it's a date string
+        if dateString.count >= 10 {
+            return String(dateString.prefix(10))
+        }
+        return dateString
+    }
+}
+
+// MARK: - Info Mini Card
+
+struct InfoMiniCard: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label)
+                .font(.system(size: 10, weight: .bold))
+                .tracking(1)
+                .foregroundColor(AppTheme.textTertiary)
+
+            Text(value)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(AppTheme.textPrimary)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(AppTheme.gray50)
+        )
+    }
+}
+
+// MARK: - Tech Info Row
+
+struct TechInfoRow: View {
+    let label: String
+    let value: String
+    let onCopy: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(label)
+                    .font(.system(size: 11, weight: .bold))
+                    .tracking(0.5)
+                    .foregroundColor(AppTheme.textTertiary)
+
+                Text(value)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(AppTheme.textPrimary)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            Button(action: onCopy) {
+                Image(systemName: "doc.on.doc")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(AppTheme.textTertiary)
+            }
+        }
+        .padding(16)
+    }
+}
+
+// MARK: - Install Step Tech
+
+struct InstallStepTech: View {
+    let number: Int
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(AppTheme.textPrimary)
+                    .frame(width: 28, height: 28)
+
+                Text("\(number)")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.white)
+            }
+
+            Text(text)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(AppTheme.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
 
-struct InstructionStep: View {
-    let number: Int
-    let title: String
-    let description: String
-    
+// MARK: - Legacy Components (compatibility)
+
+struct DetailRow: View {
+    let label: String
+    let value: String
+    var copyable: Bool = false
+
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            Text("\(number)")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-                .frame(width: 40, height: 40)
-                .background(Color.blue)
-                .clipShape(Circle())
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+        HStack {
+            Text(label)
+                .foregroundColor(AppTheme.textTertiary)
+            Spacer()
+            Text(value)
+                .foregroundColor(AppTheme.textPrimary)
+            if copyable {
+                Button {
+                    UIPasteboard.general.string = value
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                        .foregroundColor(AppTheme.textTertiary)
+                }
+                .buttonStyle(.borderless)
             }
         }
     }
 }
 
-// MARK: - ViewModel
+struct InstallStep: View {
+    let number: Int
+    let text: String
 
-@MainActor
-final class ESIMDetailViewModel: ObservableObject {
-    @Published var isLoading = false
-    @Published var showError = false
-    @Published var errorMessage = ""
-    @Published var showSuccess = false
-    @Published var showInstructions = false
-    
-    func resendQR(orderId: String, apiService: DXBAPIServiceProtocol) async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            try await apiService.resendQR(orderId: orderId)
-            showSuccess = true
-        } catch {
-            errorMessage = error.localizedDescription
-            showError = true
-        }
+    var body: some View {
+        InstallStepTech(number: number, text: text)
     }
 }
 
 #Preview {
     NavigationStack {
-        ESIMDetailView(order: .mockDelivered)
-            .environmentObject(AppCoordinator())
+        ESIMDetailView(order: ESIMOrder(
+            id: "123",
+            orderNo: "ORD123456",
+            iccid: "8901234567890123456",
+            lpaCode: "LPA:1$example.com$123",
+            qrCodeUrl: "https://example.com/qr.png",
+            status: "RELEASED",
+            packageName: "Dubai 5GB - 7 Days",
+            totalVolume: "5 GB",
+            expiredTime: "2024-12-31",
+            createdAt: Date()
+        ))
     }
 }

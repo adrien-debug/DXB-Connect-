@@ -1,21 +1,21 @@
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { 
-  type EsimPackageRaw, 
-  type Plan, 
-  type ESIMOrder,
-  type ESIMUsage,
-  type TopupPackage,
-  type TopupRequest,
-  type TopupResponse,
+import {
   type CancelRequest,
+  type ESIMOrder,
+  type EsimPackageRaw,
+  type ESIMUsage,
+  type Plan,
+  type PurchaseRequest,
   type RevokeRequest,
   type SuspendRequest,
-  type PurchaseRequest,
+  toNormalizedOrder,
   toNormalizedPlan,
-  toNormalizedOrder 
+  type TopupPackage,
+  type TopupRequest,
+  type TopupResponse
 } from '@/lib/esim-types'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 interface MerchantBalance {
   balance: number
@@ -42,14 +42,35 @@ async function fetchPackagesRaw(params?: { location?: string; type?: string }): 
   if (params?.type) searchParams.set('type', params.type)
 
   const url = `/api/esim/packages${searchParams.toString() ? `?${searchParams}` : ''}`
-  const response = await fetch(url)
-  
+
+  // 🔒 Ajouter token d'authentification (requis par l'API)
+  const headers: HeadersInit = { 'Content-Type': 'application/json' }
+
+  // Essayer de récupérer le token depuis le client Supabase
+  if (typeof window !== 'undefined') {
+    try {
+      const { createBrowserClient } = await import('@supabase/ssr')
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`
+      }
+    } catch (e) {
+      console.warn('[useEsimAccess] Could not get session:', e)
+    }
+  }
+
+  const response = await fetch(url, { headers })
+
   if (!response.ok) {
     throw new Error('Failed to fetch packages')
   }
 
   const data: EsimApiResponse<{ packageList: EsimPackageRaw[] }> = await response.json()
-  
+
   if (!data.success) {
     throw new Error(data.errorMsg || 'API error')
   }
@@ -69,14 +90,32 @@ async function fetchPlans(params?: { location?: string; type?: string }): Promis
  * Fetch balance marchand
  */
 async function fetchBalance(): Promise<MerchantBalance> {
-  const response = await fetch('/api/esim/balance')
-  
+  // 🔒 Ajouter token
+  const headers: HeadersInit = {}
+  if (typeof window !== 'undefined') {
+    try {
+      const { createBrowserClient } = await import('@supabase/ssr')
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`
+      }
+    } catch (e) {
+      console.warn('[useEsimAccess] Could not get session:', e)
+    }
+  }
+
+  const response = await fetch('/api/esim/balance', { headers })
+
   if (!response.ok) {
     throw new Error('Failed to fetch balance')
   }
 
   const data: EsimApiResponse<MerchantBalance> = await response.json()
-  
+
   if (!data.success) {
     throw new Error(data.errorMsg || 'API error')
   }
@@ -88,19 +127,38 @@ async function fetchBalance(): Promise<MerchantBalance> {
  * Fetch orders eSIM de l'utilisateur
  */
 async function fetchOrders(): Promise<ESIMOrder[]> {
-  const response = await fetch('/api/esim/orders')
-  
+  // 🔒 Ajouter token
+  const headers: HeadersInit = {}
+  if (typeof window !== 'undefined') {
+    try {
+      const { createBrowserClient } = await import('@supabase/ssr')
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`
+      }
+    } catch (e) {
+      console.warn('[useEsimAccess] Could not get session:', e)
+    }
+  }
+
+  const response = await fetch('/api/esim/orders', { headers })
+
   if (!response.ok) {
     throw new Error('Failed to fetch orders')
   }
 
   const data = await response.json()
-  
+
   if (!data.success) {
     throw new Error(data.errorMsg || 'API error')
   }
 
-  return (data.obj?.orderList || []).map((o: unknown) => toNormalizedOrder(o as Parameters<typeof toNormalizedOrder>[0]))
+  // 🔧 FIX: API renvoie esimList, pas orderList
+  return (data.obj?.esimList || []).map((o: unknown) => toNormalizedOrder(o as Parameters<typeof toNormalizedOrder>[0]))
 }
 
 /**
@@ -112,14 +170,14 @@ async function purchasePackage(request: PurchaseRequest): Promise<ESIMOrder> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
   })
-  
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({}))
     throw new Error(error.error || 'Purchase failed')
   }
 
   const data = await response.json()
-  
+
   if (!data.success) {
     throw new Error(data.errorMsg || 'Purchase failed')
   }
@@ -180,7 +238,7 @@ export function useEsimOrders() {
  */
 export function useEsimPurchase() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: purchasePackage,
     onSuccess: () => {
@@ -200,13 +258,13 @@ export function useEsimPurchase() {
  */
 async function fetchEsimUsage(iccid: string): Promise<ESIMUsage> {
   const response = await fetch(`/api/esim/usage?iccid=${iccid}`)
-  
+
   if (!response.ok) {
     throw new Error('Failed to fetch usage')
   }
 
   const data = await response.json()
-  
+
   if (!data.success) {
     throw new Error(data.error || 'API error')
   }
@@ -219,13 +277,13 @@ async function fetchEsimUsage(iccid: string): Promise<ESIMUsage> {
  */
 async function fetchTopupPackages(iccid: string): Promise<TopupPackage[]> {
   const response = await fetch(`/api/esim/topup?iccid=${iccid}`)
-  
+
   if (!response.ok) {
     throw new Error('Failed to fetch topup packages')
   }
 
   const data = await response.json()
-  
+
   if (!data.success) {
     throw new Error(data.errorMsg || 'API error')
   }
@@ -242,7 +300,7 @@ async function topupEsim(request: TopupRequest): Promise<TopupResponse> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
   })
-  
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({}))
     throw new Error(error.error || 'Topup failed')
@@ -260,7 +318,7 @@ async function cancelEsim(request: CancelRequest): Promise<{ success: boolean }>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
   })
-  
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({}))
     throw new Error(error.error || 'Cancel failed')
@@ -278,7 +336,7 @@ async function revokeEsim(request: RevokeRequest): Promise<{ success: boolean }>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
   })
-  
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({}))
     throw new Error(error.error || 'Revoke failed')
@@ -296,7 +354,7 @@ async function suspendEsim(request: SuspendRequest): Promise<{ success: boolean 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
   })
-  
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({}))
     throw new Error(error.error || 'Suspend failed')
@@ -314,13 +372,13 @@ async function queryEsim(params: { orderNo?: string; iccid?: string }): Promise<
   if (params.iccid) searchParams.set('iccid', params.iccid)
 
   const response = await fetch(`/api/esim/query?${searchParams}`)
-  
+
   if (!response.ok) {
     throw new Error('Failed to query eSIM')
   }
 
   const data = await response.json()
-  
+
   if (!data.success) {
     throw new Error(data.errorMsg || 'API error')
   }
@@ -361,7 +419,7 @@ export function useTopupPackages(iccid: string | undefined) {
  */
 export function useEsimTopup() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: topupEsim,
     onSuccess: (_, variables) => {
@@ -377,7 +435,7 @@ export function useEsimTopup() {
  */
 export function useEsimCancel() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: cancelEsim,
     onSuccess: () => {
@@ -392,7 +450,7 @@ export function useEsimCancel() {
  */
 export function useEsimRevoke() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: revokeEsim,
     onSuccess: () => {
@@ -406,7 +464,7 @@ export function useEsimRevoke() {
  */
 export function useEsimSuspend() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: suspendEsim,
     onSuccess: () => {
@@ -431,12 +489,8 @@ export function useEsimQuery(params: { orderNo?: string; iccid?: string }) {
 // EXPORTS
 // ============================================
 
-export type { 
-  EsimPackageRaw, 
-  Plan, 
-  ESIMOrder, 
-  ESIMUsage,
-  TopupPackage,
-  MerchantBalance 
+export { toNormalizedOrder, toNormalizedPlan }
+export type {
+  ESIMOrder, EsimPackageRaw, ESIMUsage, MerchantBalance, Plan, TopupPackage
 }
-export { toNormalizedPlan, toNormalizedOrder }
+

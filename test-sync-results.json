@@ -1,0 +1,103 @@
+{
+  "timestamp": "2026-02-17T18:37:13.723Z",
+  "duration": "2.58s",
+  "stats": {
+    "total": 15,
+    "passed": 15,
+    "failed": 0,
+    "warnings": 0,
+    "startTime": 1771353431146
+  },
+  "results": [
+    {
+      "name": "Serveur Next.js accessible",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-02-17T18:37:11.233Z"
+    },
+    {
+      "name": "Page de login accessible",
+      "passed": true,
+      "details": "La configuration Supabase semble correcte",
+      "timestamp": "2026-02-17T18:37:11.253Z"
+    },
+    {
+      "name": "API /api/esim/packages",
+      "passed": true,
+      "details": "Status: 200 (OK)",
+      "timestamp": "2026-02-17T18:37:13.645Z"
+    },
+    {
+      "name": "API /api/esim/balance",
+      "passed": true,
+      "details": "Status: 200 (OK)",
+      "timestamp": "2026-02-17T18:37:13.651Z"
+    },
+    {
+      "name": "Protection /dashboard",
+      "passed": true,
+      "details": "Redirige vers /login ✓",
+      "timestamp": "2026-02-17T18:37:13.654Z"
+    },
+    {
+      "name": "Protection /products",
+      "passed": true,
+      "details": "Redirige vers /login ✓",
+      "timestamp": "2026-02-17T18:37:13.656Z"
+    },
+    {
+      "name": "Protection /esim",
+      "passed": true,
+      "details": "Redirige vers /login ✓",
+      "timestamp": "2026-02-17T18:37:13.658Z"
+    },
+    {
+      "name": "Protection /orders",
+      "passed": true,
+      "details": "Redirige vers /login ✓",
+      "timestamp": "2026-02-17T18:37:13.660Z"
+    },
+    {
+      "name": "Protection /suppliers",
+      "passed": true,
+      "details": "Redirige vers /login ✓",
+      "timestamp": "2026-02-17T18:37:13.661Z"
+    },
+    {
+      "name": "Protection /customers",
+      "passed": true,
+      "details": "Redirige vers /login ✓",
+      "timestamp": "2026-02-17T18:37:13.663Z"
+    },
+    {
+      "name": "Structure /login",
+      "passed": true,
+      "details": "Application React chargée correctement",
+      "timestamp": "2026-02-17T18:37:13.676Z"
+    },
+    {
+      "name": "Structure /register",
+      "passed": true,
+      "details": "Application React chargée correctement",
+      "timestamp": "2026-02-17T18:37:13.694Z"
+    },
+    {
+      "name": "Performance /login",
+      "passed": true,
+      "details": "12ms (Excellent!)",
+      "timestamp": "2026-02-17T18:37:13.707Z"
+    },
+    {
+      "name": "Performance /register",
+      "passed": true,
+      "details": "14ms (Excellent!)",
+      "timestamp": "2026-02-17T18:37:13.722Z"
+    },
+    {
+      "name": "Asset /favicon.ico",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-02-17T18:37:13.723Z"
+    }
+  ]
+}

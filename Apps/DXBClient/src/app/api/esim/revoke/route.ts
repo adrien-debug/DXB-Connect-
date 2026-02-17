@@ -1,24 +1,21 @@
-import { NextResponse } from 'next/server'
+import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
+import type { RevokeRequest } from '@/lib/esim-types'
 import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
 
-const ESIM_API_URL = 'https://api.esimaccess.com/api/v1'
-
-interface RevokeRequest {
-  orderNo?: string
-  iccid?: string
-}
+// Cast ciblé — types Supabase générés en décalage avec la version du client
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseAny = any
 
 /**
  * POST /api/esim/revoke
- * Révoquer/désactiver définitivement une eSIM
- * Utilisé en cas de fraude ou utilisation non autorisée
- * Body: { orderNo } ou { iccid }
- * 
+ * Révoquer définitivement une eSIM.
+ * Body: { orderNo? } ou { iccid? }
+ *
  * ⚠️ Cette action est IRRÉVERSIBLE
  */
 export async function POST(request: Request) {
   try {
-    // Vérifier authentification
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
@@ -38,17 +35,13 @@ export async function POST(request: Request) {
       )
     }
 
-    // Vérifier que l'ordre appartient à l'utilisateur
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const query = (supabase.from('esim_orders') as any).select('*').eq('user_id', user.id)
-    
-    if (body.orderNo) {
-      query.eq('order_no', body.orderNo)
-    } else if (body.iccid) {
-      query.eq('iccid', body.iccid)
-    }
+    // Vérifier que la commande appartient à l'utilisateur
+    const supabase = await createClient()
+    let orderQuery = supabase.from('esim_orders').select('id, order_no').eq('user_id', user!.id)
+    if (body.orderNo) orderQuery = orderQuery.eq('order_no', body.orderNo)
+    else if (body.iccid) orderQuery = orderQuery.eq('iccid', body.iccid)
 
-    const { data: order } = await query.single()
+    const { data: order } = await orderQuery.single()
 
     if (!order) {
       return NextResponse.json(
@@ -57,52 +50,31 @@ export async function POST(request: Request) {
       )
     }
 
-    const response = await fetch(`${ESIM_API_URL}/open/esim/revoke`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'RT-AccessCode': process.env.ESIM_ACCESS_CODE || '',
-        'RT-SecretKey': process.env.ESIM_SECRET_KEY || '',
-      },
-      body: JSON.stringify({
-        ...(body.orderNo && { orderNo: body.orderNo }),
-        ...(body.iccid && { iccid: body.iccid }),
-      }),
+    const data = await esimPost<{ success: boolean }>('/open/esim/revoke', {
+      ...(body.orderNo && { orderNo: body.orderNo }),
+      ...(body.iccid && { iccid: body.iccid }),
     })
 
-    if (!response.ok) {
-      console.error('[esim/revoke] API error:', response.status)
-      return NextResponse.json(
-        { success: false, error: 'eSIM API error' },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
-
     if (data.success) {
-      console.log('[esim/revoke] Revoke successful:', {
-        orderNo: body.orderNo || order.order_no,
-        userId: user.id,
-      })
+      console.log('[esim/revoke] Révocation réussie orderNo=%s user=%s', body.orderNo ?? order.order_no, user!.id)
 
-      // Mettre à jour le statut
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from('esim_orders') as any)
-          .update({
-            status: 'REVOKED',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', order.id)
-      } catch (dbError) {
-        console.warn('[esim/revoke] DB update error:', dbError)
-      }
+      const { error: dbError } = await supabase
+        .from('esim_orders')
+        .update({ status: 'REVOKED', updated_at: new Date().toISOString() })
+        .eq('id', order.id)
+      if (dbError) console.warn('[esim/revoke] DB update error:', dbError.message)
     }
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('[esim/revoke] Error:', error)
+    if (error instanceof ESIMAccessError) {
+      console.error('[esim/revoke] eSIM API error %d:', error.status, error.body)
+      return NextResponse.json(
+        { success: false, error: 'eSIM provider error' },
+        { status: error.status }
+      )
+    }
+    console.error('[esim/revoke] Unexpected error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

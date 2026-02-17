@@ -1,20 +1,21 @@
-import { NextResponse } from 'next/server'
+import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
 import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
 
-const ESIM_API_URL = 'https://api.esimaccess.com/api/v1'
+// Cast ciblé — types Supabase générés en décalage avec la version du client
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseAny = any
 
 /**
  * GET /api/esim/query
- * Récupérer le statut détaillé d'une eSIM
- * Query params: 
- *   - orderNo OR iccid (required)
- *   - queryType (optional): USAGE, VALIDITY, ALL
+ * Récupère le statut détaillé d'une eSIM.
+ * Query params: orderNo | iccid (requis), queryType (défaut ALL)
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const orderNo = searchParams.get('orderNo')
   const iccid = searchParams.get('iccid')
-  const queryType = searchParams.get('queryType') || 'ALL'
+  const queryType = searchParams.get('queryType') ?? 'ALL'
 
   if (!orderNo && !iccid) {
     return NextResponse.json(
@@ -24,7 +25,6 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Vérifier authentification
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
@@ -35,44 +35,30 @@ export async function GET(request: Request) {
       )
     }
 
-    // Construire les types de requête
-    const queryTypes = queryType === 'ALL' 
-      ? ['USAGE', 'VALIDITY'] 
-      : [queryType]
+    const queryTypes = queryType === 'ALL' ? ['USAGE', 'VALIDITY'] : [queryType]
 
-    const response = await fetch(`${ESIM_API_URL}/open/esim/query`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'RT-AccessCode': process.env.ESIM_ACCESS_CODE || '',
-        'RT-SecretKey': process.env.ESIM_SECRET_KEY || '',
-      },
-      body: JSON.stringify({
+    const data = await esimPost<{ success: boolean; obj?: Record<string, unknown> }>(
+      '/open/esim/query',
+      {
         ...(orderNo && { orderNo }),
         ...(iccid && { iccid }),
         queryType: queryTypes,
-      }),
-    })
+      }
+    )
 
-    if (!response.ok) {
-      console.error('[esim/query] API error:', response.status)
-      return NextResponse.json(
-        { success: false, error: 'eSIM API error' },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
-
-    // Enrichir avec données locales si disponibles
+    // Enrichir avec les données locales si disponibles
     if (data.success && data.obj) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: localOrder } = await (supabase.from('esim_orders') as any)
-          .select('*')
-          .eq('user_id', user.id)
-          .or(`order_no.eq.${orderNo || ''},iccid.eq.${iccid || ''}`)
-          .single()
+        const supabaseDB = await createClient()
+        let localQuery = supabaseDB
+          .from('esim_orders')
+          .select('purchase_price, currency, created_at')
+          .eq('user_id', user!.id)
+
+        if (orderNo) localQuery = localQuery.eq('order_no', orderNo)
+        else if (iccid) localQuery = localQuery.eq('iccid', iccid)
+
+        const { data: localOrder } = await localQuery.single()
 
         if (localOrder) {
           data.obj.localData = {
@@ -82,13 +68,20 @@ export async function GET(request: Request) {
           }
         }
       } catch {
-        // Pas de données locales
+        // Pas de données locales — non bloquant
       }
     }
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('[esim/query] Error:', error)
+    if (error instanceof ESIMAccessError) {
+      console.error('[esim/query] eSIM API error %d:', error.status, error.body)
+      return NextResponse.json(
+        { success: false, error: 'eSIM provider error' },
+        { status: error.status }
+      )
+    }
+    console.error('[esim/query] Unexpected error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

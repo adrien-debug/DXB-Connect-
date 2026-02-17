@@ -1,32 +1,25 @@
-import { NextResponse } from 'next/server'
+import { requireAuthFlexible } from '@/lib/auth-middleware'
+import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
+import type { CancelRequest } from '@/lib/esim-types'
 import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
 
-const ESIM_API_URL = 'https://api.esimaccess.com/api/v1'
-
-interface CancelRequest {
-  orderNo: string
-  iccid?: string
-}
+// Cast ciblé — types Supabase générés en décalage avec la version du client
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseAny = any
 
 /**
  * POST /api/esim/cancel
- * Annuler et rembourser une eSIM non utilisée/non installée
+ * Annuler et rembourser une eSIM non utilisée/non installée.
  * Body: { orderNo, iccid? }
- * 
- * Note: Le crédit est retourné sur le compte eSIM Access
+ *
+ * Note: Le crédit est retourné sur le compte eSIM Access.
  */
 export async function POST(request: Request) {
   try {
-    // Vérifier authentification
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    // Auth flexible (Bearer OU Cookie)
+    const { error: authError, user } = await requireAuthFlexible(request)
+    if (authError) return authError
 
     const body: CancelRequest = await request.json()
 
@@ -37,12 +30,13 @@ export async function POST(request: Request) {
       )
     }
 
-    // Vérifier que l'ordre appartient à l'utilisateur
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: order } = await (supabase.from('esim_orders') as any)
-      .select('*')
+    // Vérifier que la commande appartient à l'utilisateur
+    const supabase = await createClient()
+    const { data: order } = await supabase
+      .from('esim_orders')
+      .select('id, order_no')
       .eq('order_no', body.orderNo)
-      .eq('user_id', user.id)
+      .eq('user_id', user!.id)
       .single()
 
     if (!order) {
@@ -52,52 +46,31 @@ export async function POST(request: Request) {
       )
     }
 
-    const response = await fetch(`${ESIM_API_URL}/open/esim/cancel`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'RT-AccessCode': process.env.ESIM_ACCESS_CODE || '',
-        'RT-SecretKey': process.env.ESIM_SECRET_KEY || '',
-      },
-      body: JSON.stringify({
-        orderNo: body.orderNo,
-        ...(body.iccid && { iccid: body.iccid }),
-      }),
+    const data = await esimPost<{ success: boolean }>('/open/esim/cancel', {
+      orderNo: body.orderNo,
+      ...(body.iccid && { iccid: body.iccid }),
     })
 
-    if (!response.ok) {
-      console.error('[esim/cancel] API error:', response.status)
-      return NextResponse.json(
-        { success: false, error: 'eSIM API error' },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
-
     if (data.success) {
-      console.log('[esim/cancel] Cancel successful:', {
-        orderNo: body.orderNo,
-        userId: user.id,
-      })
+      console.log('[esim/cancel] Annulation réussie orderNo=%s user=%s', body.orderNo, user!.id)
 
-      // Mettre à jour le statut dans la base de données
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from('esim_orders') as any)
-          .update({
-            status: 'CANCELLED',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('order_no', body.orderNo)
-      } catch (dbError) {
-        console.warn('[esim/cancel] DB update error:', dbError)
-      }
+      const { error: dbError } = await supabase
+        .from('esim_orders')
+        .update({ status: 'CANCELLED', updated_at: new Date().toISOString() })
+        .eq('order_no', body.orderNo)
+      if (dbError) console.warn('[esim/cancel] DB update error:', dbError.message)
     }
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('[esim/cancel] Error:', error)
+    if (error instanceof ESIMAccessError) {
+      console.error('[esim/cancel] eSIM API error %d:', error.status, error.body)
+      return NextResponse.json(
+        { success: false, error: 'eSIM provider error' },
+        { status: error.status }
+      )
+    }
+    console.error('[esim/cancel] Unexpected error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

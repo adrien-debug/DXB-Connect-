@@ -1,8 +1,12 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase/client'
-import { Supplier, SupplierInsert, SupplierUpdate } from '@/lib/database.types'
+import { supabase, supabaseAny } from '@/lib/supabase/client'
+import { Supplier } from '@/lib/types'
+
+// Types pour les opérations CRUD
+type SupplierInsert = Partial<Supplier>
+type SupplierUpdate = Partial<Supplier>
 import { toast } from 'sonner'
 
 const QUERY_KEY = ['suppliers']
@@ -24,9 +28,9 @@ async function fetchSuppliers(): Promise<Supplier[]> {
 
 // Create supplier
 async function createSupplier(input: SupplierInsert): Promise<Supplier> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAny
     .from('suppliers')
-    .insert(input)
+    .insert([input])
     .select()
     .single()
 
@@ -35,14 +39,15 @@ async function createSupplier(input: SupplierInsert): Promise<Supplier> {
     throw new Error(error.message)
   }
 
-  return data
+  return data as Supplier
 }
 
 // Update supplier
 async function updateSupplier({ id, ...input }: SupplierUpdate & { id: string }): Promise<Supplier> {
-  const { data, error } = await supabase
+  const updateData = { ...input, updated_at: new Date().toISOString() }
+  const { data, error } = await supabaseAny
     .from('suppliers')
-    .update({ ...input, updated_at: new Date().toISOString() })
+    .update(updateData)
     .eq('id', id)
     .select()
     .single()
@@ -52,7 +57,7 @@ async function updateSupplier({ id, ...input }: SupplierUpdate & { id: string })
     throw new Error(error.message)
   }
 
-  return data
+  return data as Supplier
 }
 
 // Delete supplier

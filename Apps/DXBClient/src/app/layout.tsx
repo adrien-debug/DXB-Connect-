@@ -1,12 +1,20 @@
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
-import Sidebar from '@/components/Sidebar'
+import { QueryProvider } from '@/providers/QueryProvider'
+import { Toaster } from 'sonner'
+
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter',
+})
 
 export const metadata: Metadata = {
-  title: 'DXB Manager',
-  description: 'Plateforme de gestion - Suppliers, Customers, Ads',
+  title: 'DXB Connect - Premium Dashboard',
+  description: 'Plateforme de gestion centralisée premium',
   icons: {
     icon: '/favicon.svg',
+    apple: '/favicon.svg',
   },
 }
 
@@ -16,14 +24,25 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr">
-      <body className="bg-slate-100">
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 p-6 overflow-auto">
-            {children}
-          </main>
-        </div>
+    <html lang="fr" className={inter.variable}>
+      <body className={`${inter.className} antialiased`}>
+        <QueryProvider>
+          {children}
+          <Toaster 
+            position="top-right" 
+            richColors 
+            closeButton
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.4)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+              },
+            }}
+          />
+        </QueryProvider>
       </body>
     </html>
   )

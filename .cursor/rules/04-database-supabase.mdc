@@ -1,0 +1,245 @@
+---
+description: Standards Supabase et gestion base de données
+globs: "**/migrations/**/*.sql"
+alwaysApply: false
+---
+
+# Supabase & Database - Standards
+
+## 🗄️ Tables Principales
+
+```sql
+-- Profils utilisateurs
+profiles (
+  id uuid PRIMARY KEY REFERENCES auth.users,
+  email text,
+  full_name text,
+  role text CHECK (role IN ('client', 'admin')),
+  created_at timestamptz,
+  updated_at timestamptz
+)
+
+-- Commandes eSIM
+esim_orders (
+  id uuid PRIMARY KEY,
+  user_id uuid REFERENCES profiles NOT NULL,
+  order_no text UNIQUE NOT NULL,
+  iccid text UNIQUE NOT NULL,
+  status text,
+  package_name text,
+  total_volume text,
+  created_at timestamptz,
+  updated_at timestamptz
+)
+
+-- Produits
+products (
+  id uuid PRIMARY KEY,
+  supplier_id uuid REFERENCES suppliers,
+  name text NOT NULL,
+  price_usd numeric NOT NULL,
+  created_at timestamptz,
+  updated_at timestamptz
+)
+```
+
+## 🔐 Row Level Security (RLS)
+
+### ✅ OBLIGATOIRE sur toutes les tables
+
+```sql
+-- Activer RLS
+ALTER TABLE esim_orders ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users voient seulement leurs données
+CREATE POLICY "Users can view own orders"
+ON esim_orders FOR SELECT
+USING (auth.uid() = user_id);
+
+-- Policy: Users peuvent créer leurs propres orders
+CREATE POLICY "Users can create own orders"
+ON esim_orders FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- Policy: Admins voient tout
+CREATE POLICY "Admins can view all orders"
+ON esim_orders FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  )
+);
+```
+
+## 🔗 Foreign Keys & Contraintes
+
+```sql
+-- ✅ TOUJOURS définir FK explicites
+ALTER TABLE esim_orders
+ADD CONSTRAINT fk_user
+FOREIGN KEY (user_id)
+REFERENCES profiles(id)
+ON DELETE CASCADE;  -- ⚠️ Ou RESTRICT selon logique métier
+
+-- ✅ Contraintes validation
+ALTER TABLE products
+ADD CONSTRAINT check_price_positive
+CHECK (price_usd > 0);
+
+-- ✅ Index performance
+CREATE INDEX idx_esim_orders_user_id ON esim_orders(user_id);
+CREATE INDEX idx_esim_orders_status ON esim_orders(status);
+```
+
+## 🔄 Migrations
+
+### Structure Migration
+```sql
+-- Backend/migrations/XXX_description.sql
+
+-- ✅ Toujours inclure:
+-- 1. Commentaire description
+-- 2. Transaction
+-- 3. Rollback plan
+
+BEGIN;
+
+-- Description: Add soft delete to esim_orders
+-- Date: 2026-02-17
+
+-- Add deleted_at column
+ALTER TABLE esim_orders
+ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+
+-- Create index for soft delete queries
+CREATE INDEX idx_esim_orders_deleted_at
+ON esim_orders(deleted_at)
+WHERE deleted_at IS NULL;
+
+COMMIT;
+
+-- Rollback:
+-- ALTER TABLE esim_orders DROP COLUMN deleted_at;
+-- DROP INDEX idx_esim_orders_deleted_at;
+```
+
+## 🔄 Triggers Auto-Update
+
+```sql
+-- ✅ Trigger updated_at automatique
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_esim_orders
+BEFORE UPDATE ON esim_orders
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at();
+```
+
+## 🗑️ Soft Delete
+
+```sql
+-- ✅ Pattern soft delete
+ALTER TABLE esim_orders
+ADD COLUMN deleted_at timestamptz DEFAULT NULL;
+
+-- View pour données actives
+CREATE VIEW active_esim_orders AS
+SELECT * FROM esim_orders
+WHERE deleted_at IS NULL;
+
+-- Fonction soft delete
+CREATE OR REPLACE FUNCTION soft_delete_order(order_id uuid)
+RETURNS void AS $$
+BEGIN
+  UPDATE esim_orders
+  SET deleted_at = NOW()
+  WHERE id = order_id AND user_id = auth.uid();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+## 📊 Queries Optimisées
+
+```typescript
+// ✅ Select uniquement colonnes nécessaires
+const { data } = await supabase
+  .from('esim_orders')
+  .select('id, order_no, status, created_at')  // ✅ Spécifique
+  .eq('user_id', userId)
+  .order('created_at', { ascending: false })
+  .limit(50);
+
+// ❌ Select *
+const { data } = await supabase
+  .from('esim_orders')
+  .select('*');  // ❌ Trop large
+```
+
+## 🔒 Sécurité Queries
+
+```typescript
+// ✅ TOUJOURS filtrer par user_id
+const { data } = await supabase
+  .from('orders')
+  .select()
+  .eq('user_id', user.id)  // ✅ CRITIQUE
+  .eq('id', orderId);
+
+// ❌ Ne JAMAIS accepter user_id du client
+const { user_id } = await request.json();  // ❌ DANGER
+const { data } = await supabase
+  .from('orders')
+  .select()
+  .eq('user_id', user_id);  // ❌ Spoofing possible
+```
+
+## 🧪 Tests Database
+
+```bash
+# Script test connexion
+./Apps/DXBClient/ios-backend-audit.sh
+
+# Vérifier RLS
+SELECT tablename, policyname, permissive, roles, cmd, qual
+FROM pg_policies
+WHERE schemaname = 'public';
+```
+
+## 📝 Types TypeScript Générés
+
+```bash
+# Générer types depuis schema Supabase
+npx supabase gen types typescript --project-id xxx > src/lib/database.types.ts
+```
+
+## 🎯 Checklist Migration
+
+- [ ] Transaction BEGIN/COMMIT
+- [ ] Commentaire description
+- [ ] FK explicites avec ON DELETE
+- [ ] Contraintes validation
+- [ ] Index performance
+- [ ] RLS policies
+- [ ] Trigger updated_at
+- [ ] Plan rollback documenté
+- [ ] Test en local avant production
+
+## ⚠️ INTERDIT
+
+```sql
+-- ❌ DROP sans protection
+DROP TABLE IF EXISTS users;  -- ❌ DANGER
+
+-- ❌ Désactiver RLS
+ALTER TABLE orders DISABLE ROW LEVEL SECURITY;  -- ❌ INTERDIT
+
+-- ❌ Policy permissive
+CREATE POLICY "allow_all" ON orders FOR ALL USING (true);  -- ❌ DANGER
+```

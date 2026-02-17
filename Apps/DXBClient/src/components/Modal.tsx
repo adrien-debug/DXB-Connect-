@@ -1,7 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 interface ModalProps {
   isOpen: boolean
@@ -12,6 +12,9 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+  const [isVisible, setIsVisible] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -20,6 +23,17 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
     if (isOpen) {
       document.addEventListener('keydown', handleEscape)
       document.body.style.overflow = 'hidden'
+      // Trigger animation
+      setIsVisible(true)
+      requestAnimationFrame(() => {
+        setIsAnimating(true)
+      })
+    } else {
+      setIsAnimating(false)
+      const timer = setTimeout(() => {
+        setIsVisible(false)
+      }, 200)
+      return () => clearTimeout(timer)
     }
     
     return () => {
@@ -28,7 +42,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
     }
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
+  if (!isVisible) return null
 
   const sizeClasses = {
     sm: 'max-w-md',
@@ -38,23 +52,54 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className={`
+          fixed inset-0 
+          bg-gray-900/30 backdrop-blur-sm
+          transition-opacity duration-300
+          ${isAnimating ? 'opacity-100' : 'opacity-0'}
+        `}
         onClick={onClose}
       />
-      <div className={`relative bg-white rounded-xl shadow-xl w-full ${sizeClasses[size]} mx-4 max-h-[90vh] overflow-auto`}>
-        <div className="flex items-center justify-between p-4 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
-          <button
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-        <div className="p-4">
-          {children}
+      
+      {/* Modal */}
+      <div 
+        className={`
+          relative w-full ${sizeClasses[size]} 
+          my-8
+          transition-all duration-300 ease-out
+          ${isAnimating 
+            ? 'opacity-100 scale-100 translate-y-0' 
+            : 'opacity-0 scale-95 translate-y-4'
+          }
+        `}
+      >
+        <div className="bg-white rounded-3xl shadow-xl border border-gray-100/50 max-h-[calc(100vh-4rem)] flex flex-col">
+          {/* Header */}
+          <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-gray-100 bg-white flex-shrink-0">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 truncate">{title}</h3>
+              <button
+                onClick={onClose}
+                className="
+                  p-2 rounded-xl flex-shrink-0
+                  text-gray-400 hover:text-violet-600
+                  hover:bg-violet-50
+                  transition-all duration-200
+                "
+                aria-label="Fermer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+          
+          {/* Content */}
+          <div className="p-5 sm:p-6 overflow-y-auto flex-1 bg-white">
+            {children}
+          </div>
         </div>
       </div>
     </div>

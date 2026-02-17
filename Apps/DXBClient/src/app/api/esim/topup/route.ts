@@ -1,20 +1,25 @@
-import { NextResponse } from 'next/server'
+import { requireAuthFlexible } from '@/lib/auth-middleware'
+import type { Json } from '@/lib/database.types'
+import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
+import type { TopupRequest } from '@/lib/esim-types'
 import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
 
-const ESIM_API_URL = 'https://api.esimaccess.com/api/v1'
-
-interface TopupRequest {
-  packageCode: string
-  iccid: string
-  transactionId?: string
-}
+// Cast ciblé — types Supabase générés en décalage avec la version du client
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseAny = any
 
 /**
  * GET /api/esim/topup
- * Liste des packages de recharge disponibles pour une eSIM
- * Query params: iccid (required)
+ * Liste des packages de recharge disponibles pour une eSIM.
+ * Query params: iccid (requis)
+ * - Authentification requise
  */
 export async function GET(request: Request) {
+  // Auth flexible (Bearer OU Cookie)
+  const { error: authError } = await requireAuthFlexible(request)
+  if (authError) return authError
+
   const { searchParams } = new URL(request.url)
   const iccid = searchParams.get('iccid')
 
@@ -26,31 +31,17 @@ export async function GET(request: Request) {
   }
 
   try {
-    const response = await fetch(`${ESIM_API_URL}/open/package/list`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'RT-AccessCode': process.env.ESIM_ACCESS_CODE || '',
-        'RT-SecretKey': process.env.ESIM_SECRET_KEY || '',
-      },
-      body: JSON.stringify({
-        type: 'TOPUP',
-        iccid,
-      }),
-    })
-
-    if (!response.ok) {
-      console.error('[esim/topup] GET API error:', response.status)
-      return NextResponse.json(
-        { success: false, error: 'eSIM API error' },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
+    const data = await esimPost('/open/package/list', { type: 'TOPUP', iccid })
     return NextResponse.json(data)
   } catch (error) {
-    console.error('[esim/topup] GET Error:', error)
+    if (error instanceof ESIMAccessError) {
+      console.error('[esim/topup] GET eSIM API error %d:', error.status, error.body)
+      return NextResponse.json(
+        { success: false, error: 'eSIM provider error' },
+        { status: error.status }
+      )
+    }
+    console.error('[esim/topup] GET unexpected error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
@@ -60,21 +51,14 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/esim/topup
- * Recharger une eSIM existante
+ * Recharger une eSIM existante.
  * Body: { packageCode, iccid, transactionId? }
  */
 export async function POST(request: Request) {
   try {
-    // Vérifier authentification
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    // Auth flexible (Bearer OU Cookie)
+    const { error: authError, user } = await requireAuthFlexible(request)
+    if (authError) return authError
 
     const body: TopupRequest = await request.json()
 
@@ -85,59 +69,40 @@ export async function POST(request: Request) {
       )
     }
 
-    // Générer transactionId si non fourni
-    const transactionId = body.transactionId || `topup_${Date.now()}_${user.id.slice(0, 8)}`
+    const transactionId = body.transactionId ?? `topup_${Date.now()}_${user.id.slice(0, 8)}`
 
-    const response = await fetch(`${ESIM_API_URL}/open/esim/topup`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'RT-AccessCode': process.env.ESIM_ACCESS_CODE || '',
-        'RT-SecretKey': process.env.ESIM_SECRET_KEY || '',
-      },
-      body: JSON.stringify({
-        packageCode: body.packageCode,
-        iccid: body.iccid,
-        transactionId,
-      }),
-    })
-
-    if (!response.ok) {
-      console.error('[esim/topup] POST API error:', response.status)
-      return NextResponse.json(
-        { success: false, error: 'eSIM API error' },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
+    const data = await esimPost<{ success: boolean; obj?: { orderNo?: string } }>(
+      '/open/esim/topup',
+      { packageCode: body.packageCode, iccid: body.iccid, transactionId }
+    )
 
     if (data.success) {
-      console.log('[esim/topup] Top-up successful:', {
-        iccid: body.iccid,
-        packageCode: body.packageCode,
-        userId: user.id,
-      })
+      console.log('[esim/topup] Top-up réussi iccid=%s package=%s user=%s', body.iccid, body.packageCode, user!.id)
 
-      // Enregistrer le top-up dans la base de données
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from('esim_orders') as any).insert({
-          user_id: user.id,
-          order_no: data.obj?.orderNo || transactionId,
-          package_code: body.packageCode,
-          iccid: body.iccid,
-          status: 'TOPUP_COMPLETED',
-          raw_response: data.obj,
-        })
-      } catch (dbError) {
-        console.warn('[esim/topup] DB insert error:', dbError)
+      const supabase = await createClient()
+      const { error: dbError } = await (supabase.from('esim_orders') as SupabaseAny).insert({
+        user_id: user!.id,
+        order_no: data.obj?.orderNo ?? transactionId,
+        package_code: body.packageCode,
+        iccid: body.iccid,
+        status: 'TOPUP_COMPLETED',
+        raw_response: (data.obj ?? null) as Json,
+      })
+      if (dbError) {
+        console.warn('[esim/topup] DB insert error:', dbError.message)
       }
     }
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('[esim/topup] POST Error:', error)
+    if (error instanceof ESIMAccessError) {
+      console.error('[esim/topup] POST eSIM API error %d:', error.status, error.body)
+      return NextResponse.json(
+        { success: false, error: 'eSIM provider error' },
+        { status: error.status }
+      )
+    }
+    console.error('[esim/topup] POST unexpected error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

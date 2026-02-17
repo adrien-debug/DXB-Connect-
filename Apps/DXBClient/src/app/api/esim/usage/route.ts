@@ -1,12 +1,11 @@
+import { requireAuthFlexible } from '@/lib/auth-middleware'
+import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-
-const ESIM_API_URL = 'https://api.esimaccess.com/api/v1'
 
 /**
  * GET /api/esim/usage
- * Vérifier l'utilisation data d'une eSIM
- * Query params: iccid (required)
+ * Vérifier l'utilisation data d'une eSIM.
+ * Query params: iccid (requis)
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -20,43 +19,20 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Vérifier authentification
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Auth flexible (Bearer OU Cookie)
+    const { error: authError } = await requireAuthFlexible(request)
+    if (authError) return authError
 
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    const data = await esimPost<{ success: boolean; obj?: Record<string, number | string | null> }>(
+      '/open/esim/query',
+      { iccid, queryType: ['USAGE', 'VALIDITY'] }
+    )
 
-    const response = await fetch(`${ESIM_API_URL}/open/esim/query`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'RT-AccessCode': process.env.ESIM_ACCESS_CODE || '',
-        'RT-SecretKey': process.env.ESIM_SECRET_KEY || '',
-      },
-      body: JSON.stringify({
-        iccid,
-        queryType: ['USAGE', 'VALIDITY'],
-      }),
-    })
-
-    if (!response.ok) {
-      console.error('[esim/usage] API error:', response.status)
-      return NextResponse.json(
-        { success: false, error: 'eSIM API error' },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
-    
-    // Formater la réponse
     if (data.success && data.obj) {
       const esim = data.obj
+      const totalVolume = Number(esim.totalVolume ?? 0)
+      const orderUsage = Number(esim.orderUsage ?? 0)
+
       return NextResponse.json({
         success: true,
         data: {
@@ -65,24 +41,27 @@ export async function GET(request: Request) {
           packageName: esim.packageName,
           status: esim.esimStatus,
           smdpStatus: esim.smdpStatus,
-          // Usage data
-          totalVolume: esim.totalVolume,      // bytes total
-          orderUsage: esim.orderUsage,        // bytes utilisés
-          remainingData: esim.totalVolume - (esim.orderUsage || 0),
-          usagePercent: esim.totalVolume > 0 
-            ? Math.round((esim.orderUsage || 0) / esim.totalVolume * 100) 
-            : 0,
-          // Validity
+          totalVolume,
+          orderUsage,
+          remainingData: totalVolume - orderUsage,
+          usagePercent: totalVolume > 0 ? Math.round(orderUsage / totalVolume * 100) : 0,
           expiredTime: esim.expiredTime,
           totalDuration: esim.totalDuration,
           durationUnit: esim.durationUnit,
-        }
+        },
       })
     }
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('[esim/usage] Error:', error)
+    if (error instanceof ESIMAccessError) {
+      console.error('[esim/usage] eSIM API error %d:', error.status, error.body)
+      return NextResponse.json(
+        { success: false, error: 'eSIM provider error' },
+        { status: error.status }
+      )
+    }
+    console.error('[esim/usage] Unexpected error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
