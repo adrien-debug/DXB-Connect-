@@ -9,6 +9,12 @@ struct PlanListView: View {
     @State private var sortOption: SortOption = .popular
     @State private var minData: Int = 0
     @State private var maxPrice: Double = 100
+    @State private var viewMode: ViewMode = .countries
+
+    enum ViewMode: String, CaseIterable {
+        case countries = "Countries"
+        case list = "All Plans"
+    }
 
     enum SortOption: String, CaseIterable {
         case popular = "Popular"
@@ -43,6 +49,14 @@ struct PlanListView: View {
 
     var hasActiveFilters: Bool {
         sortOption != .popular || minData > 0 || maxPrice < 100
+    }
+
+    /// Plans groupés par pays (pour la vue countries)
+    var plansByCountry: [(country: String, code: String, plans: [Plan])] {
+        let grouped = Dictionary(grouping: coordinator.plans) { $0.location }
+        return grouped.map { (country: $0.key, code: $0.value.first?.locationCode ?? "", plans: $0.value) }
+            .sorted { $0.country < $1.country }
+            .filter { searchText.isEmpty || $0.country.localizedCaseInsensitiveContains(searchText) }
     }
 
     var body: some View {
@@ -163,16 +177,48 @@ struct PlanListView: View {
                     )
             )
 
-            // Chips
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(regions, id: \.self) { region in
-                        TechChip(
-                            title: region,
-                            isSelected: selectedRegion == region
-                        ) {
-                            withAnimation(.spring(response: 0.3)) {
-                                selectedRegion = region
+            // View Mode Toggle
+            HStack(spacing: 0) {
+                ForEach(ViewMode.allCases, id: \.self) { mode in
+                    Button {
+                        withAnimation(.spring(response: 0.3)) {
+                            viewMode = mode
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: mode == .countries ? "globe" : "list.bullet")
+                                .font(.system(size: 13, weight: .semibold))
+                            Text(mode.rawValue)
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        .foregroundColor(viewMode == mode ? .white : AppTheme.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(viewMode == mode ? AppTheme.textPrimary : Color.clear)
+                        )
+                    }
+                }
+            }
+            .padding(4)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(AppTheme.gray100)
+            )
+
+            // Region Chips (only show in list mode)
+            if viewMode == .list {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(regions, id: \.self) { region in
+                            TechChip(
+                                title: region,
+                                isSelected: selectedRegion == region
+                            ) {
+                                withAnimation(.spring(response: 0.3)) {
+                                    selectedRegion = region
+                                }
                             }
                         }
                     }
@@ -194,7 +240,35 @@ struct PlanListView: View {
                 Task { await coordinator.loadPlans() }
             }
         } else {
-            plansList
+            switch viewMode {
+            case .countries:
+                countriesGrid
+            case .list:
+                plansList
+            }
+        }
+    }
+
+    private var countriesGrid: some View {
+        ScrollView(showsIndicators: false) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
+                ForEach(Array(plansByCountry.enumerated()), id: \.element.country) { index, item in
+                    NavigationLink {
+                        CountryPlansView(country: item.country, plans: item.plans)
+                    } label: {
+                        CountryCard(
+                            country: item.country,
+                            code: item.code,
+                            planCount: item.plans.count,
+                            minPrice: item.plans.map(\.priceUSD).min() ?? 0
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .slideIn(delay: 0.03 * Double(index))
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 140)
         }
     }
 
@@ -224,6 +298,166 @@ struct PlanListView: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(AppTheme.textTertiary)
             Spacer()
+        }
+    }
+}
+
+// MARK: - Country Card
+
+struct CountryCard: View {
+    let country: String
+    let code: String
+    let planCount: Int
+    let minPrice: Double
+
+    private var flagEmoji: String {
+        let base: UInt32 = 127397
+        var emoji = ""
+        for scalar in code.uppercased().unicodeScalars {
+            if let s = UnicodeScalar(base + scalar.value) {
+                emoji.append(String(s))
+            }
+        }
+        return emoji.isEmpty ? "🌍" : emoji
+    }
+
+    var body: some View {
+        VStack(spacing: 14) {
+            // Flag
+            ZStack {
+                Circle()
+                    .fill(AppTheme.gray100)
+                    .frame(width: 56, height: 56)
+
+                Text(flagEmoji)
+                    .font(.system(size: 28))
+            }
+
+            // Country name
+            Text(country)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(AppTheme.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            // Info
+            HStack(spacing: 4) {
+                Text("\(planCount) plans")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(AppTheme.textTertiary)
+
+                Text("•")
+                    .foregroundColor(AppTheme.textMuted)
+
+                Text("from \(minPrice.formattedPrice)")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(AppTheme.textPrimary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+        .padding(.horizontal, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.white)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(AppTheme.border, lineWidth: 1.5)
+                )
+                .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 3)
+        )
+        .contentShape(Rectangle())
+    }
+}
+
+// MARK: - Country Plans View
+
+struct CountryPlansView: View {
+    let country: String
+    let plans: [Plan]
+    @Environment(\.dismiss) private var dismiss
+
+    private var flagEmoji: String {
+        let base: UInt32 = 127397
+        var emoji = ""
+        if let code = plans.first?.locationCode {
+            for scalar in code.uppercased().unicodeScalars {
+                if let s = UnicodeScalar(base + scalar.value) {
+                    emoji.append(String(s))
+                }
+            }
+        }
+        return emoji.isEmpty ? "🌍" : emoji
+    }
+
+    var body: some View {
+        ZStack {
+            Color.white
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(AppTheme.textPrimary)
+                            .frame(width: 44, height: 44)
+                            .background(
+                                Circle()
+                                    .stroke(AppTheme.border, lineWidth: 1.5)
+                            )
+                    }
+
+                    Spacer()
+
+                    HStack(spacing: 8) {
+                        Text(flagEmoji)
+                            .font(.system(size: 20))
+                        Text(country)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(AppTheme.textPrimary)
+                    }
+
+                    Spacer()
+
+                    Color.clear
+                        .frame(width: 44, height: 44)
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
+
+                // Plans count
+                HStack {
+                    Text("\(plans.count) plans available")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(AppTheme.textTertiary)
+                    Spacer()
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
+
+                // Plans list
+                ScrollView(showsIndicators: false) {
+                    LazyVStack(spacing: 14) {
+                        ForEach(plans) { plan in
+                            NavigationLink(value: plan) {
+                                PlanTechRow(plan: plan)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 100)
+                }
+            }
+        }
+        .navigationBarHidden(true)
+        .navigationDestination(for: Plan.self) { plan in
+            PlanDetailView(plan: plan)
         }
     }
 }
