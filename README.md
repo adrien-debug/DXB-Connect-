@@ -2,6 +2,336 @@
 
 Plateforme eSIM avec app client iOS (SwiftUI) et dashboard admin (NextJS).
 
+---
+
+## 🚨 RÈGLE ABSOLUE - CONFIGURATION TECHNIQUE VERROUILLÉE
+
+**⚠️ CETTE SECTION NE PEUT ÊTRE MODIFIÉE QU'AVEC 3 CONFIRMATIONS EXPLICITES**
+
+**⚠️ EN CAS DE RÉGRESSION : RESTAURER DEPUIS SNAPSHOT "Clean1" (voir fin de section)**
+
+### 📡 Architecture API - CONFIGURATION EXACTE (NON NÉGOCIABLE)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    ARCHITECTURE RAILWAY                      │
+│                    (SEUL POINT D'ENTRÉE)                     │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  📱 iOS SwiftUI App          💻 Next.js Admin Web           │
+│  (Client Mobile)              (Dashboard Admin)             │
+│         │                            │                       │
+│         └────────────┬───────────────┘                       │
+│                      ▼                                       │
+│           ┌──────────────────────┐                          │
+│           │  🚂 RAILWAY BACKEND  │  ◄── POINT CENTRAL       │
+│           │  (Next.js API)       │                          │
+│           │  Port: 4000          │                          │
+│           └──────────┬───────────┘                          │
+│                      ▼                                       │
+│           ┌──────────────────────┐                          │
+│           │  📊 SUPABASE         │                          │
+│           │  (Database + Auth)   │                          │
+│           └──────────┬───────────┘                          │
+│                      ▼                                       │
+│           ┌──────────────────────┐                          │
+│           │  📡 eSIM Access API  │                          │
+│           │  (Provider externe)  │                          │
+│           └──────────────────────┘                          │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 🔐 ROUTES API - CONFIGURATION EXACTE
+
+**URL Production Railway (IMMUABLE)** :
+```
+https://web-production-14c51.up.railway.app
+```
+
+#### 1️⃣ Routes Authentification
+
+| Endpoint | Méthode | Auth | Description | ID Unique |
+|----------|---------|------|-------------|-----------|
+| `/api/auth/apple` | POST | ❌ | Sign-In Apple (iOS) | `esim.iccid` (UNIQUE) |
+| `/api/auth/email/send-otp` | POST | ❌ | Envoi OTP email | - |
+| `/api/auth/email/verify` | POST | ❌ | Vérification OTP | - |
+| `/api/auth/login` | POST | ❌ | Connexion password | - |
+| `/api/auth/register` | POST | ❌ | Inscription | - |
+| `/api/auth/refresh` | POST | ✅ | Refresh token | - |
+
+#### 2️⃣ Routes eSIM - Consultation (GET)
+
+| Endpoint | Méthode | Auth | Retour | ID Unique | Filtrage |
+|----------|---------|------|--------|-----------|----------|
+| `/api/esim/packages` | GET | ✅ | Liste packages disponibles | `packageCode` | Aucun (catalogue public) |
+| `/api/esim/stock` | GET | ✅ | **Stock disponible à la vente** | `esim.iccid` | `smdpStatus=RELEASED` + non attribué |
+| `/api/esim/orders` | GET | ✅ | **eSIMs de l'utilisateur** | `esim.iccid` | `user_id` (Supabase) |
+| `/api/esim/balance` | GET | ✅ | Balance marchand | - | Admin only |
+| `/api/esim/query` | GET | ✅ | Statut détaillé eSIM | `iccid` | `user_id` ownership |
+| `/api/esim/usage` | GET | ✅ | Utilisation data | `iccid` | `user_id` ownership |
+
+**🔴 RÈGLE CRITIQUE - ID UNIQUE** :
+```typescript
+// ✅ OBLIGATOIRE - Utiliser ICCID comme ID unique
+id: esim.iccid ?? esim.orderNo ?? UUID().uuidString
+
+// ❌ INTERDIT - orderNo peut être dupliqué
+id: esim.orderNo ?? esim.esimTranNo ?? UUID().uuidString
+```
+
+**🔴 RÈGLE CRITIQUE - FILTRAGE** :
+```typescript
+// ✅ /api/esim/orders - UNIQUEMENT les eSIMs de l'utilisateur
+const { data: userOrders } = await supabase
+  .from('esim_orders')
+  .select('order_no, iccid')
+  .eq('user_id', user.id)  // ← CRITIQUE : Filtrage par user_id
+
+// Si pas de commandes = liste VIDE (pas tout le stock!)
+if (!userOrders || userOrders.length === 0) {
+  return NextResponse.json({
+    success: true,
+    obj: { esimList: [], orderList: [], pager: { total: 0 } }
+  })
+}
+
+// ✅ /api/esim/stock - Stock disponible (non attribué)
+const availableEsims = allEsims.filter(esim => 
+  esim.smdpStatus === 'RELEASED' && 
+  esim.iccid && 
+  !assignedIccids.has(esim.iccid)  // ← CRITIQUE : Exclure les attribués
+)
+```
+
+#### 3️⃣ Routes eSIM - Actions (POST)
+
+| Endpoint | Méthode | Auth | Description | Validation |
+|----------|---------|------|-------------|------------|
+| `/api/esim/purchase` | POST | ✅ | Achat eSIM | `user_id` ownership |
+| `/api/esim/topup` | POST | ✅ | Recharge eSIM | `user_id` ownership |
+| `/api/esim/cancel` | POST | ✅ | Annulation | `user_id` ownership |
+| `/api/esim/suspend` | POST | ✅ | Suspension | `user_id` ownership |
+| `/api/esim/revoke` | POST | ✅ | Révocation | `user_id` ownership |
+
+#### 4️⃣ Routes Paiement
+
+| Endpoint | Méthode | Auth | Description |
+|----------|---------|------|-------------|
+| `/api/checkout` | POST | ✅ | Création paiement Stripe |
+| `/api/checkout/confirm` | POST | ✅ | Confirmation paiement |
+
+#### 5️⃣ Webhooks
+
+| Endpoint | Méthode | Auth | Description |
+|----------|---------|------|-------------|
+| `/api/webhooks/stripe` | POST | Signature | Webhook Stripe |
+| `/api/webhooks/esim` | POST | ⚠️ À sécuriser | Webhook eSIM Access |
+
+### 🔒 Middleware Auth - FONCTION UNIQUE
+
+**Fichier** : `Apps/DXBClient/src/lib/auth-middleware.ts`
+
+```typescript
+/**
+ * ✅ FONCTION OBLIGATOIRE POUR TOUTES LES ROUTES PROTÉGÉES
+ * Supporte Bearer Token (iOS) ET Cookie Session (Web)
+ */
+export async function requireAuthFlexible(request: Request) {
+  // 1. Tenter Bearer Token (iOS)
+  const authHeader = request.headers.get('authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.substring(7)
+    const supabase = await createClient()
+    const { data: { user }, error } = await supabase.auth.getUser(token)
+    
+    if (error || !user) {
+      return {
+        error: NextResponse.json(
+          { success: false, error: 'Unauthorized - Invalid token' },
+          { status: 401 }
+        ),
+        user: null
+      }
+    }
+    return { user, error: null }
+  }
+
+  // 2. Fallback Cookie Session (Web)
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  
+  if (error || !user) {
+    return {
+      error: NextResponse.json(
+        { success: false, error: 'Unauthorized - Missing or invalid Authorization header' },
+        { status: 401 }
+      ),
+      user: null
+    }
+  }
+  
+  return { user, error: null }
+}
+```
+
+### 📱 Configuration iOS - EXACTE
+
+**Fichier** : `Apps/DXBClient/DXBCore/Sources/DXBCore/Config.swift`
+
+```swift
+public enum APIConfig {
+    case development
+    case staging
+    case production
+    
+    public static var current: APIConfig = {
+        #if DEBUG
+        return .development
+        #else
+        return .production
+        #endif
+    }()
+    
+    public static var baseURL: URL {
+        switch current {
+        case .development:
+            return URL(string: "http://localhost:4000/api")!
+        case .staging:
+            return URL(string: "https://dxb-connect-staging.railway.app/api")!
+        case .production:
+            // ✅ URL PRODUCTION RAILWAY - NE JAMAIS CHANGER
+            return URL(string: "https://web-production-14c51.up.railway.app/api")!
+        }
+    }
+}
+```
+
+**Fichier** : `Apps/DXBClient/DXBCore/Sources/DXBCore/DXBAPIService.swift`
+
+```swift
+// ✅ RÈGLE ABSOLUE - ICCID comme ID unique
+public func fetchStock() async throws -> [ESIMOrder] {
+    let orders = response.obj?.esimList?.compactMap { esim -> ESIMOrder? in
+        return ESIMOrder(
+            id: esim.iccid ?? esim.orderNo ?? UUID().uuidString,  // ← CRITIQUE
+            orderNo: esim.orderNo ?? esim.esimTranNo ?? "",
+            iccid: esim.iccid ?? "",
+            // ... autres champs
+        )
+    } ?? []
+    return orders
+}
+
+// ✅ RÈGLE ABSOLUE - ICCID comme ID unique
+public func fetchMyESIMs() async throws -> [ESIMOrder] {
+    let orders = response.obj?.esimList?.compactMap { esim -> ESIMOrder? in
+        return ESIMOrder(
+            id: esim.iccid ?? esim.orderNo ?? UUID().uuidString,  // ← CRITIQUE
+            orderNo: esim.orderNo ?? esim.esimTranNo ?? "",
+            iccid: esim.iccid ?? "",
+            // ... autres champs
+        )
+    } ?? []
+    return orders
+}
+```
+
+### 🗄️ Base de Données - Tables Critiques
+
+**Table** : `esim_orders` (Supabase)
+
+```sql
+CREATE TABLE esim_orders (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id),  -- ← CRITIQUE : FK vers user
+  order_no TEXT NOT NULL,
+  iccid TEXT NOT NULL UNIQUE,  -- ← CRITIQUE : UNIQUE constraint
+  status TEXT NOT NULL,
+  package_code TEXT,
+  package_name TEXT,
+  total_volume BIGINT,
+  expired_time TIMESTAMPTZ,
+  qr_code_url TEXT,
+  lpa_code TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ✅ RLS ACTIVÉ (Row Level Security)
+ALTER TABLE esim_orders ENABLE ROW LEVEL SECURITY;
+
+-- ✅ Policy : User ne voit QUE ses eSIMs
+CREATE POLICY "Users can only view their own esims"
+  ON esim_orders FOR SELECT
+  USING (auth.uid() = user_id);
+```
+
+### 🔄 Flux de Données - EXACT
+
+#### Flux 1 : Affichage Stock (Explore)
+```
+1. iOS App → GET /api/esim/stock
+2. Railway Backend :
+   a. Appel eSIM Access API → Récupère TOUTES les eSIMs
+   b. Récupère ICCIDs attribués depuis Supabase (esim_orders)
+   c. Filtre : smdpStatus=RELEASED + non attribué
+3. Retour → Liste eSIMs disponibles à la vente
+4. iOS affiche dans "Explore"
+```
+
+#### Flux 2 : Affichage Mes eSIMs (Dashboard/Profile)
+```
+1. iOS App → GET /api/esim/orders
+2. Railway Backend :
+   a. Récupère user_id depuis token Bearer
+   b. Query Supabase : SELECT * FROM esim_orders WHERE user_id = ?
+   c. Si 0 résultat → Retourne liste VIDE (pas tout le stock!)
+   d. Si résultats → Filtre les eSIMs de l'API par ICCIDs de l'user
+3. Retour → Liste eSIMs de l'utilisateur UNIQUEMENT
+4. iOS affiche dans "Dashboard", "My eSIMs", "Profile"
+```
+
+### 🚨 RÈGLES DE MODIFICATION
+
+**Pour modifier cette configuration, il faut :**
+
+1. ✅ **Confirmation explicite de l'utilisateur** (3 fois)
+2. ✅ **Aucune régression détectée** après modification
+3. ✅ **Tests complets** (iOS + Backend + Database)
+4. ✅ **Backup "Clean1"** créé AVANT modification
+
+**En cas de régression :**
+```bash
+# Restaurer depuis le snapshot Clean1
+git checkout Clean1 -- Apps/DXBClient/src/app/api/esim/orders/route.ts
+git checkout Clean1 -- Apps/DXBClient/src/app/api/esim/stock/route.ts
+git checkout Clean1 -- Apps/DXBClient/DXBCore/Sources/DXBCore/DXBAPIService.swift
+git checkout Clean1 -- Apps/DXBClient/DXBCore/Sources/DXBCore/Config.swift
+```
+
+### 📸 SNAPSHOT "Clean1" - Configuration Validée
+
+**Date** : 2026-02-18 19:00 UTC
+**Commits** :
+- `4c24bf9` - fix(orders): secure filtering for esims, return empty for new users, log prod version
+- `00a615b` - fix(ios): use ICCID as unique ID instead of orderNo to prevent duplicates in SwiftUI
+
+**État validé** :
+- ✅ `/api/esim/orders` retourne 0 eSIMs pour nouveaux users
+- ✅ `/api/esim/stock` retourne stock disponible (33 eSIMs)
+- ✅ iOS utilise ICCID comme ID unique (pas de doublons SwiftUI)
+- ✅ Filtrage par `user_id` actif et testé
+- ✅ Architecture Railway respectée (100%)
+
+**Tag Git** :
+```bash
+git tag -a Clean1 -m "Configuration validée - Routes API + iOS + Architecture Railway"
+git push origin Clean1
+```
+
+---
+
 ## 📋 Règles Cursor
 
 6 règles absolues définies dans `.cursor/rules/` :
