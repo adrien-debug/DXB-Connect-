@@ -11,6 +11,7 @@ public protocol DXBAPIServiceProtocol: Sendable {
     func fetchPlans(locale: String) async throws -> [Plan]
     func fetchMyESIMs() async throws -> [ESIMOrder]
     func purchasePlan(planId: String) async throws -> ESIMOrder
+    func processApplePayPayment(planId: String, paymentToken: String, paymentNetwork: String) async throws -> ESIMOrder
 }
 
 // MARK: - API Service Implementation
@@ -180,6 +181,47 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
             throw APIError.invalidResponse
         }
 
+        return ESIMOrder(
+            id: order.orderNo ?? UUID().uuidString,
+            orderNo: order.orderNo ?? "",
+            iccid: order.esimList?.first?.iccid ?? "",
+            lpaCode: order.esimList?.first?.ac ?? "",
+            qrCodeUrl: order.esimList?.first?.qrCodeUrl ?? "",
+            status: "PENDING",
+            packageName: "eSIM",
+            totalVolume: "",
+            expiredTime: "",
+            createdAt: Date()
+        )
+    }
+    
+    public func processApplePayPayment(planId: String, paymentToken: String, paymentNetwork: String) async throws -> ESIMOrder {
+        await AppLogger.shared.logData("Processing Apple Pay payment for plan: \(planId)")
+        
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+        
+        let body: [String: Any] = [
+            "packageCode": planId,
+            "paymentMethod": "apple_pay",
+            "paymentToken": paymentToken,
+            "paymentNetwork": paymentNetwork
+        ]
+
+        let response: PurchaseResponse = try await apiClient.request(
+            endpoint: "esim/purchase/apple-pay",
+            method: "POST",
+            body: body,
+            requiresAuth: true
+        )
+
+        guard let order = response.obj else {
+            throw APIError.invalidResponse
+        }
+
+        await AppLogger.shared.logData("Apple Pay purchase successful: \(order.orderNo ?? "unknown")")
+        
         return ESIMOrder(
             id: order.orderNo ?? UUID().uuidString,
             orderNo: order.orderNo ?? "",

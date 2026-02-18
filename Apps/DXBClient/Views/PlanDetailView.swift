@@ -171,9 +171,7 @@ struct PlanDetailView: View {
                         }
 
                         Button {
-                            Task {
-                                await viewModel.purchase(plan: plan, apiService: coordinator.currentAPIService)
-                            }
+                            viewModel.showPaymentSheet = true
                         } label: {
                             HStack(spacing: 10) {
                                 if viewModel.isLoading {
@@ -206,22 +204,35 @@ struct PlanDetailView: View {
             }
         }
         .navigationBarHidden(true)
-        .alert("Success!", isPresented: $viewModel.showSuccess) {
-            Button("View My eSIMs") {
-                // Reload eSIMs and navigate
-                Task {
-                    await coordinator.loadESIMs()
-                }
+        .fullScreenCover(isPresented: $viewModel.showSuccess) {
+            PaymentSuccessView(plan: plan) {
+                viewModel.showSuccess = false
                 coordinator.selectedTab = 2 // Go to My eSIMs
                 dismiss()
             }
-        } message: {
-            Text("Your eSIM has been purchased! Check 'My eSIMs' to install it.")
         }
         .alert("Error", isPresented: $viewModel.showError) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(viewModel.errorMessage)
+        }
+        .sheet(isPresented: $viewModel.showPaymentSheet) {
+            PaymentSheetView(
+                plan: plan,
+                onSuccess: {
+                    viewModel.showPaymentSheet = false
+                    viewModel.showSuccess = true
+                    // Reload eSIMs
+                    Task {
+                        await coordinator.loadESIMs()
+                    }
+                },
+                onCancel: {
+                    viewModel.showPaymentSheet = false
+                }
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.hidden)
         }
     }
 }
@@ -324,6 +335,7 @@ final class PlanDetailViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var showSuccess = false
     @Published var showError = false
+    @Published var showPaymentSheet = false
     @Published var errorMessage = ""
 
     func purchase(plan: Plan, apiService: DXBAPIServiceProtocol) async {

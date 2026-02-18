@@ -252,6 +252,65 @@ cd Apps/DXBClient
 npm install
 ```
 
+## 📱 Déploiement iOS App Store
+
+### Prérequis
+- Compte Apple Developer ($99/an)
+- Xcode 15+ avec CLI installé
+- Certificats de distribution configurés
+
+### Configuration Apple Developer
+
+1. **App ID** : `com.dxbconnect.app`
+2. **Capabilities requises** :
+   - Apple Pay (Merchant ID: `merchant.com.dxbconnect.app`)
+   - Keychain Sharing
+
+### Fichiers de configuration
+
+| Fichier | Description |
+|---------|-------------|
+| `Apps/DXBClient/project.yml` | Configuration XcodeGen |
+| `Apps/DXBClient/Info.plist` | Métadonnées app |
+| `Apps/DXBClient/DXBConnect.entitlements` | Capabilities (Apple Pay, Keychain) |
+| `Apps/DXBClient/Assets.xcassets/` | AppIcon et couleurs |
+
+### Build & Archive
+
+```bash
+cd Apps/DXBClient
+
+# 1. Régénérer le projet Xcode
+xcodegen generate
+
+# 2. Configurer le Team ID dans project.yml
+# Éditer DEVELOPMENT_TEAM: "VOTRE_TEAM_ID"
+
+# 3. Build Release
+xcodebuild -project DXBConnect.xcodeproj \
+  -scheme DXBConnect \
+  -destination 'generic/platform=iOS' \
+  -configuration Release \
+  archive -archivePath build/DXBConnect.xcarchive
+
+# 4. Export IPA
+xcodebuild -exportArchive \
+  -archivePath build/DXBConnect.xcarchive \
+  -exportPath build/ipa \
+  -exportOptionsPlist ExportOptions.plist
+```
+
+### Checklist App Store
+
+- [ ] AppIcon 1024x1024 PNG (sans transparence)
+- [ ] Screenshots iPhone (6.5" et 5.5")
+- [ ] Screenshots iPad (si supporté)
+- [ ] Description app (jusqu'à 4000 caractères)
+- [ ] Privacy Policy URL
+- [ ] Support URL
+- [ ] Age Rating configuré
+- [ ] Team ID dans `project.yml`
+
 ## Configuration
 
 ### 1. Variables d'environnement

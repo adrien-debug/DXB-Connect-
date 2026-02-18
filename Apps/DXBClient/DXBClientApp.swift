@@ -61,17 +61,6 @@ final class AppCoordinator: ObservableObject {
 
     func checkAuthentication() async {
         isLoading = true
-        
-        #if DEBUG
-        // DEV MODE: Bypass login, auto-authenticate
-        isAuthenticated = true
-        user.name = "Dev User"
-        user.email = "dev@dxbconnect.com"
-        await loadAllData()
-        isLoading = false
-        return
-        #endif
-        
         isAuthenticated = await authService.isAuthenticated()
         if isAuthenticated {
             loadUserFromStorage()
@@ -372,11 +361,7 @@ struct CoordinatorView: View {
     @ObservedObject var coordinator: AppCoordinator
 
     // Set to false to require auth, true to bypass for testing
-    #if DEBUG
-    private let bypassAuthForTesting = true
-    #else
     private let bypassAuthForTesting = false
-    #endif
 
     var body: some View {
         Group {
