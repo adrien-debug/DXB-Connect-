@@ -24,9 +24,19 @@ struct ESIMDetailView: View {
         }
     }
 
+    // MARK: - Computed Properties
+    
+    private var isPaymentConfirmed: Bool {
+        // ✅ RÈGLE : QR Code visible UNIQUEMENT si paiement confirmé
+        // Statuts confirmés : RELEASED, IN_USE, SUSPENDED
+        // Statuts en attente : PENDING, PENDING_PAYMENT, PROCESSING
+        let confirmedStatuses = ["RELEASED", "IN_USE", "SUSPENDED", "EXPIRED"]
+        return confirmedStatuses.contains(order.status.uppercased())
+    }
+    
     var body: some View {
         ZStack {
-            Color.white
+            AppTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -62,68 +72,185 @@ struct ESIMDetailView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
-                        // QR Code Card
-                        VStack(spacing: 20) {
-                            // Status Badge
-                            HStack(spacing: 6) {
-                                Circle()
-                                    .fill(statusColor)
-                                    .frame(width: 8, height: 8)
-
-                                Text(statusText)
-                                    .font(.system(size: 11, weight: .bold))
-                                    .tracking(1)
-                                    .foregroundColor(statusColor)
-                            }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(
-                                Capsule()
-                                    .fill(statusColor.opacity(0.1))
-                            )
-
-                            // QR Code
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white)
-                                    .frame(width: 200, height: 200)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(AppTheme.border, lineWidth: 1.5)
-                                    )
-
-                                AsyncImage(url: URL(string: order.qrCodeUrl)) { image in
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 180, height: 180)
-                                } placeholder: {
-                                    VStack(spacing: 12) {
-                                        ProgressView()
-                                            .tint(AppTheme.textPrimary)
-                                        Text("Loading QR...")
-                                            .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(AppTheme.textTertiary)
-                                    }
-                                }
-                            }
-
-                            Text("Scan to install eSIM")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(AppTheme.textTertiary)
+                        // QR Code Card - UNIQUEMENT si paiement confirmé
+                        if isPaymentConfirmed {
+                            qrCodeSection
+                        } else {
+                            pendingPaymentSection
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 28)
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(AppTheme.gray50)
-                        )
-                        .padding(.horizontal, 24)
-                        .padding(.top, 16)
-                        .slideIn(delay: 0)
+                        
+                        // Package Info (toujours visible)
+                        packageInfoSection
+                        
+                        // Technical Info (toujours visible)
+                        technicalInfoSection
+                        
+                        // Installation Guide - UNIQUEMENT si paiement confirmé
+                        if isPaymentConfirmed {
+                            installationGuideSection
+                        }
 
-                        // Package Info
-                        VStack(alignment: .leading, spacing: 16) {
+                        Spacer(minLength: 40)
+                    }
+                }
+            }
+
+            // Toast
+            if showCopiedToast {
+                VStack {
+                    Spacer()
+
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                        Text("\(copiedText) copied")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
+                    .background(
+                        Capsule()
+                            .fill(AppTheme.textPrimary)
+                    )
+                    .padding(.bottom, 100)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .navigationBarHidden(true)
+    }
+    
+    // MARK: - Pending Payment Section
+    
+    private var pendingPaymentSection: some View {
+        VStack(spacing: 20) {
+            // Status Badge
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(AppTheme.gray400)
+                    .frame(width: 8, height: 8)
+
+                Text("PENDING PAYMENT")
+                    .font(.system(size: 11, weight: .bold))
+                    .tracking(1)
+                    .foregroundColor(AppTheme.gray400)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(AppTheme.gray400.opacity(0.1))
+            )
+
+            // Pending Icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(AppTheme.gray50)
+                    .frame(width: 200, height: 200)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(AppTheme.border, lineWidth: 1.5)
+                    )
+
+                VStack(spacing: 16) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: 48, weight: .semibold))
+                        .foregroundColor(AppTheme.textTertiary)
+                    
+                    Text("Payment Processing")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(AppTheme.textPrimary)
+                    
+                    Text("Your QR code will appear\nonce payment is confirmed")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(AppTheme.textTertiary)
+                        .multilineTextAlignment(.center)
+                }
+            }
+
+            Text("This usually takes a few seconds")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(AppTheme.textTertiary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.gray50)
+        )
+        .padding(.horizontal, 24)
+        .padding(.top, 16)
+        .slideIn(delay: 0)
+    }
+    
+    // MARK: - QR Code Section
+    
+    private var qrCodeSection: some View {
+        VStack(spacing: 20) {
+            // Status Badge
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 8, height: 8)
+
+                Text(statusText)
+                    .font(.system(size: 11, weight: .bold))
+                    .tracking(1)
+                    .foregroundColor(statusColor)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(statusColor.opacity(0.1))
+            )
+
+            // QR Code
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(AppTheme.surfaceLight)
+                    .frame(width: 200, height: 200)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(AppTheme.border, lineWidth: 1.5)
+                    )
+
+                AsyncImage(url: URL(string: order.qrCodeUrl)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 180, height: 180)
+                } placeholder: {
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .tint(AppTheme.textPrimary)
+                        Text("Loading QR...")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(AppTheme.textTertiary)
+                    }
+                }
+            }
+
+            Text("Scan to install eSIM")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(AppTheme.textTertiary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.gray50)
+        )
+        .padding(.horizontal, 24)
+        .padding(.top, 16)
+        .slideIn(delay: 0)
+    }
+    
+    // MARK: - Package Info Section
+    
+    private var packageInfoSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
                             Text("PACKAGE")
                                 .font(.system(size: 11, weight: .bold))
                                 .tracking(1.5)
@@ -162,7 +289,7 @@ struct ESIMDetailView: View {
                         .padding(20)
                         .background(
                             RoundedRectangle(cornerRadius: 18)
-                                .fill(Color.white)
+                                .fill(AppTheme.surfaceLight)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 18)
                                         .stroke(AppTheme.border, lineWidth: 1.5)
@@ -170,9 +297,12 @@ struct ESIMDetailView: View {
                         )
                         .padding(.horizontal, 24)
                         .slideIn(delay: 0.1)
-
-                        // Technical Info
-                        VStack(alignment: .leading, spacing: 16) {
+    }
+    
+    // MARK: - Technical Info Section
+    
+    private var technicalInfoSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
                             Text("TECHNICAL INFO")
                                 .font(.system(size: 11, weight: .bold))
                                 .tracking(1.5)
@@ -205,7 +335,7 @@ struct ESIMDetailView: View {
                         .padding(20)
                         .background(
                             RoundedRectangle(cornerRadius: 18)
-                                .fill(Color.white)
+                                .fill(AppTheme.surfaceLight)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 18)
                                         .stroke(AppTheme.border, lineWidth: 1.5)
@@ -213,9 +343,12 @@ struct ESIMDetailView: View {
                         )
                         .padding(.horizontal, 24)
                         .slideIn(delay: 0.15)
-
-                        // Installation Guide
-                        VStack(alignment: .leading, spacing: 16) {
+    }
+    
+    // MARK: - Installation Guide Section
+    
+    private var installationGuideSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
                             Text("INSTALLATION")
                                 .font(.system(size: 11, weight: .bold))
                                 .tracking(1.5)
@@ -231,7 +364,7 @@ struct ESIMDetailView: View {
                         .padding(20)
                         .background(
                             RoundedRectangle(cornerRadius: 18)
-                                .fill(Color.white)
+                                .fill(AppTheme.surfaceLight)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 18)
                                         .stroke(AppTheme.border, lineWidth: 1.5)
@@ -239,36 +372,6 @@ struct ESIMDetailView: View {
                         )
                         .padding(.horizontal, 24)
                         .slideIn(delay: 0.2)
-
-                        Spacer(minLength: 40)
-                    }
-                }
-            }
-
-            // Toast
-            if showCopiedToast {
-                VStack {
-                    Spacer()
-
-                    HStack(spacing: 10) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 18, weight: .semibold))
-                        Text("\(copiedText) copied")
-                            .font(.system(size: 14, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 14)
-                    .background(
-                        Capsule()
-                            .fill(AppTheme.textPrimary)
-                    )
-                    .padding(.bottom, 100)
-                }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
-        .navigationBarHidden(true)
     }
 
     private func copyToClipboard(_ value: String, label: String) {
