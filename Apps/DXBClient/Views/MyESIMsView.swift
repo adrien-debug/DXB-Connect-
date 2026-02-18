@@ -4,6 +4,7 @@ import DXBCore
 struct MyESIMsView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @State private var selectedFilter = "All"
+    @State private var pollingTask: Task<Void, Never>?
 
     let filters = ["All", "Active", "Expired"]
 
@@ -18,10 +19,17 @@ struct MyESIMsView: View {
         }
     }
 
+    private var hasPendingOrders: Bool {
+        coordinator.esimOrders.contains { order in
+            let status = order.status.uppercased()
+            return status == "PENDING" || status == "PENDING_PAYMENT" || status == "PROCESSING"
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.white
+                AppTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -38,11 +46,48 @@ struct MyESIMsView: View {
                 await coordinator.loadESIMs()
             }
             .task {
-                if coordinator.esimOrders.isEmpty {
+                if !coordinator.hasLoadedInitialData {
                     await coordinator.loadESIMs()
                 }
             }
+            .onChange(of: hasPendingOrders) { _, hasPending in
+                if hasPending {
+                    startPollingForPendingOrders()
+                } else {
+                    stopPolling()
+                }
+            }
+            .onAppear {
+                if hasPendingOrders {
+                    startPollingForPendingOrders()
+                }
+            }
+            .onDisappear {
+                stopPolling()
+            }
         }
+    }
+
+    private func startPollingForPendingOrders() {
+        stopPolling()
+
+        pollingTask = Task {
+            var attempts = 0
+            let maxAttempts = 20
+
+            while !Task.isCancelled && attempts < maxAttempts {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                guard !Task.isCancelled else { break }
+                await coordinator.loadESIMs()
+                attempts += 1
+                if !hasPendingOrders { break }
+            }
+        }
+    }
+
+    private func stopPolling() {
+        pollingTask?.cancel()
+        pollingTask = nil
     }
 
     // MARK: - Header
@@ -56,20 +101,19 @@ struct MyESIMsView: View {
                     .foregroundColor(AppTheme.textTertiary)
 
                 Text("Your Plans")
-                    .font(.system(size: 32, weight: .bold))
+                    .font(.system(size: 34, weight: .bold))
                     .tracking(-0.5)
                     .foregroundColor(AppTheme.textPrimary)
             }
 
             Spacer()
 
-            // Add button
             Button {
-                coordinator.selectedTab = 1 // Navigate to Plans
+                coordinator.selectedTab = 1
             } label: {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(AppTheme.textPrimary)
+                        .fill(AppTheme.accent)
                         .frame(width: 44, height: 44)
 
                     Image(systemName: "plus")
@@ -80,20 +124,21 @@ struct MyESIMsView: View {
             .accessibilityLabel("Acheter un nouveau plan")
             .scaleOnPress()
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 64)
-        .padding(.bottom, 20)
+        .padding(.horizontal, 20)
+        .padding(.top, 60)
+        .padding(.bottom, 16)
     }
 
     // MARK: - Filter
 
     private var filterSection: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             ForEach(filters, id: \.self) { filter in
                 TechChip(
                     title: filter,
                     isSelected: selectedFilter == filter
                 ) {
+                    HapticFeedback.selection()
                     withAnimation(.spring(response: 0.3)) {
                         selectedFilter = filter
                     }
@@ -101,7 +146,7 @@ struct MyESIMsView: View {
             }
             Spacer()
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
         .padding(.bottom, 16)
     }
 
@@ -120,7 +165,7 @@ struct MyESIMsView: View {
 
     private var esimsList: some View {
         ScrollView(showsIndicators: false) {
-            LazyVStack(spacing: 14) {
+            LazyVStack(spacing: 12) {
                 ForEach(Array(filteredOrders.enumerated()), id: \.element.id) { index, order in
                     NavigationLink(value: order) {
                         EsimCardTech(order: order)
@@ -129,8 +174,8 @@ struct MyESIMsView: View {
                     .slideIn(delay: 0.03 * Double(index))
                 }
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 140)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 120)
         }
     }
 
@@ -138,8 +183,8 @@ struct MyESIMsView: View {
         VStack(spacing: 16) {
             Spacer()
             ProgressView()
-                .tint(AppTheme.textPrimary)
-                .scaleEffect(1.3)
+                .tint(AppTheme.accent)
+                .scaleEffect(1.2)
             Text("Loading eSIMs...")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(AppTheme.textTertiary)
@@ -148,22 +193,22 @@ struct MyESIMsView: View {
     }
 
     private var emptyView: some View {
-        VStack(spacing: 28) {
+        VStack(spacing: 24) {
             Spacer()
 
             ZStack {
                 Circle()
-                    .fill(AppTheme.gray100)
-                    .frame(width: 88, height: 88)
+                    .fill(AppTheme.accentSoft)
+                    .frame(width: 80, height: 80)
 
                 Image(systemName: "simcard")
-                    .font(.system(size: 36, weight: .semibold))
-                    .foregroundColor(AppTheme.textPrimary)
+                    .font(.system(size: 34, weight: .semibold))
+                    .foregroundColor(AppTheme.accent)
             }
 
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 Text("No eSIMs Yet")
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(AppTheme.textPrimary)
 
                 Text("Purchase your first eSIM and\nstay connected worldwide")
@@ -173,7 +218,7 @@ struct MyESIMsView: View {
             }
 
             Button {
-                coordinator.selectedTab = 1 // Navigate to Plans
+                coordinator.selectedTab = 1
             } label: {
                 HStack(spacing: 10) {
                     Text("BROWSE PLANS")
@@ -187,7 +232,7 @@ struct MyESIMsView: View {
                 .padding(.vertical, 16)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(AppTheme.textPrimary)
+                        .fill(AppTheme.accent)
                 )
             }
             .accessibilityLabel("Voir les plans disponibles")
@@ -199,16 +244,16 @@ struct MyESIMsView: View {
     }
 }
 
-// MARK: - eSIM Card Tech
+// MARK: - eSIM Card
 
 struct EsimCardTech: View {
     let order: ESIMOrder
-    @State private var isPressed = false
 
     private var statusColor: Color {
         switch order.status.uppercased() {
-        case "RELEASED", "IN_USE": return AppTheme.textPrimary
+        case "RELEASED", "IN_USE": return AppTheme.success
         case "EXPIRED": return AppTheme.gray400
+        case "PENDING", "PENDING_PAYMENT", "PROCESSING": return AppTheme.warning
         default: return AppTheme.gray500
         }
     }
@@ -218,37 +263,67 @@ struct EsimCardTech: View {
         case "RELEASED": return "ACTIVE"
         case "IN_USE": return "IN USE"
         case "EXPIRED": return "EXPIRED"
+        case "PENDING", "PENDING_PAYMENT": return "PENDING"
+        case "PROCESSING": return "PROCESSING"
         default: return order.status.uppercased()
         }
     }
 
+    private var daysRemaining: Int {
+        guard !order.expiredTime.isEmpty else { return 0 }
+        let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        if let expiryDate = dateFormatter.date(from: order.expiredTime) {
+            let days = Calendar.current.dateComponents([.day], from: Date(), to: expiryDate).day ?? 0
+            return max(0, days)
+        }
+
+        let fallbackFormatter = DateFormatter()
+        fallbackFormatter.dateFormat = "yyyy-MM-dd"
+        if let expiryDate = fallbackFormatter.date(from: String(order.expiredTime.prefix(10))) {
+            let days = Calendar.current.dateComponents([.day], from: Date(), to: expiryDate).day ?? 0
+            return max(0, days)
+        }
+        return 0
+    }
+
+    private var daysRemainingText: String {
+        let days = daysRemaining
+        if days == 0 { return "Expired" }
+        if days == 1 { return "1 day left" }
+        return "\(days) days left"
+    }
+
+    private var usagePercentage: Double {
+        return 0.65
+    }
+
     var body: some View {
-        VStack(spacing: 18) {
-            // Header
+        VStack(spacing: 16) {
             HStack(spacing: 14) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(AppTheme.textPrimary)
-                        .frame(width: 52, height: 52)
+                        .fill(AppTheme.accent.opacity(0.1))
+                        .frame(width: 48, height: 48)
 
                     Image(systemName: "simcard.fill")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(.white)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(AppTheme.accent)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(order.packageName)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(AppTheme.textPrimary)
 
                     Text("ICCID: \(String(order.iccid.prefix(8)))...")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundColor(AppTheme.textMuted)
                 }
 
                 Spacer()
 
-                // Status Badge
                 HStack(spacing: 6) {
                     Circle()
                         .fill(statusColor)
@@ -259,97 +334,87 @@ struct EsimCardTech: View {
                         .tracking(0.5)
                         .foregroundColor(statusColor)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
                 .background(
                     Capsule()
                         .fill(statusColor.opacity(0.1))
                 )
             }
 
-            // Progress
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 3)
+                        RoundedRectangle(cornerRadius: 4)
                             .fill(AppTheme.gray100)
 
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(AppTheme.textPrimary)
-                            .frame(width: geo.size.width * 0.65)
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(
+                                LinearGradient(
+                                    colors: [AppTheme.accent, AppTheme.accent.opacity(0.7)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: geo.size.width * usagePercentage)
                     }
                 }
-                .frame(height: 5)
+                .frame(height: 6)
 
                 HStack {
-                    HStack(spacing: 5) {
+                    HStack(spacing: 4) {
                         Image(systemName: "chart.bar.fill")
                             .font(.system(size: 10, weight: .semibold))
-                        Text("65% used")
+                        Text("\(Int(usagePercentage * 100))% used")
                             .font(.system(size: 11, weight: .medium))
                     }
 
                     Spacer()
 
                     Text(order.totalVolume)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 12, weight: .bold))
 
                     Spacer()
 
-                    HStack(spacing: 5) {
+                    HStack(spacing: 4) {
                         Image(systemName: "calendar")
                             .font(.system(size: 10, weight: .semibold))
-                        Text("12 days left")
+                        Text(daysRemainingText)
                             .font(.system(size: 11, weight: .medium))
                     }
                 }
                 .foregroundColor(AppTheme.textTertiary)
             }
         }
-        .padding(20)
+        .padding(18)
         .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.surfaceLight)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(AppTheme.border, lineWidth: 1.5)
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(AppTheme.border, lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(isPressed ? 0.01 : 0.03), radius: isPressed ? 4 : 8, x: 0, y: isPressed ? 1 : 3)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
         )
-        .scaleEffect(isPressed ? 0.98 : 1.0)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(order.packageName), \(statusText), \(order.totalVolume)")
         .accessibilityHint("Double-tap pour voir les détails")
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                        isPressed = true
-                    }
-                }
-                .onEnded { _ in
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                        isPressed = false
-                    }
-                }
-        )
+        .contentShape(Rectangle())
     }
 }
 
-// Legacy compatibility
+// Compatibility
 struct EsimCard: View {
     let order: ESIMOrder
     var body: some View { EsimCardTech(order: order) }
 }
-
-// Compatibility
 struct ESIMCard: View {
     let order: ESIMOrder
-    var body: some View { EsimCard(order: order) }
+    var body: some View { EsimCardTech(order: order) }
 }
 struct UltraEsimCard: View {
     let order: ESIMOrder
-    var body: some View { EsimCard(order: order) }
+    var body: some View { EsimCardTech(order: order) }
 }
 struct MiniStat: View {
     let icon: String
@@ -372,13 +437,11 @@ final class MyESIMsViewModel: ObservableObject {
     func loadOrders(apiService: DXBAPIServiceProtocol) async {
         isLoading = true
         error = nil
-
         do {
             orders = try await apiService.fetchMyESIMs()
         } catch {
             self.error = error.localizedDescription
         }
-
         isLoading = false
     }
 }

@@ -9,9 +9,9 @@ struct ESIMDetailView: View {
 
     private var statusColor: Color {
         switch order.status.uppercased() {
-        case "RELEASED", "IN_USE": return AppTheme.textPrimary
+        case "RELEASED", "IN_USE": return AppTheme.success
         case "EXPIRED": return AppTheme.gray400
-        default: return AppTheme.gray500
+        default: return AppTheme.warning
         }
     }
 
@@ -24,35 +24,27 @@ struct ESIMDetailView: View {
         }
     }
 
-    // MARK: - Computed Properties
-    
     private var isPaymentConfirmed: Bool {
-        // ✅ RÈGLE : QR Code visible UNIQUEMENT si paiement confirmé
-        // Statuts confirmés : RELEASED, IN_USE, SUSPENDED
-        // Statuts en attente : PENDING, PENDING_PAYMENT, PROCESSING
-        let confirmedStatuses = ["RELEASED", "IN_USE", "SUSPENDED", "EXPIRED"]
-        return confirmedStatuses.contains(order.status.uppercased())
+        let statusesWithQR = ["RELEASED", "IN_USE", "SUSPENDED", "EXPIRED", "GOT_RESOURCE"]
+        let status = order.status.uppercased()
+        return statusesWithQR.contains(status) && !order.qrCodeUrl.isEmpty
     }
-    
+
     var body: some View {
         ZStack {
             AppTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Custom Nav Bar
                 HStack {
                     Button {
                         dismiss()
                     } label: {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
-                            .frame(width: 44, height: 44)
-                            .background(
-                                Circle()
-                                    .stroke(AppTheme.border, lineWidth: 1.5)
-                            )
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(AppTheme.surfaceHeavy))
                     }
 
                     Spacer()
@@ -64,28 +56,22 @@ struct ESIMDetailView: View {
 
                     Spacer()
 
-                    Color.clear
-                        .frame(width: 44, height: 44)
+                    Color.clear.frame(width: 40, height: 40)
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 20)
                 .padding(.top, 8)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        // QR Code Card - UNIQUEMENT si paiement confirmé
+                    VStack(spacing: 20) {
                         if isPaymentConfirmed {
                             qrCodeSection
                         } else {
                             pendingPaymentSection
                         }
-                        
-                        // Package Info (toujours visible)
+
                         packageInfoSection
-                        
-                        // Technical Info (toujours visible)
                         technicalInfoSection
-                        
-                        // Installation Guide - UNIQUEMENT si paiement confirmé
+
                         if isPaymentConfirmed {
                             installationGuideSection
                         }
@@ -95,23 +81,22 @@ struct ESIMDetailView: View {
                 }
             }
 
-            // Toast
             if showCopiedToast {
                 VStack {
                     Spacer()
 
-                    HStack(spacing: 10) {
+                    HStack(spacing: 8) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.system(size: 16, weight: .semibold))
                         Text("\(copiedText) copied")
                             .font(.system(size: 14, weight: .semibold))
                     }
                     .foregroundColor(.white)
                     .padding(.horizontal, 20)
-                    .padding(.vertical, 14)
+                    .padding(.vertical, 12)
                     .background(
                         Capsule()
-                            .fill(AppTheme.textPrimary)
+                            .fill(AppTheme.accent)
                     )
                     .padding(.bottom, 100)
                 }
@@ -120,48 +105,43 @@ struct ESIMDetailView: View {
         }
         .navigationBarHidden(true)
     }
-    
-    // MARK: - Pending Payment Section
-    
+
+    // MARK: - Pending Payment
+
     private var pendingPaymentSection: some View {
         VStack(spacing: 20) {
-            // Status Badge
             HStack(spacing: 6) {
                 Circle()
-                    .fill(AppTheme.gray400)
+                    .fill(AppTheme.warning)
                     .frame(width: 8, height: 8)
 
-                Text("PENDING PAYMENT")
+                Text("PROCESSING")
                     .font(.system(size: 11, weight: .bold))
                     .tracking(1)
-                    .foregroundColor(AppTheme.gray400)
+                    .foregroundColor(AppTheme.warning)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .background(
-                Capsule()
-                    .fill(AppTheme.gray400.opacity(0.1))
-            )
+            .background(Capsule().fill(AppTheme.warningLight))
 
-            // Pending Icon
             ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(AppTheme.gray50)
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(AppTheme.surfaceLight)
                     .frame(width: 200, height: 200)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(AppTheme.border, lineWidth: 1.5)
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(AppTheme.border, lineWidth: 1)
                     )
 
-                VStack(spacing: 16) {
+                VStack(spacing: 14) {
                     Image(systemName: "clock.fill")
-                        .font(.system(size: 48, weight: .semibold))
-                        .foregroundColor(AppTheme.textTertiary)
-                    
+                        .font(.system(size: 44, weight: .semibold))
+                        .foregroundColor(AppTheme.warning)
+
                     Text("Payment Processing")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(AppTheme.textPrimary)
-                    
+
                     Text("Your QR code will appear\nonce payment is confirmed")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(AppTheme.textTertiary)
@@ -174,21 +154,20 @@ struct ESIMDetailView: View {
                 .foregroundColor(AppTheme.textTertiary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 28)
+        .padding(.vertical, 24)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.gray50)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(AppTheme.backgroundSecondary)
         )
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
         .padding(.top, 16)
         .slideIn(delay: 0)
     }
-    
-    // MARK: - QR Code Section
-    
+
+    // MARK: - QR Code
+
     private var qrCodeSection: some View {
-        VStack(spacing: 20) {
-            // Status Badge
+        VStack(spacing: 18) {
             HStack(spacing: 6) {
                 Circle()
                     .fill(statusColor)
@@ -201,19 +180,15 @@ struct ESIMDetailView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .background(
-                Capsule()
-                    .fill(statusColor.opacity(0.1))
-            )
+            .background(Capsule().fill(statusColor.opacity(0.1)))
 
-            // QR Code
             ZStack {
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 20)
                     .fill(AppTheme.surfaceLight)
                     .frame(width: 200, height: 200)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(AppTheme.border, lineWidth: 1.5)
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(AppTheme.border, lineWidth: 1)
                     )
 
                 AsyncImage(url: URL(string: order.qrCodeUrl)) { image in
@@ -222,9 +197,9 @@ struct ESIMDetailView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 180, height: 180)
                 } placeholder: {
-                    VStack(spacing: 12) {
+                    VStack(spacing: 10) {
                         ProgressView()
-                            .tint(AppTheme.textPrimary)
+                            .tint(AppTheme.accent)
                         Text("Loading QR...")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(AppTheme.textTertiary)
@@ -237,145 +212,143 @@ struct ESIMDetailView: View {
                 .foregroundColor(AppTheme.textTertiary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 28)
+        .padding(.vertical, 24)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.gray50)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(AppTheme.backgroundSecondary)
         )
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 20)
         .padding(.top, 16)
         .slideIn(delay: 0)
     }
-    
-    // MARK: - Package Info Section
-    
+
+    // MARK: - Package Info
+
     private var packageInfoSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-                            Text("PACKAGE")
-                                .font(.system(size: 11, weight: .bold))
-                                .tracking(1.5)
-                                .foregroundColor(AppTheme.textTertiary)
+        VStack(alignment: .leading, spacing: 14) {
+            Text("PACKAGE")
+                .font(.system(size: 11, weight: .bold))
+                .tracking(1.5)
+                .foregroundColor(AppTheme.textTertiary)
 
-                            HStack(spacing: 16) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(AppTheme.textPrimary)
-                                        .frame(width: 52, height: 52)
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(AppTheme.accent.opacity(0.1))
+                        .frame(width: 48, height: 48)
 
-                                    Image(systemName: "simcard.fill")
-                                        .font(.system(size: 22, weight: .semibold))
-                                        .foregroundColor(.white)
-                                }
+                    Image(systemName: "simcard.fill")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(AppTheme.accent)
+                }
 
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(order.packageName)
-                                        .font(.system(size: 17, weight: .semibold))
-                                        .foregroundColor(AppTheme.textPrimary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(order.packageName)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(AppTheme.textPrimary)
 
-                                    Text(order.totalVolume)
-                                        .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(AppTheme.textTertiary)
-                                }
+                    Text(order.totalVolume)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(AppTheme.textTertiary)
+                }
 
-                                Spacer()
-                            }
+                Spacer()
+            }
 
-                            // Info Grid
-                            HStack(spacing: 12) {
-                                InfoMiniCard(label: "EXPIRES", value: formatDate(order.expiredTime))
-                                InfoMiniCard(label: "ORDER", value: "#\(String(order.orderNo.suffix(6)))")
-                            }
-                        }
-                        .padding(20)
-                        .background(
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(AppTheme.surfaceLight)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .stroke(AppTheme.border, lineWidth: 1.5)
-                                )
-                        )
-                        .padding(.horizontal, 24)
-                        .slideIn(delay: 0.1)
+            HStack(spacing: 10) {
+                InfoMiniCard(label: "EXPIRES", value: formatDate(order.expiredTime))
+                InfoMiniCard(label: "ORDER", value: "#\(String(order.orderNo.suffix(6)))")
+            }
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.surfaceLight)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(AppTheme.border, lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, 20)
+        .slideIn(delay: 0.1)
     }
-    
-    // MARK: - Technical Info Section
-    
+
+    // MARK: - Technical Info
+
     private var technicalInfoSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-                            Text("TECHNICAL INFO")
-                                .font(.system(size: 11, weight: .bold))
-                                .tracking(1.5)
-                                .foregroundColor(AppTheme.textTertiary)
+        VStack(alignment: .leading, spacing: 14) {
+            Text("TECHNICAL INFO")
+                .font(.system(size: 11, weight: .bold))
+                .tracking(1.5)
+                .foregroundColor(AppTheme.textTertiary)
 
-                            VStack(spacing: 0) {
-                                TechInfoRow(label: "ICCID", value: order.iccid) {
-                                    copyToClipboard(order.iccid, label: "ICCID")
-                                }
+            VStack(spacing: 0) {
+                TechInfoRow(label: "ICCID", value: order.iccid) {
+                    copyToClipboard(order.iccid, label: "ICCID")
+                }
 
-                                Divider()
-                                    .padding(.leading, 16)
+                Divider().padding(.leading, 16)
 
-                                TechInfoRow(label: "LPA Code", value: order.lpaCode) {
-                                    copyToClipboard(order.lpaCode, label: "LPA Code")
-                                }
+                TechInfoRow(label: "LPA Code", value: order.lpaCode) {
+                    copyToClipboard(order.lpaCode, label: "LPA Code")
+                }
 
-                                Divider()
-                                    .padding(.leading, 16)
+                Divider().padding(.leading, 16)
 
-                                TechInfoRow(label: "Order No", value: order.orderNo) {
-                                    copyToClipboard(order.orderNo, label: "Order No")
-                                }
-                            }
-                            .background(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .fill(AppTheme.gray50)
-                            )
-                        }
-                        .padding(20)
-                        .background(
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(AppTheme.surfaceLight)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .stroke(AppTheme.border, lineWidth: 1.5)
-                                )
-                        )
-                        .padding(.horizontal, 24)
-                        .slideIn(delay: 0.15)
+                TechInfoRow(label: "Order No", value: order.orderNo) {
+                    copyToClipboard(order.orderNo, label: "Order No")
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(AppTheme.backgroundSecondary)
+            )
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.surfaceLight)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(AppTheme.border, lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, 20)
+        .slideIn(delay: 0.15)
     }
-    
-    // MARK: - Installation Guide Section
-    
-    private var installationGuideSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-                            Text("INSTALLATION")
-                                .font(.system(size: 11, weight: .bold))
-                                .tracking(1.5)
-                                .foregroundColor(AppTheme.textTertiary)
 
-                            VStack(spacing: 18) {
-                                InstallStepTech(number: 1, text: "Go to Settings → Cellular")
-                                InstallStepTech(number: 2, text: "Tap 'Add eSIM' or 'Add Cellular Plan'")
-                                InstallStepTech(number: 3, text: "Scan the QR code above")
-                                InstallStepTech(number: 4, text: "Follow the on-screen instructions")
-                            }
-                        }
-                        .padding(20)
-                        .background(
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(AppTheme.surfaceLight)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .stroke(AppTheme.border, lineWidth: 1.5)
-                                )
-                        )
-                        .padding(.horizontal, 24)
-                        .slideIn(delay: 0.2)
+    // MARK: - Installation Guide
+
+    private var installationGuideSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("INSTALLATION")
+                .font(.system(size: 11, weight: .bold))
+                .tracking(1.5)
+                .foregroundColor(AppTheme.textTertiary)
+
+            VStack(spacing: 16) {
+                InstallStepTech(number: 1, text: "Go to Settings → Cellular")
+                InstallStepTech(number: 2, text: "Tap 'Add eSIM' or 'Add Cellular Plan'")
+                InstallStepTech(number: 3, text: "Scan the QR code above")
+                InstallStepTech(number: 4, text: "Follow the on-screen instructions")
+            }
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.surfaceLight)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(AppTheme.border, lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, 20)
+        .slideIn(delay: 0.2)
     }
 
     private func copyToClipboard(_ value: String, label: String) {
         UIPasteboard.general.string = value
+        HapticFeedback.light()
         copiedText = label
         withAnimation(.spring(response: 0.3)) {
             showCopiedToast = true
@@ -389,7 +362,6 @@ struct ESIMDetailView: View {
 
     private func formatDate(_ dateString: String) -> String {
         if dateString.isEmpty { return "N/A" }
-        // Simple format - just return first 10 chars if it's a date string
         if dateString.count >= 10 {
             return String(dateString.prefix(10))
         }
@@ -411,15 +383,15 @@ struct InfoMiniCard: View {
                 .foregroundColor(AppTheme.textTertiary)
 
             Text(value)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(AppTheme.textPrimary)
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
+        .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(AppTheme.gray50)
+                .fill(AppTheme.backgroundSecondary)
         )
     }
 }
@@ -433,7 +405,7 @@ struct TechInfoRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(label)
                     .font(.system(size: 11, weight: .bold))
                     .tracking(0.5)
@@ -449,41 +421,46 @@ struct TechInfoRow: View {
 
             Button(action: onCopy) {
                 Image(systemName: "doc.on.doc")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(AppTheme.textTertiary)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppTheme.accent)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        Circle()
+                            .fill(AppTheme.accentSoft)
+                    )
             }
         }
-        .padding(16)
+        .padding(14)
     }
 }
 
-// MARK: - Install Step Tech
+// MARK: - Install Step
 
 struct InstallStepTech: View {
     let number: Int
     let text: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
+        HStack(alignment: .top, spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(AppTheme.textPrimary)
-                    .frame(width: 28, height: 28)
+                    .fill(AppTheme.accent)
+                    .frame(width: 26, height: 26)
 
                 Text("\(number)")
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundColor(.white)
             }
 
             Text(text)
-                .font(.system(size: 15, weight: .medium))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundColor(AppTheme.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
 
-// MARK: - Legacy Components (compatibility)
+// MARK: - Legacy Compatibility
 
 struct DetailRow: View {
     let label: String
@@ -492,11 +469,9 @@ struct DetailRow: View {
 
     var body: some View {
         HStack {
-            Text(label)
-                .foregroundColor(AppTheme.textTertiary)
+            Text(label).foregroundColor(AppTheme.textTertiary)
             Spacer()
-            Text(value)
-                .foregroundColor(AppTheme.textPrimary)
+            Text(value).foregroundColor(AppTheme.textPrimary)
             if copyable {
                 Button {
                     UIPasteboard.general.string = value
@@ -513,10 +488,7 @@ struct DetailRow: View {
 struct InstallStep: View {
     let number: Int
     let text: String
-
-    var body: some View {
-        InstallStepTech(number: number, text: text)
-    }
+    var body: some View { InstallStepTech(number: number, text: text) }
 }
 
 #Preview {

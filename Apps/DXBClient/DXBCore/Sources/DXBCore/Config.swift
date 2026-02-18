@@ -15,7 +15,7 @@ public enum APIConfig {
     }
 
     /// Environnement par défaut (changer en production pour release)
-    public static var current: Environment = .development
+    public static var current: Environment = .production
 
     /// URL de base de l'API selon l'environnement
     public static var baseURL: URL {

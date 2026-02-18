@@ -119,6 +119,7 @@ extension ApplePayService: PKPaymentAuthorizationControllerDelegate {
         // Paiement autorisé par l'utilisateur
         // Le token est dans payment.token.paymentData
         paymentCompletion?(.success(payment))
+        paymentCompletion = nil
         completion(PKPaymentAuthorizationResult(status: .success, errors: nil))
     }
     
@@ -126,6 +127,11 @@ extension ApplePayService: PKPaymentAuthorizationControllerDelegate {
         _ controller: PKPaymentAuthorizationController
     ) {
         controller.dismiss {
+            // Si paymentCompletion existe encore, c'est que l'utilisateur a annulé
+            if self.paymentCompletion != nil {
+                self.paymentCompletion?(.failure(ApplePayError.cancelled))
+                self.paymentCompletion = nil
+            }
             self.authorizationController = nil
         }
     }

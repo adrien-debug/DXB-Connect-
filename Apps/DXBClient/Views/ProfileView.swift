@@ -15,11 +15,11 @@ struct ProfileView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.white
+                AppTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
+                    VStack(spacing: 20) {
                         profileHeader
                         statsCard
                         accountSection
@@ -28,8 +28,8 @@ struct ProfileView: View {
                         signOutButton
                         appInfo
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 140)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 120)
                 }
             }
             .navigationBarHidden(true)
@@ -39,28 +39,33 @@ struct ProfileView: View {
     // MARK: - Profile Header
 
     private var profileHeader: some View {
-        VStack(spacing: 20) {
-            // Avatar
+        VStack(spacing: 18) {
             ZStack {
                 Circle()
-                    .fill(AppTheme.textPrimary)
-                    .frame(width: 88, height: 88)
+                    .fill(
+                        LinearGradient(
+                            colors: [AppTheme.accent, AppTheme.accent.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                    .shadow(color: AppTheme.accent.opacity(0.3), radius: 12, y: 4)
 
                 Text(String(coordinator.user.name.prefix(1)).uppercased())
-                    .font(.system(size: 36, weight: .bold))
+                    .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.white)
             }
 
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 Text(coordinator.user.name)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundColor(AppTheme.textPrimary)
 
                 Text(coordinator.user.email)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(AppTheme.textTertiary)
 
-                // Pro badge - monochrome version
                 if coordinator.user.isPro {
                     HStack(spacing: 6) {
                         Image(systemName: "star.fill")
@@ -71,15 +76,15 @@ struct ProfileView: View {
                     }
                     .foregroundColor(.white)
                     .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
+                    .padding(.vertical, 6)
                     .background(
                         Capsule()
-                            .fill(AppTheme.textPrimary)
+                            .fill(AppTheme.accent)
                     )
                 }
             }
         }
-        .padding(.top, 64)
+        .padding(.top, 60)
         .slideIn(delay: 0)
     }
 
@@ -91,23 +96,23 @@ struct ProfileView: View {
 
             Rectangle()
                 .fill(AppTheme.border)
-                .frame(width: 1, height: 44)
+                .frame(width: 1, height: 40)
 
             ProfileStatTech(value: "\(coordinator.user.countriesVisited)", label: "COUNTRIES", icon: "globe")
 
             Rectangle()
                 .fill(AppTheme.border)
-                .frame(width: 1, height: 44)
+                .frame(width: 1, height: 40)
 
             ProfileStatTech(value: String(format: "$%.0f", coordinator.user.totalSaved), label: "SAVED", icon: "dollarsign.circle.fill")
         }
-        .padding(.vertical, 24)
+        .padding(.vertical, 20)
         .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.surfaceLight)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(AppTheme.border, lineWidth: 1.5)
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(AppTheme.border, lineWidth: 1)
                 )
         )
         .slideIn(delay: 0.1)
@@ -135,7 +140,7 @@ struct ProfileView: View {
                 }
             }
         }
-        .slideIn(delay: 0.2)
+        .slideIn(delay: 0.15)
         .sheet(isPresented: $showEditProfile) {
             EditProfileSheet()
         }
@@ -169,7 +174,7 @@ struct ProfileView: View {
                 }
             }
         }
-        .slideIn(delay: 0.3)
+        .slideIn(delay: 0.2)
         .sheet(isPresented: $showLanguage) {
             LanguageSheet(selectedLanguage: Binding(
                 get: { coordinator.user.language },
@@ -206,7 +211,7 @@ struct ProfileView: View {
                 }
             }
         }
-        .slideIn(delay: 0.4)
+        .slideIn(delay: 0.25)
         .sheet(isPresented: $showHelpCenter) {
             SupportView()
         }
@@ -224,36 +229,36 @@ struct ProfileView: View {
             }
         } label: {
             HStack(spacing: 10) {
-                Image(systemName: "arrow.right.square")
-                    .font(.system(size: 16, weight: .semibold))
+                Image(systemName: "rectangle.portrait.and.arrow.right")
+                    .font(.system(size: 15, weight: .semibold))
                 Text("Sign Out")
                     .font(.system(size: 15, weight: .semibold))
             }
-            .foregroundColor(AppTheme.textTertiary)
+            .foregroundColor(AppTheme.error)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
+            .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
+                    .fill(AppTheme.errorLight)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(AppTheme.border, lineWidth: 1.5)
+                            .stroke(AppTheme.error.opacity(0.2), lineWidth: 1)
                     )
             )
         }
         .scaleOnPress()
-        .slideIn(delay: 0.5)
+        .slideIn(delay: 0.3)
     }
 
     // MARK: - App Info
 
     private var appInfo: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 8) {
+        VStack(spacing: 4) {
+            HStack(spacing: 6) {
                 Image(systemName: "simcard.fill")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                 Text("DXB CONNECT")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 11, weight: .bold))
                     .tracking(1)
             }
             .foregroundColor(AppTheme.textTertiary)
@@ -262,11 +267,11 @@ struct ProfileView: View {
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(AppTheme.textMuted)
         }
-        .padding(.top, 12)
+        .padding(.top, 8)
     }
 }
 
-// MARK: - Tech Components
+// MARK: - Profile Components
 
 struct ProfileStatTech: View {
     let value: String
@@ -274,14 +279,13 @@ struct ProfileStatTech: View {
     let icon: String
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(AppTheme.textPrimary)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(AppTheme.accent)
 
             Text(value)
-                .font(.system(size: 22, weight: .bold))
-                .tracking(-0.5)
+                .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundColor(AppTheme.textPrimary)
 
             Text(label)
@@ -298,7 +302,7 @@ struct SectionCardTech<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.system(size: 11, weight: .bold))
                 .tracking(1.5)
@@ -306,11 +310,11 @@ struct SectionCardTech<Content: View>: View {
 
             content()
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white)
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(AppTheme.surfaceLight)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(AppTheme.border, lineWidth: 1.5)
+                            RoundedRectangle(cornerRadius: 18)
+                                .stroke(AppTheme.border, lineWidth: 1)
                         )
                 )
         }
@@ -326,17 +330,18 @@ struct SettingsRowTech: View {
 
     var body: some View {
         Button {
+            HapticFeedback.light()
             action?()
         } label: {
             HStack(spacing: 14) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(AppTheme.gray100)
-                        .frame(width: 38, height: 38)
+                        .fill(AppTheme.accent.opacity(0.1))
+                        .frame(width: 36, height: 36)
 
                     Image(systemName: icon)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(AppTheme.textPrimary)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(AppTheme.accent)
                 }
 
                 Text(title)
@@ -350,11 +355,8 @@ struct SettingsRowTech: View {
                         .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(
-                            Capsule()
-                                .fill(AppTheme.textPrimary)
-                        )
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(AppTheme.accent))
                 }
 
                 if let value = value {
@@ -367,7 +369,7 @@ struct SettingsRowTech: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(AppTheme.textMuted)
             }
-            .padding(16)
+            .padding(14)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -384,12 +386,12 @@ struct SettingsToggleTech: View {
         HStack(spacing: 14) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(AppTheme.gray100)
-                    .frame(width: 38, height: 38)
+                    .fill(AppTheme.accent.opacity(0.1))
+                    .frame(width: 36, height: 36)
 
                 Image(systemName: icon)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(AppTheme.textPrimary)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppTheme.accent)
             }
 
             Text(title)
@@ -399,95 +401,59 @@ struct SettingsToggleTech: View {
             Spacer()
 
             Toggle("", isOn: $isOn)
-                .tint(AppTheme.textPrimary)
+                .tint(AppTheme.accent)
         }
-        .padding(16)
+        .padding(14)
     }
 }
 
 struct SettingsDividerTech: View {
     var body: some View {
-        Divider()
-            .padding(.leading, 68)
+        Divider().padding(.leading, 64)
     }
 }
 
-// MARK: - Legacy Components (compatibility)
+// MARK: - Legacy Compatibility
 
 struct ProfileStatItem: View {
-    let value: String
-    let label: String
-    let icon: String
+    let value: String; let label: String; let icon: String
     var body: some View { ProfileStatTech(value: value, label: label.uppercased(), icon: icon) }
 }
-
 struct SectionCard<Content: View>: View {
-    let title: String
-    @ViewBuilder let content: () -> Content
+    let title: String; @ViewBuilder let content: () -> Content
     var body: some View { SectionCardTech(title: title.uppercased(), content: content) }
 }
-
 struct SettingsRow: View {
-    let icon: String
-    let title: String
-    let color: Color
-    var value: String? = nil
-    var badge: String? = nil
+    let icon: String; let title: String; let color: Color; var value: String? = nil; var badge: String? = nil
     var body: some View { SettingsRowTech(icon: icon, title: title, value: value, badge: badge) }
 }
-
 struct SettingsToggle: View {
-    let icon: String
-    let title: String
-    let color: Color
-    @Binding var isOn: Bool
+    let icon: String; let title: String; let color: Color; @Binding var isOn: Bool
     var body: some View { SettingsToggleTech(icon: icon, title: title, isOn: $isOn) }
 }
-
-struct SettingsDivider: View {
-    var body: some View { SettingsDividerTech() }
-}
-
-// Compatibility
+struct SettingsDivider: View { var body: some View { SettingsDividerTech() } }
 struct StatItem: View {
-    let value: String
-    let label: String
+    let value: String; let label: String
     var body: some View { ProfileStatItem(value: value, label: label, icon: "circle.fill") }
 }
 struct MenuRow: View {
-    let icon: String
-    let title: String
-    let color: Color
-    var value: String? = nil
-    var badge: String? = nil
+    let icon: String; let title: String; let color: Color; var value: String? = nil; var badge: String? = nil
     var body: some View { SettingsRow(icon: icon, title: title, color: color, value: value, badge: badge) }
 }
 struct ToggleRow: View {
-    let icon: String
-    let title: String
-    let color: Color
-    @Binding var isOn: Bool
+    let icon: String; let title: String; let color: Color; @Binding var isOn: Bool
     var body: some View { SettingsToggle(icon: icon, title: title, color: color, isOn: $isOn) }
 }
 struct ProfileStat: View {
-    let value: String
-    let label: String
-    let icon: String
+    let value: String; let label: String; let icon: String
     var body: some View { ProfileStatItem(value: value, label: label, icon: icon) }
 }
 struct ProfileMenuItem: View {
-    let icon: String
-    let title: String
-    let color: Color
-    var value: String? = nil
-    var badge: String? = nil
+    let icon: String; let title: String; let color: Color; var value: String? = nil; var badge: String? = nil
     var body: some View { SettingsRow(icon: icon, title: title, color: color, value: value, badge: badge) }
 }
 struct ProfileToggleItem: View {
-    let icon: String
-    let title: String
-    let color: Color
-    @Binding var isOn: Bool
+    let icon: String; let title: String; let color: Color; @Binding var isOn: Bool
     var body: some View { SettingsToggle(icon: icon, title: title, color: color, isOn: $isOn) }
 }
 
@@ -503,69 +469,62 @@ struct EditProfileSheet: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            AppTheme.backgroundPrimary.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header
                 ProfileSheetHeader(title: "EDIT PROFILE", dismiss: dismiss)
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
-                        // Avatar
                         ZStack {
                             Circle()
-                                .fill(AppTheme.textPrimary)
-                                .frame(width: 100, height: 100)
+                                .fill(AppTheme.accent)
+                                .frame(width: 88, height: 88)
 
                             Text(String(name.prefix(1)).uppercased())
-                                .font(.system(size: 40, weight: .bold))
+                                .font(.system(size: 36, weight: .bold))
                                 .foregroundColor(.white)
 
-                            Button {
-                                // Photo picker
-                            } label: {
+                            Button {} label: {
                                 Circle()
-                                    .fill(Color.white)
-                                    .frame(width: 32, height: 32)
+                                    .fill(AppTheme.surfaceLight)
+                                    .frame(width: 30, height: 30)
                                     .overlay(
                                         Image(systemName: "camera.fill")
-                                            .font(.system(size: 14, weight: .semibold))
+                                            .font(.system(size: 13, weight: .semibold))
                                             .foregroundColor(AppTheme.textPrimary)
                                     )
                                     .shadow(color: .black.opacity(0.1), radius: 4)
                             }
-                            .offset(x: 36, y: 36)
+                            .offset(x: 32, y: 32)
                         }
-                        .padding(.top, 20)
+                        .padding(.top, 16)
 
-                        VStack(spacing: 16) {
+                        VStack(spacing: 14) {
                             ProfileTextField(label: "FULL NAME", text: $name, icon: "person.fill")
                             ProfileTextField(label: "EMAIL", text: $email, icon: "envelope.fill", keyboardType: .emailAddress)
                             ProfileTextField(label: "PHONE", text: $phone, icon: "phone.fill", keyboardType: .phonePad)
                         }
                         .padding(.horizontal, 24)
                     }
-                    .padding(.bottom, 120)
+                    .padding(.bottom, 100)
                 }
 
-                // Save Button
                 VStack {
                     Button {
                         isSaving = true
-                        // Update coordinator data
                         coordinator.user.name = name
                         coordinator.user.email = email
                         coordinator.user.phone = phone
-
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             isSaving = false
+                            HapticFeedback.success()
                             dismiss()
                         }
                     } label: {
                         HStack {
                             if isSaving {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                ProgressView().tint(.white)
                             } else {
                                 Text("SAVE CHANGES")
                                     .font(.system(size: 13, weight: .bold))
@@ -575,13 +534,16 @@ struct EditProfileSheet: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 54)
-                        .background(RoundedRectangle(cornerRadius: 14).fill(AppTheme.textPrimary))
+                        .background(RoundedRectangle(cornerRadius: 16).fill(AppTheme.accent))
                     }
                     .disabled(isSaving)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 24)
                 }
-                .background(Color.white.shadow(color: .black.opacity(0.05), radius: 10, y: -5))
+                .background(
+                    AppTheme.backgroundPrimary
+                        .shadow(color: .black.opacity(0.04), radius: 8, y: -2)
+                )
             }
         }
         .onAppear {
@@ -600,34 +562,27 @@ struct PaymentMethodsSheet: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            AppTheme.backgroundPrimary.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 ProfileSheetHeader(title: "PAYMENT METHODS", dismiss: dismiss)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 16) {
-                        // Existing card
-                        PaymentCardRow(
-                            brand: "visa",
-                            last4: "4242",
-                            expiry: "12/27",
-                            isDefault: true
-                        )
+                    VStack(spacing: 14) {
+                        PaymentCardRow(brand: "visa", last4: "4242", expiry: "12/27", isDefault: true)
 
-                        // Add new card
                         Button {
                             showAddCard = true
                         } label: {
                             HStack(spacing: 14) {
                                 ZStack {
-                                    RoundedRectangle(cornerRadius: 10)
+                                    RoundedRectangle(cornerRadius: 8)
                                         .stroke(AppTheme.border, style: StrokeStyle(lineWidth: 1.5, dash: [5]))
-                                        .frame(width: 50, height: 34)
+                                        .frame(width: 48, height: 32)
 
                                     Image(systemName: "plus")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(AppTheme.textTertiary)
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(AppTheme.accent)
                                 }
 
                                 Text("Add New Card")
@@ -640,10 +595,10 @@ struct PaymentMethodsSheet: View {
                                     .font(.system(size: 12, weight: .semibold))
                                     .foregroundColor(AppTheme.textMuted)
                             }
-                            .padding(16)
+                            .padding(14)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .stroke(AppTheme.border, lineWidth: 1.5)
+                                    .stroke(AppTheme.border, lineWidth: 1)
                             )
                         }
                         .buttonStyle(.plain)
@@ -653,28 +608,21 @@ struct PaymentMethodsSheet: View {
                 }
             }
         }
-        .sheet(isPresented: $showAddCard) {
-            AddCardSheet()
-        }
+        .sheet(isPresented: $showAddCard) { AddCardSheet() }
     }
 }
 
 struct PaymentCardRow: View {
-    let brand: String
-    let last4: String
-    let expiry: String
-    let isDefault: Bool
+    let brand: String; let last4: String; let expiry: String; let isDefault: Bool
 
     var body: some View {
         HStack(spacing: 14) {
-            // Card icon
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(AppTheme.gray100)
-                    .frame(width: 50, height: 34)
-
-                Image(systemName: brand == "visa" ? "creditcard.fill" : "creditcard")
-                    .font(.system(size: 18, weight: .semibold))
+                    .frame(width: 48, height: 32)
+                Image(systemName: "creditcard.fill")
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(AppTheme.textPrimary)
             }
 
@@ -683,7 +631,6 @@ struct PaymentCardRow: View {
                     Text("•••• \(last4)")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(AppTheme.textPrimary)
-
                     if isDefault {
                         Text("DEFAULT")
                             .font(.system(size: 9, weight: .bold))
@@ -691,10 +638,9 @@ struct PaymentCardRow: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
-                            .background(Capsule().fill(AppTheme.textPrimary))
+                            .background(Capsule().fill(AppTheme.accent))
                     }
                 }
-
                 Text("Expires \(expiry)")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(AppTheme.textTertiary)
@@ -702,20 +648,18 @@ struct PaymentCardRow: View {
 
             Spacer()
 
-            Button {
-                // Edit card
-            } label: {
+            Button {} label: {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(AppTheme.textTertiary)
                     .frame(width: 32, height: 32)
             }
         }
-        .padding(16)
+        .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(AppTheme.border, lineWidth: 1.5))
+                .fill(AppTheme.surfaceLight)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(AppTheme.border, lineWidth: 1))
         )
     }
 }
@@ -729,42 +673,35 @@ struct AddCardSheet: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
-
+            AppTheme.backgroundPrimary.ignoresSafeArea()
             VStack(spacing: 0) {
                 ProfileSheetHeader(title: "ADD CARD", dismiss: dismiss)
-
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 14) {
                         ProfileTextField(label: "CARD NUMBER", text: $cardNumber, icon: "creditcard.fill", keyboardType: .numberPad)
-
                         HStack(spacing: 12) {
                             ProfileTextField(label: "EXPIRY", text: $expiry, icon: "calendar")
                             ProfileTextField(label: "CVC", text: $cvc, icon: "lock.fill", keyboardType: .numberPad)
                         }
-
                         ProfileTextField(label: "NAME ON CARD", text: $name, icon: "person.fill")
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 20)
                 }
-
                 VStack {
-                    Button {
-                        dismiss()
-                    } label: {
+                    Button { dismiss() } label: {
                         Text("ADD CARD")
                             .font(.system(size: 13, weight: .bold))
                             .tracking(1.2)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 54)
-                            .background(RoundedRectangle(cornerRadius: 14).fill(AppTheme.textPrimary))
+                            .background(RoundedRectangle(cornerRadius: 16).fill(AppTheme.accent))
                     }
                     .padding(.horizontal, 24)
                     .padding(.bottom, 24)
                 }
-                .background(Color.white.shadow(color: .black.opacity(0.05), radius: 10, y: -5))
+                .background(AppTheme.backgroundPrimary.shadow(color: .black.opacity(0.04), radius: 8, y: -2))
             }
         }
         .presentationDetents([.medium])
@@ -779,40 +716,33 @@ struct OrderHistorySheet: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            AppTheme.backgroundPrimary.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 ProfileSheetHeader(title: "ORDER HISTORY", dismiss: dismiss)
 
                 if coordinator.orderHistory.isEmpty {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 16) {
                         Spacer()
-
                         ZStack {
-                            Circle()
-                                .fill(AppTheme.gray100)
-                                .frame(width: 80, height: 80)
-
+                            Circle().fill(AppTheme.gray100).frame(width: 72, height: 72)
                             Image(systemName: "bag")
-                                .font(.system(size: 34, weight: .semibold))
+                                .font(.system(size: 30, weight: .semibold))
                                 .foregroundColor(AppTheme.textTertiary)
                         }
-
-                        VStack(spacing: 8) {
+                        VStack(spacing: 6) {
                             Text("No orders yet")
-                                .font(.system(size: 18, weight: .bold))
+                                .font(.system(size: 17, weight: .bold))
                                 .foregroundColor(AppTheme.textPrimary)
-
                             Text("Your purchase history will appear here")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(AppTheme.textTertiary)
                         }
-
                         Spacer()
                     }
                 } else {
                     ScrollView(showsIndicators: false) {
-                        VStack(spacing: 12) {
+                        VStack(spacing: 10) {
                             ForEach(Array(coordinator.orderHistory.enumerated()), id: \.element.id) { index, order in
                                 OrderRow(
                                     name: order.name,
@@ -824,7 +754,7 @@ struct OrderHistorySheet: View {
                             }
                         }
                         .padding(.horizontal, 24)
-                        .padding(.top, 20)
+                        .padding(.top, 16)
                         .padding(.bottom, 40)
                     }
                 }
@@ -834,32 +764,27 @@ struct OrderHistorySheet: View {
 }
 
 struct OrderRow: View {
-    let name: String
-    let date: String
-    let price: String
-    let status: String
+    let name: String; let date: String; let price: String; let status: String
 
     var statusColor: Color {
-        status == "Active" ? AppTheme.textPrimary : AppTheme.textTertiary
+        status == "Active" ? AppTheme.success : AppTheme.textTertiary
     }
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(AppTheme.gray100)
-                    .frame(width: 48, height: 48)
-
+                    .fill(AppTheme.accent.opacity(0.1))
+                    .frame(width: 44, height: 44)
                 Image(systemName: "simcard.fill")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(AppTheme.textPrimary)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(AppTheme.accent)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(name)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(AppTheme.textPrimary)
-
                 Text(date)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(AppTheme.textTertiary)
@@ -867,22 +792,21 @@ struct OrderRow: View {
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: 3) {
                 Text(price)
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundColor(AppTheme.textPrimary)
-
                 Text(status)
                     .font(.system(size: 10, weight: .bold))
                     .tracking(0.5)
                     .foregroundColor(statusColor)
             }
         }
-        .padding(16)
+        .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(AppTheme.border, lineWidth: 1.5))
+                .fill(AppTheme.surfaceLight)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(AppTheme.border, lineWidth: 1))
         )
     }
 }
@@ -896,38 +820,34 @@ struct ReferFriendSheet: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            AppTheme.backgroundPrimary.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 ProfileSheetHeader(title: "REFER A FRIEND", dismiss: dismiss)
 
-                VStack(spacing: 32) {
+                VStack(spacing: 28) {
                     Spacer()
 
-                    // Icon
                     ZStack {
                         Circle()
-                            .fill(AppTheme.gray100)
-                            .frame(width: 100, height: 100)
-
+                            .fill(AppTheme.accentSoft)
+                            .frame(width: 88, height: 88)
                         Image(systemName: "gift.fill")
-                            .font(.system(size: 44, weight: .semibold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(.system(size: 40, weight: .semibold))
+                            .foregroundColor(AppTheme.accent)
                     }
 
-                    VStack(spacing: 12) {
+                    VStack(spacing: 10) {
                         Text("Give $10, Get $10")
-                            .font(.system(size: 26, weight: .bold))
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.textPrimary)
-
                         Text("Share your code with friends.\nThey get $10 off, you earn $10 credit!")
                             .font(.system(size: 15, weight: .medium))
                             .foregroundColor(AppTheme.textTertiary)
                             .multilineTextAlignment(.center)
                     }
 
-                    // Code
-                    VStack(spacing: 12) {
+                    VStack(spacing: 10) {
                         Text("YOUR CODE")
                             .font(.system(size: 10, weight: .bold))
                             .tracking(1.5)
@@ -935,33 +855,33 @@ struct ReferFriendSheet: View {
 
                         Button {
                             UIPasteboard.general.string = referralCode
+                            HapticFeedback.success()
                             copied = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                copied = false
-                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copied = false }
                         } label: {
                             HStack(spacing: 12) {
                                 Text(referralCode)
-                                    .font(.system(size: 22, weight: .bold))
-                                    .tracking(2)
-                                    .foregroundColor(AppTheme.textPrimary)
-
+                                    .font(.system(size: 20, weight: .bold, design: .monospaced))
+                                    .foregroundColor(AppTheme.accent)
                                 Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(copied ? .green : AppTheme.textTertiary)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(copied ? AppTheme.success : AppTheme.textTertiary)
                             }
-                            .padding(.horizontal, 28)
-                            .padding(.vertical, 18)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 16)
                             .background(
                                 RoundedRectangle(cornerRadius: 14)
-                                    .stroke(AppTheme.border, style: StrokeStyle(lineWidth: 2, dash: [8]))
+                                    .fill(AppTheme.accentSoft)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .stroke(AppTheme.accent.opacity(0.3), style: StrokeStyle(lineWidth: 1.5, dash: [8]))
+                                    )
                             )
                         }
                     }
 
                     Spacer()
 
-                    // Share button
                     Button {
                         let text = "Use my code \(referralCode) to get $10 off your first DXB Connect eSIM!"
                         let av = UIActivityViewController(activityItems: [text], applicationActivities: nil)
@@ -980,7 +900,7 @@ struct ReferFriendSheet: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 54)
-                        .background(RoundedRectangle(cornerRadius: 14).fill(AppTheme.textPrimary))
+                        .background(RoundedRectangle(cornerRadius: 16).fill(AppTheme.accent))
                     }
                     .padding(.horizontal, 24)
                     .padding(.bottom, 40)
@@ -995,20 +915,18 @@ struct ReferFriendSheet: View {
 struct LanguageSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedLanguage: String
-
     let languages = ["English", "Français", "العربية", "Español", "Deutsch", "中文", "日本語"]
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
-
+            AppTheme.backgroundPrimary.ignoresSafeArea()
             VStack(spacing: 0) {
                 ProfileSheetHeader(title: "LANGUAGE", dismiss: dismiss)
-
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 8) {
                         ForEach(languages, id: \.self) { language in
                             Button {
+                                HapticFeedback.selection()
                                 selectedLanguage = language
                                 dismiss()
                             } label: {
@@ -1016,22 +934,20 @@ struct LanguageSheet: View {
                                     Text(language)
                                         .font(.system(size: 16, weight: .medium))
                                         .foregroundColor(AppTheme.textPrimary)
-
                                     Spacer()
-
                                     if selectedLanguage == language {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 22, weight: .semibold))
-                                            .foregroundColor(AppTheme.textPrimary)
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .foregroundColor(AppTheme.accent)
                                     }
                                 }
-                                .padding(18)
+                                .padding(16)
                                 .background(
                                     RoundedRectangle(cornerRadius: 14)
-                                        .fill(selectedLanguage == language ? AppTheme.gray100 : Color.white)
+                                        .fill(selectedLanguage == language ? AppTheme.accentSoft : AppTheme.surfaceLight)
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 14)
-                                                .stroke(selectedLanguage == language ? AppTheme.textPrimary : AppTheme.border, lineWidth: 1.5)
+                                                .stroke(selectedLanguage == language ? AppTheme.accent.opacity(0.4) : AppTheme.border, lineWidth: 1)
                                         )
                                 )
                             }
@@ -1039,7 +955,7 @@ struct LanguageSheet: View {
                         }
                     }
                     .padding(.horizontal, 24)
-                    .padding(.top, 20)
+                    .padding(.top, 16)
                 }
             }
         }
@@ -1062,13 +978,12 @@ struct AppearanceSheet: View {
     var body: some View {
         ZStack {
             AppTheme.backgroundPrimary.ignoresSafeArea()
-
             VStack(spacing: 0) {
                 ProfileSheetHeader(title: "APPEARANCE", dismiss: dismiss)
-
-                VStack(spacing: 16) {
+                VStack(spacing: 12) {
                     ForEach(appearances, id: \.0) { appearance in
                         Button {
+                            HapticFeedback.selection()
                             selectedAppearance = appearance.0
                             applyAppearance(appearance.0)
                             coordinator.savePreferences()
@@ -1077,12 +992,11 @@ struct AppearanceSheet: View {
                             HStack(spacing: 14) {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(AppTheme.gray100)
-                                        .frame(width: 48, height: 48)
-
+                                        .fill(AppTheme.accent.opacity(0.1))
+                                        .frame(width: 44, height: 44)
                                     Image(systemName: appearance.1)
-                                        .font(.system(size: 20, weight: .semibold))
-                                        .foregroundColor(AppTheme.textPrimary)
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(AppTheme.accent)
                                 }
 
                                 Text(appearance.0)
@@ -1093,21 +1007,21 @@ struct AppearanceSheet: View {
 
                                 if selectedAppearance == appearance.0 {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 22, weight: .semibold))
-                                        .foregroundColor(AppTheme.textPrimary)
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundColor(AppTheme.accent)
                                 } else {
                                     Circle()
-                                        .stroke(AppTheme.border, lineWidth: 2)
-                                        .frame(width: 22, height: 22)
+                                        .stroke(AppTheme.border, lineWidth: 1.5)
+                                        .frame(width: 20, height: 20)
                                 }
                             }
-                            .padding(16)
+                            .padding(14)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white)
+                                    .fill(AppTheme.surfaceLight)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
-                                            .stroke(selectedAppearance == appearance.0 ? AppTheme.textPrimary : AppTheme.border, lineWidth: 1.5)
+                                            .stroke(selectedAppearance == appearance.0 ? AppTheme.accent.opacity(0.4) : AppTheme.border, lineWidth: 1)
                                     )
                             )
                         }
@@ -1115,8 +1029,7 @@ struct AppearanceSheet: View {
                     }
                 }
                 .padding(.horizontal, 24)
-                .padding(.top, 20)
-
+                .padding(.top, 16)
                 Spacer()
             }
         }
@@ -1125,12 +1038,9 @@ struct AppearanceSheet: View {
     private func applyAppearance(_ mode: String) {
         let appearanceMode: AppearanceMode
         switch mode {
-        case "Dark":
-            appearanceMode = .dark
-        case "System":
-            appearanceMode = .system
-        default:
-            appearanceMode = .light
+        case "Dark": appearanceMode = .dark
+        case "System": appearanceMode = .system
+        default: appearanceMode = .light
         }
         AppTheme.setAppearance(appearanceMode)
     }
@@ -1144,12 +1054,10 @@ struct TermsSheet: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
-
+            AppTheme.backgroundPrimary.ignoresSafeArea()
             VStack(spacing: 0) {
                 ProfileSheetHeader(title: "LEGAL", dismiss: dismiss)
 
-                // Tabs
                 HStack(spacing: 0) {
                     ForEach(["Terms", "Privacy"], id: \.self) { tab in
                         let index = tab == "Terms" ? 0 : 1
@@ -1158,14 +1066,14 @@ struct TermsSheet: View {
                         } label: {
                             Text(tab)
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(selectedTab == index ? AppTheme.textPrimary : AppTheme.textTertiary)
+                                .foregroundColor(selectedTab == index ? AppTheme.accent : AppTheme.textTertiary)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
                                 .background(
                                     VStack {
                                         Spacer()
                                         Rectangle()
-                                            .fill(selectedTab == index ? AppTheme.textPrimary : Color.clear)
+                                            .fill(selectedTab == index ? AppTheme.accent : Color.clear)
                                             .frame(height: 2)
                                     }
                                 )
@@ -1178,11 +1086,7 @@ struct TermsSheet: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 20) {
-                        if selectedTab == 0 {
-                            termsContent
-                        } else {
-                            privacyContent
-                        }
+                        if selectedTab == 0 { termsContent } else { privacyContent }
                     }
                     .padding(24)
                 }
@@ -1202,11 +1106,8 @@ struct TermsSheet: View {
 
             Group {
                 legalSection(title: "1. Acceptance of Terms", content: "By accessing and using DXB Connect services, you accept and agree to be bound by the terms and conditions of this agreement.")
-
                 legalSection(title: "2. Service Description", content: "DXB Connect provides eSIM services for mobile connectivity. Our eSIMs are designed for travelers and provide data connectivity in supported regions.")
-
                 legalSection(title: "3. User Responsibilities", content: "You are responsible for maintaining the confidentiality of your account and for all activities that occur under your account.")
-
                 legalSection(title: "4. Refund Policy", content: "Refunds are available within 24 hours of purchase if the eSIM has not been activated. Once activated, refunds are not available.")
             }
         }
@@ -1224,22 +1125,18 @@ struct TermsSheet: View {
 
             Group {
                 legalSection(title: "Information We Collect", content: "We collect information you provide directly, such as name, email, and payment information when you create an account or make a purchase.")
-
                 legalSection(title: "How We Use Information", content: "We use the information to provide and improve our services, process transactions, and communicate with you about your account.")
-
                 legalSection(title: "Data Security", content: "We implement industry-standard security measures to protect your personal information from unauthorized access.")
-
                 legalSection(title: "Your Rights", content: "You have the right to access, correct, or delete your personal information. Contact us at privacy@dxbconnect.com for requests.")
             }
         }
     }
 
     private func legalSection(title: String, content: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.textPrimary)
-
             Text(content)
                 .font(.system(size: 14, weight: .regular))
                 .foregroundColor(AppTheme.textSecondary)
@@ -1260,10 +1157,10 @@ struct ProfileSheetHeader: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(AppTheme.textPrimary)
-                    .frame(width: 40, height: 40)
-                    .background(Circle().stroke(AppTheme.border, lineWidth: 1.5))
+                    .frame(width: 36, height: 36)
+                    .background(Circle().fill(AppTheme.surfaceHeavy))
             }
             .accessibilityLabel("Fermer")
 
@@ -1276,7 +1173,7 @@ struct ProfileSheetHeader: View {
 
             Spacer()
 
-            Color.clear.frame(width: 40, height: 40)
+            Color.clear.frame(width: 36, height: 36)
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)
@@ -1298,8 +1195,8 @@ struct ProfileTextField: View {
 
             HStack(spacing: 12) {
                 Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(AppTheme.textTertiary)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(AppTheme.accent)
                     .frame(width: 24)
 
                 TextField("", text: $text)
@@ -1308,10 +1205,14 @@ struct ProfileTextField: View {
                     .keyboardType(keyboardType)
                     .autocorrectionDisabled()
             }
-            .padding(16)
+            .padding(14)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(AppTheme.border, lineWidth: 1.5)
+                    .fill(AppTheme.surfaceLight)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(AppTheme.border, lineWidth: 1)
+                    )
             )
         }
     }

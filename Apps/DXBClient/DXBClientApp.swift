@@ -28,6 +28,7 @@ final class AppCoordinator: ObservableObject {
     // MARK: - User Data (shared across all views)
     @Published var user: UserProfile = UserProfile()
     @Published var esimOrders: [ESIMOrder] = []
+    @Published var stockESIMs: [ESIMOrder] = []
     @Published var plans: [Plan] = []
     @Published var notifications: [AppNotification] = []
 
@@ -36,25 +37,22 @@ final class AppCoordinator: ObservableObject {
 
     // MARK: - Loading States
     @Published var isLoadingESIMs = false
+    @Published var isLoadingStock = false
     @Published var isLoadingPlans = false
+    @Published var hasLoadedInitialData = false
 
     private let authService: AuthServiceProtocol
     private let apiService: DXBAPIServiceProtocol
 
     init() {
         let authService = AuthService()
-        // Utilise APIConfig.baseURL (configurable via APIConfig.current)
         let apiClient = APIClient()
         let apiService = DXBAPIService(apiClient: apiClient, authService: authService)
 
         self.authService = authService
         self.apiService = apiService
 
-        // Toujours utiliser Railway en attendant que le backend local soit prêt
         APIConfig.current = .production
-        // #if DEBUG
-        // APIConfig.current = .development  // localhost:4000
-        // #endif
     }
 
     // MARK: - Auth
@@ -70,21 +68,10 @@ final class AppCoordinator: ObservableObject {
     }
 
     func onAuthSuccess(email: String? = nil, name: String? = nil) async {
-        // Update user info if provided
-        if let email = email {
-            user.email = email
-        }
-        if let name = name {
-            user.name = name
-        }
-
-        // Save to UserDefaults
+        if let email = email { user.email = email }
+        if let name = name { user.name = name }
         saveUserToStorage()
-
-        // Load data
         await loadAllData()
-
-        // Set authenticated
         isAuthenticated = true
     }
 
@@ -92,20 +79,20 @@ final class AppCoordinator: ObservableObject {
         do {
             try await authService.clearTokens()
             isAuthenticated = false
-            // Clear user data
+            hasLoadedInitialData = false
             user = UserProfile()
             esimOrders = []
             cartItems = []
-            // Clear storage
+            plans = []
             UserDefaults.standard.removeObject(forKey: "user_profile")
             appLog("User signed out successfully", category: .auth)
         } catch {
             appLogError(error, message: "Sign out failed", category: .auth)
         }
     }
-    
+
     // MARK: - Email/Password Auth
-    
+
     func signInWithPassword(email: String, password: String) async throws {
         appLog("Signing in with email: \(email)", category: .auth)
         let response = try await apiService.signInWithPassword(email: email, password: password)
@@ -116,7 +103,7 @@ final class AppCoordinator: ObservableObject {
         isAuthenticated = true
         appLog("Sign in successful", category: .auth)
     }
-    
+
     func signUpWithPassword(email: String, password: String, name: String) async throws {
         appLog("Signing up with email: \(email)", category: .auth)
         _ = try await apiService.signUpWithPassword(email: email, password: password, name: name)
@@ -152,20 +139,15 @@ final class AppCoordinator: ObservableObject {
         user.notificationsEnabled = data["notificationsEnabled"] as? Bool ?? true
         user.language = data["language"] as? String ?? "English"
         user.appearance = data["appearance"] as? String ?? "Light"
-
-        // Apply saved appearance
         applyAppearance(user.appearance)
     }
 
     private func applyAppearance(_ mode: String) {
         let appearanceMode: AppearanceMode
         switch mode {
-        case "Dark":
-            appearanceMode = .dark
-        case "System":
-            appearanceMode = .system
-        default:
-            appearanceMode = .light
+        case "Dark": appearanceMode = .dark
+        case "System": appearanceMode = .system
+        default: appearanceMode = .light
         }
         AppTheme.setAppearance(appearanceMode)
     }
@@ -178,8 +160,10 @@ final class AppCoordinator: ObservableObject {
 
     func loadAllData() async {
         async let esims: () = loadESIMs()
+        async let stock: () = loadStock()
         async let plansData: () = loadPlans()
-        _ = await (esims, plansData)
+        _ = await (esims, stock, plansData)
+        hasLoadedInitialData = true
     }
 
     func loadESIMs() async {
@@ -187,23 +171,45 @@ final class AppCoordinator: ObservableObject {
         do {
             esimOrders = try await apiService.fetchMyESIMs()
             updateUserStats()
+        } catch is CancellationError {
+        } catch APIError.unauthorized {
+            appLogError(APIError.unauthorized, message: "Unauthorized loading eSIMs - signing out", category: .auth)
+            await signOut()
         } catch {
             appLogError(error, message: "Error loading eSIMs", category: .data)
         }
         isLoadingESIMs = false
     }
 
+    func loadStock() async {
+        isLoadingStock = true
+        do {
+            stockESIMs = try await apiService.fetchStock()
+        } catch is CancellationError {
+        } catch APIError.unauthorized {
+            appLogError(APIError.unauthorized, message: "Unauthorized loading stock - signing out", category: .auth)
+            await signOut()
+        } catch {
+            appLogError(error, message: "Error loading stock", category: .data)
+        }
+        isLoadingStock = false
+    }
+
     func loadPlans() async {
         isLoadingPlans = true
         do {
             plans = try await apiService.fetchPlans(locale: "en")
+        } catch is CancellationError {
+        } catch APIError.unauthorized {
+            appLogError(APIError.unauthorized, message: "Unauthorized loading plans - signing out", category: .auth)
+            await signOut()
         } catch {
             appLogError(error, message: "Error loading plans", category: .data)
         }
         isLoadingPlans = false
     }
 
-    // MARK: - User Stats (computed from eSIMs)
+    // MARK: - User Stats
 
     private func updateUserStats() {
         user.totalESIMs = esimOrders.count
@@ -211,20 +217,16 @@ final class AppCoordinator: ObservableObject {
             $0.status.uppercased() == "RELEASED" || $0.status.uppercased() == "IN_USE"
         }.count
 
-        // Count unique countries from package names
         let countries = Set(esimOrders.map { extractCountry(from: $0.packageName) })
         user.countriesVisited = countries.count
 
-        // Calculate savings (estimate: 30% vs roaming)
         let totalSpent = esimOrders.reduce(0.0) { sum, order in
-            // Extract price from package if available, otherwise estimate
             sum + estimatePrice(for: order)
         }
-        user.totalSaved = totalSpent * 0.3 // 30% savings estimate
+        user.totalSaved = totalSpent * 0.3
     }
 
     private func extractCountry(from packageName: String) -> String {
-        // Extract country from package name like "UAE - 5GB" -> "UAE"
         if let dash = packageName.firstIndex(of: "-") {
             return String(packageName[..<dash]).trimmingCharacters(in: .whitespaces)
         }
@@ -232,18 +234,16 @@ final class AppCoordinator: ObservableObject {
     }
 
     private func estimatePrice(for order: ESIMOrder) -> Double {
-        // Try to match with a plan to get actual price
         if let plan = plans.first(where: { $0.name == order.packageName }) {
             return plan.priceUSD
         }
-        // Estimate based on data volume
         if order.totalVolume.contains("GB") {
             let gbString = order.totalVolume.replacingOccurrences(of: "GB", with: "").trimmingCharacters(in: .whitespaces)
             if let gb = Double(gbString) {
-                return gb * 3.0 // ~$3 per GB estimate
+                return gb * 3.0
             }
         }
-        return 10.0 // Default estimate
+        return 10.0
     }
 
     // MARK: - Cart Management
@@ -272,7 +272,7 @@ final class AppCoordinator: ObservableObject {
         cartItems.reduce(0) { $0 + $1.quantity }
     }
 
-    // MARK: - Order History (derived from eSIMs)
+    // MARK: - Order History
 
     var orderHistory: [OrderHistoryItem] {
         esimOrders.map { order in
@@ -307,13 +307,11 @@ struct UserProfile {
     var avatarURL: String? = nil
     var isPro: Bool = true
 
-    // Stats
     var totalESIMs: Int = 0
     var activeESIMs: Int = 0
     var countriesVisited: Int = 0
     var totalSaved: Double = 0
 
-    // Preferences
     var notificationsEnabled: Bool = true
     var language: String = "English"
     var appearance: String = "Light"
@@ -360,13 +358,11 @@ struct AppNotification: Identifiable {
 struct CoordinatorView: View {
     @ObservedObject var coordinator: AppCoordinator
 
-    // Set to false to require auth, true to bypass for testing
     private let bypassAuthForTesting = false
 
     var body: some View {
         Group {
             if coordinator.isLoading && !bypassAuthForTesting {
-                // Splash screen
                 SplashView()
             } else if coordinator.isAuthenticated || bypassAuthForTesting {
                 MainTabView()
@@ -387,24 +383,40 @@ struct CoordinatorView: View {
 // MARK: - Splash View
 
 struct SplashView: View {
+    @State private var logoScale: CGFloat = 0.8
+    @State private var logoOpacity: Double = 0
+
     var body: some View {
         ZStack {
-            Color.white
+            AppTheme.backgroundPrimary
                 .ignoresSafeArea()
 
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 ZStack {
+                    Circle()
+                        .fill(AppTheme.accent.opacity(0.08))
+                        .frame(width: 120, height: 120)
+
                     RoundedRectangle(cornerRadius: 24)
                         .fill(AppTheme.textPrimary)
                         .frame(width: 80, height: 80)
 
                     Image(systemName: "antenna.radiowaves.left.and.right")
                         .font(.system(size: 36, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(AppTheme.accent)
                 }
+                .scaleEffect(logoScale)
+                .opacity(logoOpacity)
 
                 ProgressView()
-                    .tint(AppTheme.textPrimary)
+                    .tint(AppTheme.accent)
+                    .opacity(logoOpacity)
+            }
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                logoScale = 1.0
+                logoOpacity = 1.0
             }
         }
     }
@@ -417,24 +429,17 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Content based on selected tab
             Group {
                 switch coordinator.selectedTab {
-                case 0:
-                    DashboardView()
-                case 1:
-                    PlanListView()
-                case 2:
-                    MyESIMsView()
-                case 3:
-                    ProfileView()
-                default:
-                    DashboardView()
+                case 0: DashboardView()
+                case 1: PlanListView()
+                case 2: MyESIMsView()
+                case 3: ProfileView()
+                default: DashboardView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Custom Tab Bar - Fixed at bottom
             VStack(spacing: 0) {
                 Spacer()
                 CustomTabBar(selectedTab: $coordinator.selectedTab)
@@ -455,22 +460,21 @@ struct NotificationsSheet: View {
 
     var body: some View {
         ZStack {
-            Color.white
+            AppTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header
                 HStack {
                     Button {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
-                            .frame(width: 40, height: 40)
+                            .frame(width: 36, height: 36)
                             .background(
                                 Circle()
-                                    .stroke(AppTheme.border, lineWidth: 1.5)
+                                    .fill(AppTheme.surfaceHeavy)
                             )
                     }
 
@@ -484,28 +488,27 @@ struct NotificationsSheet: View {
                     Spacer()
 
                     Color.clear
-                        .frame(width: 40, height: 40)
+                        .frame(width: 36, height: 36)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
 
                 Spacer()
 
-                // Empty state
-                VStack(spacing: 20) {
+                VStack(spacing: 16) {
                     ZStack {
                         Circle()
                             .fill(AppTheme.gray100)
-                            .frame(width: 80, height: 80)
+                            .frame(width: 72, height: 72)
 
                         Image(systemName: "bell.slash")
-                            .font(.system(size: 34, weight: .semibold))
+                            .font(.system(size: 30, weight: .semibold))
                             .foregroundColor(AppTheme.textTertiary)
                     }
 
-                    VStack(spacing: 8) {
+                    VStack(spacing: 6) {
                         Text("No notifications")
-                            .font(.system(size: 18, weight: .bold))
+                            .font(.system(size: 17, weight: .bold))
                             .foregroundColor(AppTheme.textPrimary)
 
                         Text("You're all caught up!")
@@ -520,11 +523,10 @@ struct NotificationsSheet: View {
     }
 }
 
-// MARK: - Tech Minimal Tab Bar
+// MARK: - Modern Floating Tab Bar
 
 struct CustomTabBar: View {
     @Binding var selectedTab: Int
-    @Namespace private var animation
 
     private let tabs: [(icon: String, activeIcon: String, title: String)] = [
         ("house", "house.fill", "Home"),
@@ -539,29 +541,28 @@ struct CustomTabBar: View {
                 TabBarItem(
                     icon: selectedTab == index ? tabs[index].activeIcon : tabs[index].icon,
                     title: tabs[index].title,
-                    isSelected: selectedTab == index,
-                    animation: animation
+                    isSelected: selectedTab == index
                 ) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    guard selectedTab != index else { return }
+                    HapticFeedback.light()
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                         selectedTab = index
                     }
                 }
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 16)
-        .padding(.bottom, 36)
+        .padding(.horizontal, 8)
+        .padding(.top, 12)
+        .padding(.bottom, 28)
         .background(
-            Rectangle()
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.06), radius: 16, x: 0, y: -4)
-                .ignoresSafeArea(edges: .bottom)
-        )
-        .overlay(
-            Rectangle()
-                .fill(AppTheme.border)
-                .frame(height: 1.5),
-            alignment: .top
+            ZStack(alignment: .top) {
+                BlurView(style: AppTheme.isDarkMode ? .systemMaterialDark : .systemMaterial)
+                    .ignoresSafeArea(edges: .bottom)
+
+                Rectangle()
+                    .fill(AppTheme.border.opacity(0.6))
+                    .frame(height: 0.5)
+            }
         )
     }
 }
@@ -570,49 +571,24 @@ struct TabBarItem: View {
     let icon: String
     let title: String
     let isSelected: Bool
-    let animation: Namespace.ID
     let action: () -> Void
-    @State private var isPressed = false
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
-                ZStack {
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(AppTheme.textPrimary)
-                            .frame(width: 52, height: 52)
-                            .matchedGeometryEffect(id: "tab_bg", in: animation)
-                    }
-
-                    Image(systemName: icon)
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(isSelected ? .white : AppTheme.textTertiary)
-                        .scaleEffect(isPressed ? 0.9 : 1.0)
-                }
-                .frame(height: 52)
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: isSelected ? .semibold : .regular))
+                    .foregroundColor(isSelected ? AppTheme.accent : AppTheme.textTertiary)
+                    .frame(height: 28)
 
                 Text(title)
-                    .font(.system(size: 10, weight: .bold))
-                    .tracking(0.5)
-                    .foregroundColor(isSelected ? AppTheme.textPrimary : AppTheme.textTertiary)
+                    .font(.system(size: 10, weight: isSelected ? .bold : .medium))
+                    .foregroundColor(isSelected ? AppTheme.accent : AppTheme.textTertiary)
             }
             .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
-                        isPressed = true
-                    }
-                }
-                .onEnded { _ in
-                    withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
-                        isPressed = false
-                    }
-                }
-        )
+        .accessibilityLabel(title)
     }
 }
-

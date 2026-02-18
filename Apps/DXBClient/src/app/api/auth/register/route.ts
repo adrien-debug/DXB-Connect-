@@ -15,7 +15,7 @@ interface RegisterRequest {
 export async function POST(request: Request) {
   try {
     const body: RegisterRequest = await request.json()
-    
+
     if (!body.email || !body.password) {
       return NextResponse.json(
         { success: false, error: 'Email and password are required' },
@@ -31,11 +31,18 @@ export async function POST(request: Request) {
     }
 
     // Utiliser service role pour créer l'utilisateur avec email confirmé
-    // Clés hardcodées pour éviter les problèmes de variables d'environnement
-    const supabaseAdmin = createClient(
-      'https://zgrgaruuwpxuxueffvck.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpncmdhcnV1d3B4dXh1ZWZmdmNrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTI3ODQ5MiwiZXhwIjoyMDg2ODU0NDkyfQ.4ZOGw8sZOlxnVBmt5wv5Bfa_6LYkJ0q2d1ZH-9HFP1Y'
-    )
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('[auth/register] Missing Supabase env vars')
+      return NextResponse.json(
+        { success: false, error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
     // Créer l'utilisateur avec email déjà confirmé
     const { data, error } = await supabaseAdmin.auth.admin.createUser({

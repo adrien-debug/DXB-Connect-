@@ -227,16 +227,19 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
             throw APIError.invalidResponse
         }
 
+        // Utiliser le statut réel de l'API, fallback "PENDING" si non disponible
+        let realStatus = order.esimList?.first?.smdpStatus ?? "PENDING"
+        
         return ESIMOrder(
             id: order.orderNo ?? UUID().uuidString,
             orderNo: order.orderNo ?? "",
             iccid: order.esimList?.first?.iccid ?? "",
             lpaCode: order.esimList?.first?.ac ?? "",
             qrCodeUrl: order.esimList?.first?.qrCodeUrl ?? "",
-            status: "PENDING",
-            packageName: "eSIM",
+            status: realStatus,
+            packageName: order.packageList?.first?.packageName ?? "eSIM",
             totalVolume: "",
-            expiredTime: "",
+            expiredTime: order.packageList?.first?.expiredTime ?? "",
             createdAt: Date()
         )
     }
@@ -266,7 +269,10 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
             throw APIError.invalidResponse
         }
 
-        await AppLogger.shared.logData("Apple Pay purchase successful: \(order.orderNo ?? "unknown")")
+        // Utiliser le statut réel de l'API, fallback "PENDING" si non disponible
+        let realStatus = order.esimList?.first?.smdpStatus ?? "PENDING"
+        
+        await AppLogger.shared.logData("Apple Pay purchase successful: \(order.orderNo ?? "unknown"), status: \(realStatus)")
         
         return ESIMOrder(
             id: order.orderNo ?? UUID().uuidString,
@@ -274,10 +280,10 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
             iccid: order.esimList?.first?.iccid ?? "",
             lpaCode: order.esimList?.first?.ac ?? "",
             qrCodeUrl: order.esimList?.first?.qrCodeUrl ?? "",
-            status: "PENDING",
-            packageName: "eSIM",
+            status: realStatus,
+            packageName: order.packageList?.first?.packageName ?? "eSIM",
             totalVolume: "",
-            expiredTime: "",
+            expiredTime: order.packageList?.first?.expiredTime ?? "",
             createdAt: Date()
         )
     }
@@ -351,6 +357,7 @@ struct EsimItem: Codable {
 }
 
 struct PackageStatus: Codable {
+    let packageCode: String?
     let packageName: String?
     let totalVolume: Int?
     let expiredTime: String?

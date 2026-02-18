@@ -5,56 +5,29 @@ struct PlanListView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @State private var searchText = ""
     @State private var selectedFilter = "All"
-    @State private var viewMode: ViewMode = .countries
     @State private var selectedPlan: Plan?
 
-    enum ViewMode: String, CaseIterable {
-        case countries = "Countries"
-        case list = "All Plans"
-    }
+    let filters = ["All", "1GB", "2GB", "5GB", "10GB"]
 
-    let filters = ["All", "Europe", "Asia", "Americas"]
-
-    /// Plans filtrés par recherche et région
     var filteredPlans: [Plan] {
-        var plans = coordinator.plans.filter { plan in
-            searchText.isEmpty || 
-            plan.name.localizedCaseInsensitiveContains(searchText) ||
-            plan.location.localizedCaseInsensitiveContains(searchText)
+        var result = coordinator.plans
+
+        if !searchText.isEmpty {
+            result = result.filter {
+                $0.location.localizedCaseInsensitiveContains(searchText) ||
+                $0.name.localizedCaseInsensitiveContains(searchText)
+            }
         }
 
         switch selectedFilter {
-        case "Europe":
-            plans = plans.filter { isEuropean($0.locationCode) }
-        case "Asia":
-            plans = plans.filter { isAsian($0.locationCode) }
-        case "Americas":
-            plans = plans.filter { isAmericas($0.locationCode) }
-        default:
-            break
+        case "1GB": result = result.filter { $0.dataGB == 1 }
+        case "2GB": result = result.filter { $0.dataGB == 2 }
+        case "5GB": result = result.filter { $0.dataGB >= 3 && $0.dataGB <= 5 }
+        case "10GB": result = result.filter { $0.dataGB >= 10 }
+        default: break
         }
 
-        return plans
-    }
-
-    /// Plans groupés par pays
-    var plansByCountry: [(country: String, code: String, plans: [Plan])] {
-        let grouped = Dictionary(grouping: coordinator.plans) { $0.location }
-        return grouped.map { (country: $0.key, code: $0.value.first?.locationCode ?? "", plans: $0.value) }
-            .sorted { $0.country < $1.country }
-            .filter { searchText.isEmpty || $0.country.localizedCaseInsensitiveContains(searchText) }
-    }
-    
-    private func isEuropean(_ code: String) -> Bool {
-        ["FR", "DE", "IT", "ES", "GB", "NL", "BE", "PT", "AT", "CH", "PL", "CZ", "GR", "SE", "NO", "DK", "FI", "IE", "HU", "RO", "BG", "HR", "SK", "SI", "LT", "LV", "EE", "LU", "MT", "CY", "EU"].contains(code.uppercased())
-    }
-    
-    private func isAsian(_ code: String) -> Bool {
-        ["JP", "KR", "CN", "HK", "TW", "SG", "TH", "VN", "MY", "ID", "PH", "IN", "AE", "SA", "QA", "KW", "BH", "OM", "IL", "TR"].contains(code.uppercased())
-    }
-    
-    private func isAmericas(_ code: String) -> Bool {
-        ["US", "CA", "MX", "BR", "AR", "CL", "CO", "PE", "VE", "EC", "UY", "PY", "BO", "CR", "PA", "DO", "PR", "JM", "TT", "BB"].contains(code.uppercased())
+        return result.sorted { $0.priceUSD < $1.priceUSD }
     }
 
     var body: some View {
@@ -90,42 +63,44 @@ struct PlanListView: View {
     private var headerSection: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("EXPLORE")
+                Text("ESIM PLANS")
                     .font(.system(size: 12, weight: .bold))
                     .tracking(1.8)
                     .foregroundColor(AppTheme.textTertiary)
 
                 Text("Explore")
-                    .font(.system(size: 36, weight: .bold))
+                    .font(.system(size: 34, weight: .bold))
                     .tracking(-0.5)
                     .foregroundColor(AppTheme.textPrimary)
+
+                Text("\(coordinator.plans.count) plans available")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(AppTheme.textSecondary)
             }
 
             Spacer()
 
-            // Refresh indicator
             if coordinator.isLoadingPlans {
                 ProgressView()
-                    .tint(AppTheme.textPrimary)
+                    .tint(AppTheme.accent)
                     .frame(width: 44, height: 44)
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 64)
-        .padding(.bottom, 20)
+        .padding(.horizontal, 20)
+        .padding(.top, 60)
+        .padding(.bottom, 16)
     }
 
     // MARK: - Search
 
     private var searchSection: some View {
-        VStack(spacing: 16) {
-            // Search bar
-            HStack(spacing: 14) {
+        VStack(spacing: 14) {
+            HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(AppTheme.textTertiary)
 
-                TextField("Search eSIMs...", text: $searchText)
+                TextField("Search plans...", text: $searchText)
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(AppTheme.textPrimary)
 
@@ -134,29 +109,29 @@ struct PlanListView: View {
                         searchText = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 18))
+                            .font(.system(size: 16))
                             .foregroundColor(AppTheme.textMuted)
                     }
                 }
             }
-            .padding(16)
+            .padding(14)
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 14)
                     .fill(AppTheme.surfaceLight)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(AppTheme.border, lineWidth: 1.5)
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(AppTheme.border, lineWidth: 1)
                     )
             )
 
-            // Filter Chips
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     ForEach(filters, id: \.self) { filter in
                         TechChip(
                             title: filter,
                             isSelected: selectedFilter == filter
                         ) {
+                            HapticFeedback.selection()
                             withAnimation(.spring(response: 0.3)) {
                                 selectedFilter = filter
                             }
@@ -165,8 +140,8 @@ struct PlanListView: View {
                 }
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.bottom, 20)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 16)
     }
 
     // MARK: - Content
@@ -184,8 +159,8 @@ struct PlanListView: View {
 
     private var plansList: some View {
         ScrollView(showsIndicators: false) {
-            LazyVStack(spacing: 14) {
-                ForEach(Array(filteredPlans.prefix(100).enumerated()), id: \.element.id) { index, plan in
+            LazyVStack(spacing: 12) {
+                ForEach(filteredPlans) { plan in
                     Button {
                         selectedPlan = plan
                     } label: {
@@ -194,8 +169,8 @@ struct PlanListView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 140)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 120)
         }
     }
 
@@ -203,8 +178,8 @@ struct PlanListView: View {
         VStack(spacing: 16) {
             Spacer()
             ProgressView()
-                .tint(AppTheme.textPrimary)
-                .scaleEffect(1.3)
+                .tint(AppTheme.accent)
+                .scaleEffect(1.2)
             Text("Loading plans...")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(AppTheme.textTertiary)
@@ -213,28 +188,27 @@ struct PlanListView: View {
     }
 
     private var emptyView: some View {
-        VStack(spacing: 28) {
+        VStack(spacing: 24) {
             Spacer()
 
             ZStack {
                 Circle()
-                    .fill(AppTheme.gray100)
-                    .frame(width: 88, height: 88)
+                    .fill(AppTheme.accentSoft)
+                    .frame(width: 80, height: 80)
 
-                Image(systemName: "globe")
-                    .font(.system(size: 36, weight: .semibold))
-                    .foregroundColor(AppTheme.textPrimary)
+                Image(systemName: "simcard")
+                    .font(.system(size: 34, weight: .semibold))
+                    .foregroundColor(AppTheme.accent)
             }
 
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 Text("No Plans Available")
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.system(size: 18, weight: .bold))
                     .foregroundColor(AppTheme.textPrimary)
 
                 Text("Pull to refresh")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(AppTheme.textTertiary)
-                    .multilineTextAlignment(.center)
             }
 
             Spacer()
@@ -250,9 +224,9 @@ struct ESIMOrderRow: View {
 
     private var statusColor: Color {
         switch order.status.uppercased() {
-        case "RELEASED", "IN_USE": return AppTheme.textPrimary
+        case "RELEASED", "IN_USE": return AppTheme.success
         case "EXPIRED": return AppTheme.gray400
-        default: return AppTheme.gray500
+        default: return AppTheme.warning
         }
     }
 
@@ -266,19 +240,17 @@ struct ESIMOrderRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 16) {
-            // Icon
+        HStack(spacing: 14) {
             ZStack {
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(AppTheme.textPrimary)
-                    .frame(width: 56, height: 56)
+                    .fill(AppTheme.accent.opacity(0.1))
+                    .frame(width: 52, height: 52)
 
                 Image(systemName: "simcard.fill")
                     .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(AppTheme.accent)
             }
 
-            // Info
             VStack(alignment: .leading, spacing: 6) {
                 Text(order.packageName)
                     .font(.system(size: 16, weight: .semibold))
@@ -304,7 +276,6 @@ struct ESIMOrderRow: View {
 
             Spacer()
 
-            // Status
             HStack(spacing: 6) {
                 Circle()
                     .fill(statusColor)
@@ -323,18 +294,18 @@ struct ESIMOrderRow: View {
             )
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .bold))
+                .font(.system(size: 12, weight: .bold))
                 .foregroundColor(AppTheme.textMuted)
         }
-        .padding(18)
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 18)
                 .fill(AppTheme.surfaceLight)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(AppTheme.border, lineWidth: 1.5)
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(AppTheme.border, lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 3)
+                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
         )
         .contentShape(Rectangle())
     }
@@ -361,24 +332,21 @@ struct CountryCard: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            // Flag
             ZStack {
                 Circle()
                     .fill(AppTheme.gray100)
-                    .frame(width: 56, height: 56)
+                    .frame(width: 52, height: 52)
 
                 Text(flagEmoji)
-                    .font(.system(size: 28))
+                    .font(.system(size: 26))
             }
 
-            // Country name
             Text(country)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(AppTheme.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
-            // Info
             HStack(spacing: 4) {
                 Text("\(planCount) plans")
                     .font(.system(size: 11, weight: .medium))
@@ -389,20 +357,20 @@ struct CountryCard: View {
 
                 Text("from \(minPrice.formattedPrice)")
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(AppTheme.textPrimary)
+                    .foregroundColor(AppTheme.accent)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
+        .padding(.vertical, 18)
         .padding(.horizontal, 12)
         .background(
             RoundedRectangle(cornerRadius: 18)
                 .fill(AppTheme.surfaceLight)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
-                        .stroke(AppTheme.border, lineWidth: 1.5)
+                        .stroke(AppTheme.border, lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 3)
+                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
         )
         .contentShape(Rectangle())
     }
@@ -436,19 +404,15 @@ struct CountryPlansView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header
                 HStack {
                     Button {
                         dismiss()
                     } label: {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
-                            .frame(width: 44, height: 44)
-                            .background(
-                                Circle()
-                                    .stroke(AppTheme.border, lineWidth: 1.5)
-                            )
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(AppTheme.surfaceHeavy))
                     }
 
                     Spacer()
@@ -464,25 +428,23 @@ struct CountryPlansView: View {
                     Spacer()
 
                     Color.clear
-                        .frame(width: 44, height: 44)
+                        .frame(width: 40, height: 40)
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 20)
                 .padding(.top, 8)
                 .padding(.bottom, 16)
 
-                // Plans count
                 HStack {
                     Text("\(plans.count) plans available")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(AppTheme.textTertiary)
                     Spacer()
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 20)
                 .padding(.bottom, 16)
 
-                // Plans list
                 ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 14) {
+                    LazyVStack(spacing: 12) {
                         ForEach(plans) { plan in
                             Button {
                                 selectedPlan = plan
@@ -492,7 +454,7 @@ struct CountryPlansView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 20)
                     .padding(.bottom, 100)
                 }
             }
@@ -515,24 +477,22 @@ struct TechChip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 12, weight: .bold))
-                .tracking(0.5)
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(isSelected ? .white : AppTheme.textSecondary)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 10)
                 .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(isSelected ? AppTheme.textPrimary : Color.white)
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(isSelected ? AppTheme.accent : AppTheme.surfaceLight)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(isSelected ? Color.clear : AppTheme.border, lineWidth: 1.5)
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(isSelected ? Color.clear : AppTheme.border, lineWidth: 1)
                         )
                 )
         }
     }
 }
 
-// Compatibility
 struct ChipButton: View {
     let title: String
     let isSelected: Bool
@@ -554,40 +514,131 @@ struct PremiumFilterChip: View {
     var body: some View { TechChip(title: title, isSelected: isSelected, action: action) }
 }
 
+// MARK: - Stock eSIM Row
+
+struct StockESIMRow: View {
+    let esim: ESIMOrder
+
+    private var statusColor: Color {
+        switch esim.status.uppercased() {
+        case "RELEASED", "GOT_RESOURCE": return AppTheme.success
+        case "IN_USE": return AppTheme.warning
+        default: return AppTheme.gray400
+        }
+    }
+
+    private var statusText: String {
+        switch esim.status.uppercased() {
+        case "RELEASED", "GOT_RESOURCE": return "AVAILABLE"
+        case "IN_USE": return "IN USE"
+        default: return esim.status.uppercased()
+        }
+    }
+
+    private var flagEmoji: String {
+        let name = esim.packageName.lowercased()
+        if name.contains("arab") || name.contains("uae") || name.contains("emirates") { return "🇦🇪" }
+        if name.contains("turkey") || name.contains("türkiye") { return "🇹🇷" }
+        if name.contains("saudi") { return "🇸🇦" }
+        if name.contains("qatar") { return "🇶🇦" }
+        if name.contains("oman") { return "🇴🇲" }
+        if name.contains("bahrain") { return "🇧🇭" }
+        if name.contains("kuwait") { return "🇰🇼" }
+        return "🌍"
+    }
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(AppTheme.gray100)
+                    .frame(width: 44, height: 44)
+
+                Text(flagEmoji)
+                    .font(.system(size: 20))
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(esim.packageName)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppTheme.textPrimary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text(esim.totalVolume)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(AppTheme.textTertiary)
+            }
+
+            Spacer()
+
+            HStack(spacing: 8) {
+                HStack(spacing: 5) {
+                    Circle()
+                        .fill(statusColor)
+                        .frame(width: 6, height: 6)
+
+                    Text(statusText)
+                        .font(.system(size: 10, weight: .bold))
+                        .tracking(0.3)
+                        .foregroundColor(statusColor)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Capsule().fill(statusColor.opacity(0.1)))
+                .fixedSize()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(AppTheme.textMuted)
+            }
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(AppTheme.surfaceLight)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(AppTheme.border, lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+        )
+        .contentShape(Rectangle())
+    }
+}
+
 // MARK: - Plan Tech Row
 
 struct PlanTechRow: View {
     let plan: Plan
 
     var body: some View {
-        HStack(spacing: 16) {
-            // Flag
+        HStack(spacing: 14) {
             ZStack {
                 RoundedRectangle(cornerRadius: 14)
                     .fill(AppTheme.gray100)
-                    .frame(width: 56, height: 56)
+                    .frame(width: 52, height: 52)
 
                 Text(flagEmoji)
-                    .font(.system(size: 28))
+                    .font(.system(size: 26))
             }
 
-            // Info
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 5) {
                 Text(plan.location)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(AppTheme.textPrimary)
 
-                HStack(spacing: 12) {
-                    HStack(spacing: 5) {
+                HStack(spacing: 10) {
+                    HStack(spacing: 4) {
                         Image(systemName: "antenna.radiowaves.left.and.right")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 10, weight: .semibold))
                         Text("\(plan.dataGB)GB")
                             .font(.system(size: 12, weight: .medium))
                     }
 
-                    HStack(spacing: 5) {
+                    HStack(spacing: 4) {
                         Image(systemName: "calendar")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 10, weight: .semibold))
                         Text("\(plan.durationDays)d")
                             .font(.system(size: 12, weight: .medium))
                     }
@@ -597,12 +648,10 @@ struct PlanTechRow: View {
 
             Spacer()
 
-            // Price
             VStack(alignment: .trailing, spacing: 3) {
                 Text(plan.priceUSD.formattedPrice)
-                    .font(.system(size: 20, weight: .bold))
-                    .tracking(-0.5)
-                    .foregroundColor(AppTheme.textPrimary)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundColor(AppTheme.accent)
 
                 Text(plan.speed)
                     .font(.system(size: 11, weight: .medium))
@@ -610,18 +659,18 @@ struct PlanTechRow: View {
             }
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .bold))
+                .font(.system(size: 12, weight: .bold))
                 .foregroundColor(AppTheme.textMuted)
         }
-        .padding(18)
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 18)
                 .fill(AppTheme.surfaceLight)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(AppTheme.border, lineWidth: 1.5)
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(AppTheme.border, lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 3)
+                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(plan.location), \(plan.dataGB) gigabytes, \(plan.durationDays) jours, \(plan.priceUSD.formattedPrice)")
@@ -641,40 +690,37 @@ struct PlanTechRow: View {
     }
 }
 
-// Compatibility
 struct PlanRow: View {
     let plan: Plan
     var body: some View { PlanTechRow(plan: plan) }
 }
-
 struct PlanCard: View {
     let plan: Plan
     var body: some View { PlanTechRow(plan: plan) }
 }
-
 struct UltraPlanCard: View {
     let plan: Plan
     var body: some View { PlanTechRow(plan: plan) }
 }
 
-// MARK: - Error State Tech
+// MARK: - Error State
 
 struct ErrorStateTech: View {
     let message: String
     let retry: () -> Void
 
     var body: some View {
-        VStack(spacing: 28) {
+        VStack(spacing: 24) {
             Spacer()
 
             ZStack {
                 Circle()
-                    .fill(AppTheme.gray100)
-                    .frame(width: 80, height: 80)
+                    .fill(AppTheme.errorLight)
+                    .frame(width: 72, height: 72)
 
                 Image(systemName: "wifi.exclamationmark")
-                    .font(.system(size: 34, weight: .semibold))
-                    .foregroundColor(AppTheme.textPrimary)
+                    .font(.system(size: 30, weight: .semibold))
+                    .foregroundColor(AppTheme.error)
             }
 
             VStack(spacing: 8) {
@@ -698,7 +744,7 @@ struct ErrorStateTech: View {
                     .padding(.vertical, 14)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(AppTheme.textPrimary)
+                            .fill(AppTheme.accent)
                     )
             }
             .scaleOnPress()
@@ -709,13 +755,11 @@ struct ErrorStateTech: View {
     }
 }
 
-// Compatibility
 struct ErrorStateView: View {
     let message: String
     let retry: () -> Void
     var body: some View { ErrorStateTech(message: message, retry: retry) }
 }
-
 struct ErrorView: View {
     let message: String
     let retry: () -> Void
@@ -743,7 +787,6 @@ final class PlanListViewModel: ObservableObject {
         isLoading = false
     }
 }
-
 
 #Preview {
     PlanListView()

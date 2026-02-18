@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  DollarSign,
   LayoutDashboard,
   LogOut,
   Settings,
@@ -22,6 +23,7 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Vue d\'ensemble' },
   { href: '/esim', label: 'Acheter eSIM', icon: Wifi, description: 'Nouvelle commande' },
   { href: '/esim/orders', label: 'Mes eSIMs', icon: ClipboardList, description: 'Historique' },
+  { href: '/esim/pricing', label: 'Prix & Marges', icon: DollarSign, description: 'Gestion tarifs' },
   { href: '/customers', label: 'Clients', icon: Users, description: 'Gestion CRM' },
 ]
 
@@ -64,7 +66,7 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
             {!collapsed && (
               <div className="flex items-center gap-3 animate-fade-in-up overflow-hidden">
                 <div className="relative flex-shrink-0">
-                  <div 
+                  <div
                     className="w-11 h-11 rounded-xl flex items-center justify-center"
                     style={{
                       background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
@@ -84,7 +86,7 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
               </div>
             )}
             {collapsed && (
-              <div 
+              <div
                 className="w-11 h-11 rounded-xl flex items-center justify-center"
                 style={{
                   background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
@@ -110,8 +112,8 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
               const isChildMatch = pathname.startsWith(item.href + '/')
               // Vérifie si un autre item plus spécifique matche
               const hasMoreSpecificMatch = navItems.some(
-                other => other.href !== item.href && 
-                         other.href.startsWith(item.href) && 
+                other => other.href !== item.href &&
+                         other.href.startsWith(item.href) &&
                          (pathname === other.href || pathname.startsWith(other.href + '/'))
               )
               const isActive = isExactMatch || (isChildMatch && !hasMoreSpecificMatch)
@@ -136,7 +138,7 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
                   {isActive && (
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full" />
                   )}
-                  
+
                   <div className={`
                     flex items-center justify-center w-10 h-10 rounded-lg
                     transition-all ease-hearst duration-300
@@ -158,11 +160,11 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
                       </span>
                     </div>
                   )}
-                  
+
                   {/* Hover arrow */}
                   {!collapsed && !isActive && (
-                    <ChevronRight 
-                      size={16} 
+                    <ChevronRight
+                      size={16}
                       className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all ease-hearst duration-300 text-gray-500"
                     />
                   )}
@@ -177,7 +179,7 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
               onClick={() => setCartOpen(true)}
               className={`
                 group w-full flex items-center gap-3 px-3 py-3 rounded-xl
-                bg-gradient-to-r from-amber-500/10 to-orange-500/10 
+                bg-gradient-to-r from-amber-500/10 to-orange-500/10
                 border border-amber-500/20
                 text-amber-400 hover:from-amber-500/20 hover:to-orange-500/20
                 transition-all ease-hearst duration-300
@@ -209,7 +211,7 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
             {!collapsed && user && (
               <div className="px-3 py-3 rounded-xl bg-white/5 border border-white/5 mb-2">
                 <div className="flex items-center gap-3">
-                  <div 
+                  <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold bg-sky-500"
                   >
                     {user.email?.charAt(0).toUpperCase()}

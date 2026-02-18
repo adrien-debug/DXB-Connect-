@@ -7,34 +7,42 @@ import { NextResponse } from 'next/server'
 
 type EsimOrderInsert = Database['public']['Tables']['esim_orders']['Insert']
 
-// Les types Supabase générés sont en décalage avec la version du client SSR.
-// Cast ciblé uniquement sur les opérations DB eSIM.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
 
-interface ESIMItem {
-  iccid: string
-  ac: string
-  qrCodeUrl: string
-  smdpStatus?: string
-}
-
-interface PurchaseAPIResponse {
-  success: boolean
+interface OrderResponse {
+  success?: boolean
+  errorCode?: string
   errorMsg?: string
   obj?: {
-    orderNo: string
-    esimList?: ESIMItem[]
+    orderNo?: string
+    esimList?: Array<{
+      iccid?: string
+      ac?: string
+      qrCodeUrl?: string
+      smdpStatus?: string
+    }>
+    packageList?: Array<{
+      packageCode?: string
+      packageName?: string
+      totalVolume?: number
+      expiredTime?: string
+    }>
   }
 }
 
+/**
+ * POST /api/esim/purchase
+ * Commande on-demand via eSIM Access API.
+ * - Appelle /open/esim/order pour créer une nouvelle eSIM
+ * - Enregistre la commande dans Supabase
+ * - Retourne les infos de l'eSIM (QR code, LPA, etc.)
+ */
 export async function POST(request: Request) {
   try {
-    // Auth flexible (Bearer OU Cookie)
     const { error: authError, user } = await requireAuthFlexible(request)
     if (authError) return authError
 
-    // Validation
     const body: PurchaseRequest = await request.json()
 
     if (!body.packageCode) {
@@ -44,53 +52,84 @@ export async function POST(request: Request) {
       )
     }
 
-    const quantity = body.quantity || 1
+    console.log('[esim/purchase] On-demand order for user=%s, package=%s', user.id, body.packageCode)
 
-    // Appel API eSIM Access
-    const data = await esimPost<PurchaseAPIResponse>('/open/esim/order', {
-      packageCode: body.packageCode,
-      count: quantity,
+    // 1. Commander on-demand via eSIM Access API
+    const transactionId = `dxb_${user.id.slice(0, 8)}_${Date.now()}`
+    
+    const orderResponse = await esimPost<OrderResponse>('/open/esim/order', {
+      transactionId,
+      packageInfoList: [{
+        packageCode: body.packageCode,
+        count: body.quantity || 1,
+      }]
     })
 
-    if (!data.success || !data.obj) {
-      console.error('[esim/purchase] eSIM API rejected:', data.errorMsg)
+    if (!orderResponse.obj?.orderNo) {
+      console.error('[esim/purchase] eSIM Access order failed:', orderResponse.errorMsg || 'No order number')
       return NextResponse.json(
-        { success: false, error: data.errorMsg || 'Purchase failed' },
-        { status: 400 }
+        { success: false, error: orderResponse.errorMsg || 'eSIM order failed' },
+        { status: 500 }
       )
     }
 
-    // Persistance : une ligne par eSIM retournée (fix qty > 1)
-    const esimList = data.obj.esimList ?? []
+    const orderNo = orderResponse.obj.orderNo
 
-    if (esimList.length === 0) {
-      console.warn('[esim/purchase] No eSIMs in API response for orderNo:', data.obj.orderNo)
-    } else {
-      const rows: EsimOrderInsert[] = esimList.map((esim) => ({
-        user_id: user.id,
-        order_no: data.obj!.orderNo,
-        package_code: body.packageCode,
-        iccid: esim.iccid,
-        lpa_code: esim.ac,
-        qr_code_url: esim.qrCodeUrl,
-        status: esim.smdpStatus ?? 'PENDING',
-        raw_response: esim as unknown as EsimOrderInsert['raw_response'],
-      }))
+    // 2. Attendre un instant puis récupérer les détails (QR code, LPA)
+    await new Promise(resolve => setTimeout(resolve, 2000))
 
-      const supabaseDB = await createClient()
-      const { error: dbError } = await (supabaseDB.from('esim_orders') as SupabaseAny).insert(rows)
-      if (dbError) {
-        // La commande eSIM est créée côté fournisseur — on ne fait pas échouer la réponse
-        console.warn('[esim/purchase] DB insert error (orderNo=%s, count=%d):', data.obj.orderNo, rows.length, dbError.message)
-      } else {
-        console.log('[esim/purchase] %d eSIM(s) persistée(s) pour orderNo=%s', rows.length, data.obj.orderNo)
-      }
+    const queryResponse = await esimPost<OrderResponse>('/open/esim/query', {
+      orderNo,
+    })
+
+    const esimDetails = queryResponse.obj?.esimList?.[0]
+    const pkgDetails = queryResponse.obj?.packageList?.[0] || orderResponse.obj?.packageList?.[0]
+
+    // 3. Enregistrer dans Supabase
+    const supabase = await createClient()
+
+    const row: EsimOrderInsert = {
+      user_id: user.id,
+      order_no: orderNo,
+      package_code: body.packageCode,
+      iccid: esimDetails?.iccid || '',
+      lpa_code: esimDetails?.ac || '',
+      qr_code_url: esimDetails?.qrCodeUrl || '',
+      status: esimDetails?.smdpStatus || 'PENDING',
+      raw_response: queryResponse.obj as unknown as EsimOrderInsert['raw_response'],
     }
 
-    return NextResponse.json(data)
+    const { error: dbError } = await (supabase.from('esim_orders') as SupabaseAny).insert(row)
+
+    if (dbError) {
+      console.error('[esim/purchase] DB insert error:', dbError.message)
+    }
+
+    console.log('[esim/purchase] Order completed: orderNo=%s, iccid=%s, status=%s',
+      orderNo, esimDetails?.iccid || 'pending', esimDetails?.smdpStatus || 'PENDING')
+
+    // 4. Retourner au format attendu par iOS
+    return NextResponse.json({
+      success: true,
+      obj: {
+        orderNo,
+        esimList: esimDetails ? [{
+          iccid: esimDetails.iccid,
+          ac: esimDetails.ac,
+          qrCodeUrl: esimDetails.qrCodeUrl,
+          smdpStatus: esimDetails.smdpStatus,
+        }] : [],
+        packageList: pkgDetails ? [{
+          packageCode: pkgDetails.packageCode,
+          packageName: pkgDetails.packageName,
+          totalVolume: pkgDetails.totalVolume,
+          expiredTime: pkgDetails.expiredTime,
+        }] : []
+      }
+    })
   } catch (error) {
     if (error instanceof ESIMAccessError) {
-      console.error('[esim/purchase] eSIM API error %d on %s:', error.status, error.endpoint, error.body)
+      console.error('[esim/purchase] eSIM API error:', error.status, error.body)
       return NextResponse.json(
         { success: false, error: 'eSIM provider error' },
         { status: error.status }

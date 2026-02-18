@@ -124,12 +124,19 @@ export default function DashboardPage() {
     })
   }
 
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return 'Bonjour'
+    if (hour < 18) return 'Bon après-midi'
+    return 'Bonsoir'
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center animate-pulse">
-            <LayoutDashboard className="w-8 h-8 text-white" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/25">
+            <LayoutDashboard className="w-7 h-7 text-white animate-pulse" />
           </div>
         </div>
       </div>
@@ -137,286 +144,270 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="animate-fade-in-up">
-        <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
-        <p className="text-gray-400 text-sm mt-1">Vue d&apos;ensemble de votre activité eSIM</p>
+    <div className="space-y-8">
+      {/* Hero Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-6 sm:p-8 animate-fade-in-up">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-400/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <p className="text-sky-400 text-sm font-medium mb-1">{getGreeting()} 👋</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              Votre activité eSIM
+            </h1>
+            <p className="text-gray-400 text-sm mt-2 max-w-md">
+              Suivez vos performances, gérez votre stock et pilotez votre business depuis un seul endroit.
+            </p>
+          </div>
+          <Link
+            href="/esim"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-sky-500 hover:bg-sky-400 text-white text-sm font-semibold rounded-xl shadow-lg shadow-sky-500/25 transition-all duration-300 hover:-translate-y-0.5 whitespace-nowrap"
+          >
+            <Globe size={16} />
+            Acheter eSIM
+          </Link>
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.05s', animationFillMode: 'backwards' }}>
-          <StatCard
-            title="Balance"
-            value={`$${(currentBalance / 10000).toFixed(2)}`}
-            icon={DollarSign}
-            color="green"
-          />
-        </div>
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.08s', animationFillMode: 'backwards' }}>
-          <StatCard
-            title="Dépenses"
-            value={`$${(spent > 0 ? spent / 10000 : 0).toFixed(2)}`}
-            icon={TrendingDown}
-            color="orange"
-          />
-        </div>
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'backwards' }}>
-          <StatCard
-            title="Stock eSIM"
-            value={stock?.stats?.total || 0}
-            icon={Package}
-            color="blue"
-          />
-        </div>
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.12s', animationFillMode: 'backwards' }}>
-          <StatCard
-            title="Disponibles"
-            value={stock?.stats?.available || 0}
-            icon={Wifi}
-            color="green"
-          />
-        </div>
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.15s', animationFillMode: 'backwards' }}>
-          <StatCard
-            title="En usage"
-            value={stock?.stats?.inUse || 0}
-            icon={Activity}
-            color="purple"
-          />
-        </div>
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.18s', animationFillMode: 'backwards' }}>
-          <StatCard
-            title="Clients iOS"
-            value={stats.clientsCount}
-            icon={Users}
-            color="purple"
-          />
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+        {[
+          { title: 'Balance', value: `$${(currentBalance / 10000).toFixed(2)}`, icon: DollarSign, color: 'green' as const, delay: '0.05s' },
+          { title: 'Dépenses', value: `$${(spent > 0 ? spent / 10000 : 0).toFixed(2)}`, icon: TrendingDown, color: 'orange' as const, delay: '0.08s' },
+          { title: 'Stock eSIM', value: stock?.stats?.total || 0, icon: Package, color: 'blue' as const, delay: '0.1s' },
+          { title: 'Disponibles', value: stock?.stats?.available || 0, icon: Wifi, color: 'green' as const, delay: '0.12s' },
+          { title: 'En usage', value: stock?.stats?.inUse || 0, icon: Activity, color: 'purple' as const, delay: '0.15s' },
+          { title: 'Clients iOS', value: stats.clientsCount, icon: Users, color: 'indigo' as const, delay: '0.18s' },
+        ].map((stat) => (
+          <div key={stat.title} className="animate-fade-in-up" style={{ animationDelay: stat.delay, animationFillMode: 'backwards' }}>
+            <StatCard
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              color={stat.color}
+            />
+          </div>
+        ))}
       </div>
 
-      {/* Charts & Activity */}
+      {/* Charts & Stock */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Orders by Day Chart */}
-        <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-gray-100/50 animate-fade-in-up" style={{ animationDelay: '0.25s', animationFillMode: 'backwards' }}>
-          <div className="flex items-center justify-between mb-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-gray-100 animate-fade-in-up" style={{ animationDelay: '0.25s', animationFillMode: 'backwards' }}>
+          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100/80">
             <div>
-              <h3 className="text-base font-semibold text-gray-800">Commandes cette semaine</h3>
-              <p className="text-sm text-gray-400 mt-0.5">Évolution des ventes eSIM</p>
+              <h3 className="text-sm font-semibold text-gray-900">Commandes cette semaine</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Évolution des ventes eSIM</p>
             </div>
-            <div className="flex items-center gap-2 text-xs">
-              <div className="w-2.5 h-2.5 rounded-full bg-sky-500" />
-              <span className="text-gray-500">Commandes</span>
-            </div>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 text-[11px] font-semibold text-sky-600">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+              7 derniers jours
+            </span>
           </div>
 
-          {stats.ordersByDay.some(d => d.orders > 0) ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={stats.ordersByDay} barGap={8} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="ordersGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0EA5E9" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#38BDF8" stopOpacity={0.8} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 12, fill: '#9ca3af' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fill: '#9ca3af' }}
-                  width={30}
-                  allowDecimals={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    borderRadius: '16px',
-                    border: 'none',
-                    boxShadow: '0 4px 20px rgba(14, 165, 233, 0.15)',
-                    fontSize: '12px'
-                  }}
-                />
-                <Bar
-                  dataKey="orders"
-                  fill="url(#ordersGradient)"
-                  name="Commandes"
-                  radius={[8, 8, 0, 0]}
-                  minPointSize={2}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-64 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                  <TrendingUp className="w-7 h-7 text-gray-300" />
+          <div className="p-6">
+            {stats.ordersByDay.some(d => d.orders > 0) ? (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={stats.ordersByDay} barGap={8} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="ordersGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0EA5E9" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="#38BDF8" stopOpacity={0.6} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 500 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                    width={30}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                    }}
+                    cursor={{ fill: 'rgba(14, 165, 233, 0.04)', radius: 8 }}
+                  />
+                  <Bar
+                    dataKey="orders"
+                    fill="url(#ordersGradient)"
+                    name="Commandes"
+                    radius={[6, 6, 2, 2]}
+                    minPointSize={3}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-64 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="w-6 h-6 text-gray-300" />
+                  </div>
+                  <p className="text-gray-500 font-medium text-sm">Aucune commande récente</p>
+                  <p className="text-xs text-gray-400 mt-1">Les ventes apparaîtront ici</p>
                 </div>
-                <p className="text-gray-500 font-medium text-sm">Aucune commande récente</p>
-                <p className="text-xs text-gray-400 mt-1">Les ventes apparaîtront ici</p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Stock par Package */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/50 animate-fade-in-up" style={{ animationDelay: '0.3s', animationFillMode: 'backwards' }}>
-          <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-800">Stock par package</h3>
-            <p className="text-sm text-gray-400 mt-0.5">eSIMs disponibles</p>
+        <div className="bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-gray-100 animate-fade-in-up" style={{ animationDelay: '0.3s', animationFillMode: 'backwards' }}>
+          <div className="px-6 py-5 border-b border-gray-100/80">
+            <h3 className="text-sm font-semibold text-gray-900">Stock par package</h3>
+            <p className="text-xs text-gray-400 mt-0.5">eSIMs disponibles</p>
           </div>
 
-          {stock?.byPackage && stock.byPackage.length > 0 ? (
-            <div className="space-y-3">
-              {stock.byPackage.slice(0, 5).map((pkg, index) => (
-                <div key={pkg.name} className="flex items-center gap-3">
-                  <div 
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-700 truncate">{pkg.name}</p>
-                    <p className="text-xs text-gray-400">
-                      {(pkg.volume / (1024 * 1024 * 1024)).toFixed(0)}GB
-                    </p>
-                  </div>
-                  <span className="text-sm font-semibold text-sky-600">
-                    {pkg.count}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="h-48 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                  <Package className="w-6 h-6 text-gray-300" />
-                </div>
-                <p className="text-gray-500 font-medium text-sm">Chargement...</p>
+          <div className="p-6">
+            {stock?.byPackage && stock.byPackage.length > 0 ? (
+              <div className="space-y-4">
+                {stock.byPackage.slice(0, 5).map((pkg, index) => {
+                  const maxCount = Math.max(...stock.byPackage.slice(0, 5).map((p: any) => p.count))
+                  const percentage = maxCount > 0 ? (pkg.count / maxCount) * 100 : 0
+
+                  return (
+                    <div key={pkg.name}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          />
+                          <p className="text-xs font-medium text-gray-700 truncate">{pkg.name}</p>
+                        </div>
+                        <span className="text-xs font-bold text-gray-900 ml-2">{pkg.count}</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700 ease-out"
+                          style={{
+                            width: `${percentage}%`,
+                            backgroundColor: COLORS[index % COLORS.length],
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="h-48 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                    <Package className="w-5 h-5 text-gray-300" />
+                  </div>
+                  <p className="text-gray-400 text-xs">Chargement...</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Activity & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Mon Stock eSIM */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/50 animate-fade-in-up" style={{ animationDelay: '0.35s', animationFillMode: 'backwards' }}>
-          <div className="flex items-center justify-between mb-5">
+        <div className="bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-gray-100 animate-fade-in-up" style={{ animationDelay: '0.35s', animationFillMode: 'backwards' }}>
+          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100/80">
             <div>
-              <h3 className="text-base font-semibold text-gray-800">Mon stock eSIM</h3>
-              <p className="text-sm text-gray-400 mt-0.5">eSIMs achetées chez eSIM Access</p>
+              <h3 className="text-sm font-semibold text-gray-900">Mon stock eSIM</h3>
+              <p className="text-xs text-gray-400 mt-0.5">eSIMs achetées chez eSIM Access</p>
             </div>
             <Link
               href="/esim/orders"
-              className="text-sm text-sky-600 hover:text-sky-700 font-medium"
+              className="text-xs text-sky-600 hover:text-sky-700 font-semibold hover:bg-sky-50 px-3 py-1.5 rounded-lg transition-all"
             >
-              Voir tout
+              Voir tout →
             </Link>
           </div>
 
-          {stock?.esimList && stock.esimList.length > 0 ? (
-            <div className="space-y-3 max-h-80 overflow-y-auto">
-              {stock.esimList.slice(0, 5).map((esim: any) => (
-                <div key={esim.iccid} className="flex items-center gap-4 p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
-                  <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center">
-                    <Wifi size={18} className="text-sky-600" />
+          <div className="p-4">
+            {stock?.esimList && stock.esimList.length > 0 ? (
+              <div className="space-y-2 max-h-80 overflow-y-auto">
+                {stock.esimList.slice(0, 5).map((esim: any) => (
+                  <div key={esim.iccid} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group">
+                    <div className="w-9 h-9 rounded-lg bg-sky-50 ring-1 ring-sky-100 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <Wifi size={16} className="text-sky-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 text-sm truncate">
+                        {esim.packageList?.[0]?.packageName || esim.orderNo}
+                      </p>
+                      <p className="text-[11px] text-gray-400">
+                        {(esim.totalVolume / (1024 * 1024 * 1024)).toFixed(1)}GB • {esim.totalDuration} {esim.durationUnit === 'DAY' ? 'jours' : esim.durationUnit}
+                      </p>
+                    </div>
+                    <span className={`
+                      inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap
+                      ${esim.esimStatus === 'IN_USE' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60' :
+                        esim.esimStatus === 'GOT_RESOURCE' ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-200/60' :
+                        esim.esimStatus === 'EXPIRED' ? 'bg-red-50 text-red-700 ring-1 ring-red-200/60' :
+                        'bg-gray-50 text-gray-600 ring-1 ring-gray-200/60'}
+                    `}>
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                        esim.esimStatus === 'IN_USE' ? 'bg-emerald-500' :
+                        esim.esimStatus === 'GOT_RESOURCE' ? 'bg-sky-500' :
+                        esim.esimStatus === 'EXPIRED' ? 'bg-red-500' :
+                        'bg-gray-500'
+                      }`} />
+                      {esim.esimStatus === 'GOT_RESOURCE' ? 'Disponible' :
+                       esim.esimStatus === 'IN_USE' ? 'En usage' :
+                       esim.esimStatus === 'EXPIRED' ? 'Expiré' :
+                       esim.esimStatus}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-800 text-sm truncate">
-                      {esim.packageList?.[0]?.packageName || esim.orderNo}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {(esim.totalVolume / (1024 * 1024 * 1024)).toFixed(1)}GB • {esim.totalDuration} {esim.durationUnit === 'DAY' ? 'jours' : esim.durationUnit}
-                    </p>
-                  </div>
-                  <span className={`
-                    inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap
-                    ${esim.esimStatus === 'IN_USE' ? 'bg-green-100 text-green-600' :
-                      esim.esimStatus === 'GOT_RESOURCE' ? 'bg-blue-100 text-blue-600' :
-                      esim.esimStatus === 'EXPIRED' ? 'bg-red-100 text-red-600' :
-                      'bg-gray-100 text-gray-600'}
-                  `}>
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                      esim.esimStatus === 'IN_USE' ? 'bg-green-500' :
-                      esim.esimStatus === 'GOT_RESOURCE' ? 'bg-blue-500' :
-                      esim.esimStatus === 'EXPIRED' ? 'bg-red-500' :
-                      'bg-gray-500'
-                    }`} />
-                    {esim.esimStatus === 'GOT_RESOURCE' ? 'Disponible' :
-                     esim.esimStatus === 'IN_USE' ? 'En usage' :
-                     esim.esimStatus === 'EXPIRED' ? 'Expiré' :
-                     esim.esimStatus}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-10">
-              <Package className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">Chargement du stock...</p>
-            </div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <Package className="w-9 h-9 text-gray-200 mx-auto mb-3" />
+                <p className="text-gray-400 text-xs">Chargement du stock...</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100/50 animate-fade-in-up" style={{ animationDelay: '0.4s', animationFillMode: 'backwards' }}>
-          <div className="mb-5">
-            <h3 className="text-base font-semibold text-gray-800">Actions rapides</h3>
-            <p className="text-sm text-gray-400 mt-0.5">Accès direct aux fonctionnalités</p>
+        <div className="bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-gray-100 animate-fade-in-up" style={{ animationDelay: '0.4s', animationFillMode: 'backwards' }}>
+          <div className="px-6 py-5 border-b border-gray-100/80">
+            <h3 className="text-sm font-semibold text-gray-900">Actions rapides</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Accès direct aux fonctionnalités</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Link
-              href="/esim"
-              className="group p-4 bg-gradient-to-br from-sky-50 to-sky-100/50 rounded-2xl hover:shadow-md transition-all"
-            >
-              <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <Wifi size={18} className="text-white" />
-              </div>
-              <p className="font-medium text-gray-800 text-sm">Acheter eSIM</p>
-              <p className="text-xs text-gray-400 mt-1">Catalogue packages</p>
-            </Link>
-
-            <Link
-              href="/esim/orders"
-              className="group p-4 bg-gradient-to-br from-green-50 to-green-100/50 rounded-2xl hover:shadow-md transition-all"
-            >
-              <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <ShoppingBag size={18} className="text-white" />
-              </div>
-              <p className="font-medium text-gray-800 text-sm">Mes eSIMs</p>
-              <p className="text-xs text-gray-400 mt-1">Gérer les commandes</p>
-            </Link>
-
-            <Link
-              href="/customers"
-              className="group p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl hover:shadow-md transition-all"
-            >
-              <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <Users size={18} className="text-white" />
-              </div>
-              <p className="font-medium text-gray-800 text-sm">Clients</p>
-              <p className="text-xs text-gray-400 mt-1">Utilisateurs iOS</p>
-            </Link>
-
-            <Link
-              href="/settings"
-              className="group p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl hover:shadow-md transition-all"
-            >
-              <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <Activity size={18} className="text-white" />
-              </div>
-              <p className="font-medium text-gray-800 text-sm">Paramètres</p>
-              <p className="text-xs text-gray-400 mt-1">Configuration</p>
-            </Link>
+          <div className="p-4">
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { href: '/esim', icon: Wifi, label: 'Acheter eSIM', desc: 'Catalogue packages', gradient: 'from-sky-500 to-sky-600', bg: 'bg-sky-50 hover:bg-sky-100/80', ring: 'ring-sky-200/50' },
+                { href: '/esim/orders', icon: ShoppingBag, label: 'Mes eSIMs', desc: 'Gérer les commandes', gradient: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50 hover:bg-emerald-100/80', ring: 'ring-emerald-200/50' },
+                { href: '/customers', icon: Users, label: 'Clients', desc: 'Utilisateurs iOS', gradient: 'from-violet-500 to-violet-600', bg: 'bg-violet-50 hover:bg-violet-100/80', ring: 'ring-violet-200/50' },
+                { href: '/settings', icon: Activity, label: 'Paramètres', desc: 'Configuration', gradient: 'from-amber-500 to-orange-500', bg: 'bg-amber-50 hover:bg-amber-100/80', ring: 'ring-amber-200/50' },
+              ].map((action) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className={`group relative p-4 ${action.bg} rounded-xl ring-1 ${action.ring} transition-all duration-300 hover:shadow-md hover:-translate-y-0.5`}
+                >
+                  <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${action.gradient} flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all duration-300`}>
+                    <action.icon size={16} className="text-white" />
+                  </div>
+                  <p className="font-semibold text-gray-900 text-sm">{action.label}</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">{action.desc}</p>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>

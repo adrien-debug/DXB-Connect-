@@ -7,23 +7,19 @@ struct SupportView: View {
 
     var body: some View {
         ZStack {
-            Color.white
+            AppTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header
                 HStack {
                     Button {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
-                            .frame(width: 44, height: 44)
-                            .background(
-                                Circle()
-                                    .stroke(AppTheme.border, lineWidth: 1.5)
-                            )
+                            .frame(width: 36, height: 36)
+                            .background(Circle().fill(AppTheme.surfaceHeavy))
                     }
                     .accessibilityLabel("Fermer")
 
@@ -36,29 +32,27 @@ struct SupportView: View {
 
                     Spacer()
 
-                    Color.clear
-                        .frame(width: 44, height: 44)
+                    Color.clear.frame(width: 36, height: 36)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 8)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 28) {
-                        // Hero
-                        VStack(spacing: 16) {
+                    VStack(spacing: 24) {
+                        VStack(spacing: 14) {
                             ZStack {
                                 Circle()
-                                    .fill(AppTheme.gray100)
-                                    .frame(width: 80, height: 80)
+                                    .fill(AppTheme.accentSoft)
+                                    .frame(width: 72, height: 72)
 
                                 Image(systemName: "headphones")
-                                    .font(.system(size: 34, weight: .semibold))
-                                    .foregroundColor(AppTheme.textPrimary)
+                                    .font(.system(size: 30, weight: .semibold))
+                                    .foregroundColor(AppTheme.accent)
                             }
 
                             VStack(spacing: 6) {
                                 Text("How can we help?")
-                                    .font(.system(size: 24, weight: .bold))
+                                    .font(.system(size: 22, weight: .bold))
                                     .foregroundColor(AppTheme.textPrimary)
 
                                 Text("Find answers or contact us")
@@ -66,11 +60,10 @@ struct SupportView: View {
                                     .foregroundColor(AppTheme.textTertiary)
                             }
                         }
-                        .padding(.top, 24)
+                        .padding(.top, 20)
                         .slideIn(delay: 0)
 
-                        // Contact Options
-                        HStack(spacing: 14) {
+                        HStack(spacing: 12) {
                             ContactOptionCard(
                                 icon: "envelope.fill",
                                 title: "EMAIL",
@@ -91,35 +84,31 @@ struct SupportView: View {
                                 }
                             }
                         }
-                        .padding(.horizontal, 24)
+                        .padding(.horizontal, 20)
                         .slideIn(delay: 0.1)
 
-                        // FAQ Section
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: 14) {
                             Text("FREQUENTLY ASKED")
                                 .font(.system(size: 11, weight: .bold))
                                 .tracking(1.5)
                                 .foregroundColor(AppTheme.textTertiary)
-                                .padding(.horizontal, 24)
+                                .padding(.horizontal, 20)
 
-                            VStack(spacing: 12) {
+                            VStack(spacing: 10) {
                                 ForEach(Array(FAQItem.allItems.enumerated()), id: \.element.id) { index, item in
                                     FAQCardTech(
                                         item: item,
                                         isExpanded: expandedFAQ == item.id
                                     ) {
+                                        HapticFeedback.light()
                                         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                            if expandedFAQ == item.id {
-                                                expandedFAQ = nil
-                                            } else {
-                                                expandedFAQ = item.id
-                                            }
+                                            expandedFAQ = expandedFAQ == item.id ? nil : item.id
                                         }
                                     }
                                     .slideIn(delay: 0.1 + Double(index) * 0.03)
                                 }
                             }
-                            .padding(.horizontal, 24)
+                            .padding(.horizontal, 20)
                         }
 
                         Spacer(minLength: 40)
@@ -138,22 +127,24 @@ struct ContactOptionCard: View {
     let title: String
     let subtitle: String
     let action: () -> Void
-    @State private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 14) {
+        Button {
+            HapticFeedback.light()
+            action()
+        } label: {
+            VStack(spacing: 12) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(AppTheme.textPrimary)
-                        .frame(width: 48, height: 48)
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(AppTheme.accent)
+                        .frame(width: 44, height: 44)
 
                     Image(systemName: icon)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.white)
                 }
 
-                VStack(spacing: 4) {
+                VStack(spacing: 3) {
                     Text(title)
                         .font(.system(size: 10, weight: .bold))
                         .tracking(1)
@@ -167,37 +158,24 @@ struct ContactOptionCard: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
+            .padding(.vertical, 18)
             .background(
                 RoundedRectangle(cornerRadius: 18)
-                    .fill(Color.white)
+                    .fill(AppTheme.surfaceLight)
                     .overlay(
                         RoundedRectangle(cornerRadius: 18)
-                            .stroke(AppTheme.border, lineWidth: 1.5)
+                            .stroke(AppTheme.border, lineWidth: 1)
                     )
-                    .shadow(color: Color.black.opacity(isPressed ? 0.01 : 0.03), radius: isPressed ? 4 : 8, x: 0, y: isPressed ? 1 : 3)
+                    .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
             )
-            .scaleEffect(isPressed ? 0.97 : 1.0)
         }
         .accessibilityLabel("\(title): \(subtitle)")
         .buttonStyle(.plain)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                        isPressed = true
-                    }
-                }
-                .onEnded { _ in
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                        isPressed = false
-                    }
-                }
-        )
+        .scaleOnPress()
     }
 }
 
-// MARK: - FAQ Card Tech
+// MARK: - FAQ Card
 
 struct FAQCardTech: View {
     let item: FAQItem
@@ -207,7 +185,7 @@ struct FAQCardTech: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: onTap) {
-                HStack(spacing: 14) {
+                HStack(spacing: 12) {
                     Text(item.question)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(AppTheme.textPrimary)
@@ -216,11 +194,11 @@ struct FAQCardTech: View {
                     Spacer()
 
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(AppTheme.textTertiary)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(isExpanded ? AppTheme.accent : AppTheme.textTertiary)
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 }
-                .padding(18)
+                .padding(16)
             }
             .buttonStyle(.plain)
 
@@ -229,17 +207,17 @@ struct FAQCardTech: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(AppTheme.textSecondary)
                     .lineSpacing(4)
-                    .padding(.horizontal, 18)
-                    .padding(.bottom, 18)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(isExpanded ? AppTheme.gray50 : Color.white)
+                .fill(isExpanded ? AppTheme.accentSoft : AppTheme.surfaceLight)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(AppTheme.border, lineWidth: 1.5)
+                        .stroke(isExpanded ? AppTheme.accent.opacity(0.3) : AppTheme.border, lineWidth: 1)
                 )
         )
     }

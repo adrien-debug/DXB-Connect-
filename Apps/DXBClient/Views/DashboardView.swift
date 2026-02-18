@@ -6,28 +6,45 @@ struct DashboardView: View {
     @State private var showSupport = false
     @State private var showRewards = false
     @State private var showScanner = false
+    @State private var ringAppear = false
 
     var body: some View {
         NavigationStack {
             ZStack {
-                // Pure white background
-                Color.white
+                AppTheme.backgroundPrimary
                     .ignoresSafeArea()
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 32) {
-                        // Header
-                        headerSection
-                            .padding(.top, 64)
+                // Subtle top gradient glow
+                VStack {
+                    RadialGradient(
+                        colors: [AppTheme.accent.opacity(0.06), Color.clear],
+                        center: .top,
+                        startRadius: 10,
+                        endRadius: 300
+                    )
+                    .frame(height: 300)
+                    .ignoresSafeArea()
 
-                        // Main content
-                        VStack(spacing: 24) {
-                            statsCard
-                            quickActionsGrid
-                            activeEsimsSection
-                        }
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 140)
+                    Spacer()
+                }
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 14) {
+                        headerSection
+                            .padding(.top, 50)
+
+                        statsCard
+                            .padding(.horizontal, 20)
+
+                        promoSection
+                            .padding(.horizontal, 20)
+
+                        quickActionsGrid
+                            .padding(.horizontal, 20)
+
+                        activeEsimsSection
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 100)
                     }
                 }
             }
@@ -36,7 +53,7 @@ struct DashboardView: View {
                 await coordinator.loadAllData()
             }
             .task {
-                if coordinator.esimOrders.isEmpty {
+                if !coordinator.hasLoadedInitialData {
                     await coordinator.loadAllData()
                 }
             }
@@ -45,89 +62,92 @@ struct DashboardView: View {
 
     // MARK: - Header
 
+    private var firstName: String {
+        let name = coordinator.user.name
+        return name.components(separatedBy: " ").first ?? name
+    }
+
     private var headerSection: some View {
-        VStack(spacing: 20) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(greeting)
-                        .font(.system(size: 12, weight: .semibold))
-                        .tracking(1.5)
-                        .foregroundColor(AppTheme.textTertiary)
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(greeting)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(AppTheme.textSecondary)
 
-                    Text("Dashboard")
-                        .font(.system(size: 36, weight: .bold))
-                        .tracking(-0.5)
-                        .foregroundColor(AppTheme.textPrimary)
-                }
-
-                Spacer()
-
-                    HStack(spacing: 12) {
-                        // Notifications
-                        Button {
-                            coordinator.showNotifications = true
-                        } label: {
-                            ZStack(alignment: .topTrailing) {
-                                RoundedRectangle(cornerRadius: 14)
-                                    .stroke(AppTheme.border, lineWidth: 1.5)
-                                    .frame(width: 44, height: 44)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .fill(Color.white)
-                                    )
-
-                                Image(systemName: "bell")
-                                    .font(.system(size: 17, weight: .semibold))
-                                    .foregroundColor(AppTheme.textPrimary)
-
-                                Circle()
-                                    .fill(AppTheme.textPrimary)
-                                    .frame(width: 8, height: 8)
-                                    .offset(x: 6, y: -4)
-                            }
-                        }
-                        .accessibilityLabel("Notifications")
-                        .scaleOnPress()
-
-                    // Profile
-                    Button {
-                        coordinator.selectedTab = 3 // Go to Profile
-                    } label: {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(AppTheme.textPrimary)
-                            .frame(width: 44, height: 44)
-                            .overlay(
-                                Text(String(coordinator.user.name.prefix(1)).uppercased())
-                                    .font(.system(size: 15, weight: .bold))
-                                    .foregroundColor(.white)
-                            )
-                    }
-                    .accessibilityLabel("Profil")
-                    .scaleOnPress()
-                }
+                Text(firstName.isEmpty ? "Dashboard" : firstName)
+                    .font(.system(size: 24, weight: .bold))
+                    .tracking(-0.5)
+                    .foregroundColor(AppTheme.textPrimary)
             }
-            .padding(.horizontal, 24)
+
+            Spacer()
+
+            HStack(spacing: 10) {
+                Button {
+                    HapticFeedback.light()
+                    coordinator.showNotifications = true
+                } label: {
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: "bell")
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundColor(AppTheme.textPrimary)
+                            .frame(width: 42, height: 42)
+                            .background(
+                                Circle()
+                                    .fill(AppTheme.surfaceLight)
+                                    .overlay(Circle().stroke(AppTheme.border, lineWidth: 1))
+                            )
+
+                        Circle()
+                            .fill(AppTheme.accent)
+                            .frame(width: 8, height: 8)
+                            .offset(x: 1, y: 1)
+                    }
+                }
+                .accessibilityLabel("Notifications")
+
+                Button {
+                    HapticFeedback.light()
+                    coordinator.selectedTab = 3
+                } label: {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [AppTheme.accent, AppTheme.accentGradientEnd],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 42, height: 42)
+                        .overlay(
+                            Text(String(coordinator.user.name.prefix(1)).uppercased())
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(.white)
+                        )
+                        .shadow(color: AppTheme.accent.opacity(0.25), radius: 6, x: 0, y: 3)
+                }
+                .accessibilityLabel("Profil")
+            }
         }
+        .padding(.horizontal, 20)
     }
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
-        case 5..<12: return "GOOD MORNING"
-        case 12..<17: return "GOOD AFTERNOON"
-        case 17..<21: return "GOOD EVENING"
-        default: return "GOOD NIGHT"
+        case 5..<12: return "Good morning"
+        case 12..<17: return "Good afternoon"
+        case 17..<21: return "Good evening"
+        default: return "Good night"
         }
     }
 
     // MARK: - Stats Card
 
     private var totalDataGB: String {
-        // Sum up data from active eSIMs
         let totalMB = coordinator.esimOrders
             .filter { $0.status.uppercased() == "RELEASED" || $0.status.uppercased() == "IN_USE" }
             .reduce(0) { sum, order in
-                // Parse "5GB" or "1000MB" format
                 let volume = order.totalVolume.uppercased()
                 if volume.contains("GB") {
                     let gb = Double(volume.replacingOccurrences(of: "GB", with: "").trimmingCharacters(in: .whitespaces)) ?? 0
@@ -141,69 +161,92 @@ struct DashboardView: View {
         return gb > 0 ? String(format: "%.0f", gb) : "0"
     }
 
+    private var dataProgress: Double {
+        let val = Double(totalDataGB) ?? 0
+        return val > 0 ? min(val / max(val + 5, 10), 1.0) : 0
+    }
+
     private var statsCard: some View {
-        VStack(spacing: 28) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("AVAILABLE DATA")
-                        .font(.system(size: 11, weight: .bold))
-                        .tracking(1.8)
+        HStack(spacing: 0) {
+            // Ring
+            ZStack {
+                Circle()
+                    .stroke(AppTheme.border.opacity(0.4), lineWidth: 5)
+                    .frame(width: 72, height: 72)
+
+                Circle()
+                    .trim(from: 0, to: ringAppear ? dataProgress : 0)
+                    .stroke(
+                        LinearGradient(
+                            colors: [AppTheme.accent, AppTheme.accentGradientEnd],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        style: StrokeStyle(lineWidth: 5, lineCap: .round)
+                    )
+                    .frame(width: 72, height: 72)
+                    .rotationEffect(.degrees(-90))
+
+                VStack(spacing: 1) {
+                    Text(totalDataGB)
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(AppTheme.textPrimary)
+
+                    Text("GB")
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(AppTheme.textTertiary)
-
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(totalDataGB)
-                            .font(.system(size: 72, weight: .bold))
-                            .tracking(-2)
-                            .foregroundColor(AppTheme.textPrimary)
-
-                        Text("GB")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundColor(AppTheme.textTertiary)
-                            .offset(y: -8)
-                    }
                 }
-
-                Spacer()
+            }
+            .onAppear {
+                withAnimation(.spring(response: 1.2, dampingFraction: 0.8).delay(0.3)) {
+                    ringAppear = true
+                }
             }
 
-            // Mini stats
-            HStack(spacing: 12) {
-                DashboardMiniStat(label: "ACTIVE", value: "\(coordinator.user.activeESIMs)")
-                DashboardMiniStat(label: "COUNTRIES", value: "\(coordinator.user.countriesVisited)")
-                DashboardMiniStat(label: "SAVED", value: String(format: "$%.0f", coordinator.user.totalSaved))
+            Spacer()
+
+            // Metrics
+            HStack(spacing: 0) {
+                MiniMetric(icon: "simcard.fill", value: "\(coordinator.user.activeESIMs)", label: "Active", color: AppTheme.accent)
+                    .frame(maxWidth: .infinity)
+
+                Rectangle()
+                    .fill(AppTheme.border)
+                    .frame(width: 1, height: 32)
+
+                MiniMetric(icon: "globe", value: "\(coordinator.user.countriesVisited)", label: "Countries", color: AppTheme.accent)
+                    .frame(maxWidth: .infinity)
+
+                Rectangle()
+                    .fill(AppTheme.border)
+                    .frame(width: 1, height: 32)
+
+                MiniMetric(icon: "dollarsign.circle", value: String(format: "$%.0f", coordinator.user.totalSaved), label: "Saved", color: AppTheme.accent)
+                    .frame(maxWidth: .infinity)
             }
         }
-        .padding(28)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(AppTheme.border, lineWidth: 1.5)
-                )
-                .shadow(color: Color.black.opacity(0.03), radius: 12, x: 0, y: 4)
-        )
+        .padding(.vertical, 6)
         .slideIn(delay: 0.1)
     }
 
     // MARK: - Quick Actions
 
     private var quickActionsGrid: some View {
-        HStack(spacing: 14) {
-            QuickActionTech(icon: "plus", title: "BUY") {
-                coordinator.selectedTab = 1 // Navigate to Plans
+        HStack(spacing: 0) {
+            QuickActionTech(icon: "plus", title: "Buy", color: AppTheme.accent, isPrimary: true) {
+                coordinator.selectedTab = 1
             }
-            QuickActionTech(icon: "qrcode", title: "SCAN") {
+            QuickActionTech(icon: "qrcode", title: "Scan", color: AppTheme.accent) {
                 showScanner = true
             }
-            QuickActionTech(icon: "gift", title: "REWARDS") {
+            QuickActionTech(icon: "gift", title: "Rewards", color: AppTheme.accent) {
                 showRewards = true
             }
-            QuickActionTech(icon: "headphones", title: "SUPPORT") {
+            QuickActionTech(icon: "headphones", title: "Support", color: AppTheme.accent) {
                 showSupport = true
             }
         }
-        .slideIn(delay: 0.2)
+        .slideIn(delay: 0.12)
         .sheet(isPresented: $showSupport) {
             SupportView()
         }
@@ -215,13 +258,58 @@ struct DashboardView: View {
         }
     }
 
+    // MARK: - Promo Section
+
+    private var promoSection: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 10) {
+                PromoCard(
+                    flag: "🇦🇪",
+                    title: "UAE",
+                    data: "10 GB • 30 days",
+                    price: "$14.99",
+                    oldPrice: "$24.99",
+                    tag: "-40%",
+                    gradientEnd: Color(hex: "0369A1")
+                ) {
+                    coordinator.selectedTab = 1
+                }
+
+                PromoCard(
+                    flag: "🇪🇺",
+                    title: "Europe",
+                    data: "20 GB • 30 days",
+                    price: "$37.49",
+                    oldPrice: "$49.99",
+                    tag: "-25%",
+                    gradientEnd: Color(hex: "4F46E5")
+                ) {
+                    coordinator.selectedTab = 1
+                }
+
+                PromoCard(
+                    flag: "🇯🇵",
+                    title: "Asia",
+                    data: "10 GB • 15 days",
+                    price: "$27.99",
+                    oldPrice: "$39.99",
+                    tag: "-30%",
+                    gradientEnd: Color(hex: "1D4ED8")
+                ) {
+                    coordinator.selectedTab = 1
+                }
+            }
+        }
+        .slideIn(delay: 0.15)
+    }
+
     // MARK: - Active eSIMs
 
     private var activeEsimsSection: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("ACTIVE PLANS")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 10, weight: .bold))
                     .tracking(1.5)
                     .foregroundColor(AppTheme.textTertiary)
 
@@ -231,25 +319,23 @@ struct DashboardView: View {
                     MyESIMsView()
                         .environmentObject(coordinator)
                 } label: {
-                    HStack(spacing: 6) {
-                        Text("VIEW ALL")
-                            .font(.system(size: 11, weight: .bold))
-                            .tracking(0.8)
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 11, weight: .bold))
+                    HStack(spacing: 3) {
+                        Text("View all")
+                            .font(.system(size: 12, weight: .semibold))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 9, weight: .bold))
                     }
-                    .foregroundColor(AppTheme.textPrimary)
+                    .foregroundColor(AppTheme.accent)
                 }
-                .scaleOnPress()
             }
 
             if coordinator.esimOrders.isEmpty {
                 EmptyStateTech {
-                    coordinator.selectedTab = 1 // Navigate to Plans
+                    coordinator.selectedTab = 1
                 }
             } else {
-                VStack(spacing: 14) {
-                    ForEach(coordinator.esimOrders.prefix(3)) { order in
+                VStack(spacing: 8) {
+                    ForEach(coordinator.esimOrders.prefix(2)) { order in
                         NavigationLink {
                             ESIMDetailView(order: order)
                         } label: {
@@ -260,165 +346,283 @@ struct DashboardView: View {
                 }
             }
         }
-        .slideIn(delay: 0.3)
+        .slideIn(delay: 0.2)
     }
 }
 
 // MARK: - Tech Components
 
-struct DashboardMiniStat: View {
-    let label: String
+struct MiniMetric: View {
+    let icon: String
     let value: String
+    let label: String
+    var color: Color = AppTheme.textPrimary
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(label)
-                .font(.system(size: 9, weight: .bold))
-                .tracking(1.2)
-                .foregroundColor(AppTheme.textTertiary)
+        VStack(spacing: 3) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(color)
 
             Text(value)
-                .font(.system(size: 20, weight: .bold))
-                .tracking(-0.5)
+                .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundColor(AppTheme.textPrimary)
+
+            Text(label)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(AppTheme.textTertiary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(AppTheme.gray50)
-        )
+    }
+}
+
+struct PromoCard: View {
+    let flag: String
+    let title: String
+    let data: String
+    let price: String
+    let oldPrice: String
+    let tag: String
+    var gradientEnd: Color = Color(hex: "0C4A6E")
+    var action: () -> Void = {}
+
+    var body: some View {
+        Button {
+            HapticFeedback.medium()
+            action()
+        } label: {
+            VStack(spacing: 0) {
+                // Flag header
+                HStack {
+                    Text(flag)
+                        .font(.system(size: 22))
+
+                    Spacer()
+
+                    Text(tag)
+                        .font(.system(size: 9, weight: .heavy, design: .rounded))
+                        .tracking(0.5)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(Color.white.opacity(0.2))
+                        )
+                }
+
+                Spacer(minLength: 6)
+
+                // Title + data
+                VStack(spacing: 3) {
+                    Text(title)
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.white)
+
+                    Text(data)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+                .frame(maxWidth: .infinity)
+
+                Spacer(minLength: 6)
+
+                // Price
+                VStack(spacing: 1) {
+                    Text(oldPrice)
+                        .font(.system(size: 10, weight: .medium))
+                        .strikethrough()
+                        .foregroundColor(.white.opacity(0.5))
+
+                    Text(price)
+                        .font(.system(size: 17, weight: .heavy, design: .rounded))
+                        .foregroundColor(.white)
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity)
+            .frame(height: 140)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(
+                            LinearGradient(
+                                colors: [AppTheme.accent, gradientEnd],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+
+                    // Glass shine
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.12),
+                                    Color.white.opacity(0.03),
+                                    Color.clear
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .center
+                            )
+                        )
+
+                    // Decorative circle
+                    Circle()
+                        .fill(Color.white.opacity(0.06))
+                        .frame(width: 90, height: 90)
+                        .offset(x: 30, y: -50)
+
+                    // Border
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+            )
+            .shadow(color: AppTheme.accent.opacity(0.25), radius: 12, x: 0, y: 6)
+        }
+        .buttonStyle(.plain)
+        .scaleOnPress()
     }
 }
 
 struct QuickActionTech: View {
     let icon: String
     let title: String
+    var color: Color = AppTheme.textPrimary
+    var isPrimary: Bool = false
     var action: () -> Void = {}
-    @State private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 12) {
+        Button {
+            HapticFeedback.light()
+            action()
+        } label: {
+            VStack(spacing: 6) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(AppTheme.textPrimary)
-                        .frame(width: 52, height: 52)
+                    if isPrimary {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [AppTheme.accent, AppTheme.accentGradientEnd],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 42, height: 42)
+                            .shadow(color: AppTheme.accent.opacity(0.25), radius: 6, x: 0, y: 3)
+                    } else {
+                        Circle()
+                            .fill(color.opacity(0.08))
+                            .frame(width: 42, height: 42)
+                    }
 
                     Image(systemName: icon)
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.white)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(isPrimary ? .white : color)
                 }
 
                 Text(title)
-                    .font(.system(size: 10, weight: .bold))
-                    .tracking(1)
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(AppTheme.textSecondary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(AppTheme.border, lineWidth: 1.5)
-                    )
-                    .shadow(color: Color.black.opacity(isPressed ? 0.01 : 0.03), radius: isPressed ? 4 : 8, x: 0, y: isPressed ? 1 : 3)
-            )
-            .scaleEffect(isPressed ? 0.97 : 1.0)
         }
         .accessibilityLabel(title)
         .buttonStyle(.plain)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                        isPressed = true
-                    }
-                }
-                .onEnded { _ in
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                        isPressed = false
-                    }
-                }
-        )
+        .scaleOnPress()
     }
 }
 
 struct EsimTechItem: View {
     let order: ESIMOrder
-    @State private var isPressed = false
+
+    private var statusColor: Color {
+        switch order.status.uppercased() {
+        case "RELEASED", "IN_USE": return AppTheme.success
+        case "EXPIRED": return AppTheme.gray400
+        default: return AppTheme.warning
+        }
+    }
+
+    private var statusText: String {
+        switch order.status.uppercased() {
+        case "RELEASED": return "ACTIVE"
+        case "IN_USE": return "IN USE"
+        case "EXPIRED": return "EXPIRED"
+        default: return order.status.uppercased()
+        }
+    }
+
+    private var isActive: Bool {
+        let s = order.status.uppercased()
+        return s == "RELEASED" || s == "IN_USE"
+    }
 
     var body: some View {
-        Button {
-        } label: {
-            HStack(spacing: 16) {
-                // Icon
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(AppTheme.textPrimary)
-                        .frame(width: 52, height: 52)
+        HStack(spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(AppTheme.accent.opacity(0.08))
+                    .frame(width: 36, height: 36)
 
-                    Image(systemName: "simcard.fill")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(.white)
-                }
+                Image(systemName: "simcard.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(AppTheme.accent)
+            }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(order.packageName)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(AppTheme.textPrimary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(order.packageName)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppTheme.textPrimary)
+                    .lineLimit(1)
 
+                if isActive {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 1.5)
+                                .fill(AppTheme.border.opacity(0.4))
+                                .frame(height: 2.5)
+
+                            RoundedRectangle(cornerRadius: 1.5)
+                                .fill(AppTheme.accent)
+                                .frame(width: geo.size.width * 0.65, height: 2.5)
+                        }
+                    }
+                    .frame(height: 2.5)
+                } else {
                     Text(order.totalVolume)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundColor(AppTheme.textTertiary)
                 }
-
-                Spacer()
-
-                // Status
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(AppTheme.textPrimary)
-                        .frame(width: 6, height: 6)
-
-                    Text("ACTIVE")
-                        .font(.system(size: 10, weight: .bold))
-                        .tracking(0.8)
-                        .foregroundColor(AppTheme.textPrimary)
-                }
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(AppTheme.textMuted)
             }
-            .padding(18)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(AppTheme.border, lineWidth: 1.5)
-                    )
-                    .shadow(color: Color.black.opacity(isPressed ? 0.01 : 0.03), radius: isPressed ? 4 : 8, x: 0, y: isPressed ? 1 : 3)
-            )
-            .scaleEffect(isPressed ? 0.98 : 1.0)
+
+            Spacer()
+
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 5, height: 5)
+
+                Text(statusText)
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(statusColor)
+            }
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(AppTheme.textMuted)
         }
-        .buttonStyle(.plain)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                        isPressed = true
-                    }
-                }
-                .onEnded { _ in
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                        isPressed = false
-                    }
-                }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(AppTheme.surfaceLight)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(AppTheme.border, lineWidth: 1)
+                )
         )
+        .contentShape(Rectangle())
     }
 }
 
@@ -426,53 +630,74 @@ struct EmptyStateTech: View {
     var action: () -> Void
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(AppTheme.gray100)
-                    .frame(width: 72, height: 72)
+                    .fill(AppTheme.accentSoft)
+                    .frame(width: 56, height: 56)
 
                 Image(systemName: "simcard")
-                    .font(.system(size: 32, weight: .semibold))
-                    .foregroundColor(AppTheme.textPrimary)
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(AppTheme.accent)
             }
 
-            VStack(spacing: 6) {
+            VStack(spacing: 4) {
                 Text("No active plans")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundColor(AppTheme.textPrimary)
 
-                Text("Get your first eSIM")
-                    .font(.system(size: 14, weight: .medium))
+                Text("Get connected in minutes")
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundColor(AppTheme.textTertiary)
             }
 
             Button {
+                HapticFeedback.light()
                 action()
             } label: {
-                Text("BROWSE PLANS")
-                    .font(.system(size: 12, weight: .bold))
-                    .tracking(1.2)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 28)
-                    .padding(.vertical, 14)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(AppTheme.textPrimary)
-                    )
+                HStack(spacing: 6) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .bold))
+                    Text("Browse Plans")
+                        .font(.system(size: 13, weight: .bold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [AppTheme.accent, AppTheme.accentGradientEnd],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .shadow(color: AppTheme.accent.opacity(0.3), radius: 8, x: 0, y: 4)
+                )
             }
             .scaleOnPress()
         }
-        .padding(32)
+        .padding(24)
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
+                .fill(AppTheme.surfaceLight)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
-                        .stroke(AppTheme.border, lineWidth: 1.5)
+                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 1)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [AppTheme.accent.opacity(0.2), .clear],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        )
                 )
-                .shadow(color: Color.black.opacity(0.02), radius: 8, x: 0, y: 3)
         )
     }
 }
@@ -497,7 +722,6 @@ final class DashboardViewModel: ObservableObject {
     @Published var esimOrders: [ESIMOrder] = []
     @Published var isLoading = false
 
-    // Navigation states
     @Published var showSupport = false
     @Published var showRewards = false
     @Published var showScanner = false
@@ -509,17 +733,17 @@ final class DashboardViewModel: ObservableObject {
         do {
             esimOrders = try await apiService.fetchMyESIMs()
             activeEsims = esimOrders.count
-            countriesVisited = max(Set(esimOrders.map { $0.packageName }).count, 1)
+            countriesVisited = Set(esimOrders.map { $0.packageName }).count
 
             let total = esimOrders.reduce(0) { $0 + (Int($1.totalVolume.replacingOccurrences(of: " GB", with: "")) ?? 0) }
-            totalData = "\(max(total, 15))"
-            dataUsed = "\(max(total / 2, 6)) GB"
-            savings = "$\(max(esimOrders.count * 45, 127))"
+            totalData = "\(total)"
+            dataUsed = "0 GB"
+            savings = "$0"
         } catch {
-            totalData = "15"
-            dataUsed = "6.2 GB"
-            savings = "$127"
-            countriesVisited = 3
+            totalData = "0"
+            dataUsed = "0 GB"
+            savings = "$0"
+            countriesVisited = 0
         }
 
         isLoading = false
@@ -533,23 +757,19 @@ struct RewardsSheet: View {
 
     var body: some View {
         ZStack {
-            Color.white
+            AppTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header
                 HStack {
                     Button {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
-                            .frame(width: 40, height: 40)
-                            .background(
-                                Circle()
-                                    .stroke(AppTheme.border, lineWidth: 1.5)
-                            )
+                            .frame(width: 36, height: 36)
+                            .background(Circle().fill(AppTheme.surfaceHeavy))
                     }
 
                     Spacer()
@@ -562,12 +782,12 @@ struct RewardsSheet: View {
                 VStack(spacing: 24) {
                     ZStack {
                         Circle()
-                            .fill(AppTheme.gray100)
+                            .fill(AppTheme.accentSoft)
                             .frame(width: 100, height: 100)
 
                         Image(systemName: "gift.fill")
                             .font(.system(size: 44, weight: .semibold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .foregroundColor(AppTheme.accent)
                     }
 
                     VStack(spacing: 10) {
@@ -592,7 +812,7 @@ struct RewardsSheet: View {
                             .padding(.vertical, 16)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(AppTheme.textPrimary)
+                                    .fill(AppTheme.accent)
                             )
                     }
                     .scaleOnPress()
@@ -619,11 +839,10 @@ struct ScannerSheet: View {
 
     var body: some View {
         ZStack {
-            Color.white
+            AppTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header
                 HStack {
                     Button {
                         if showManualInput {
@@ -633,13 +852,10 @@ struct ScannerSheet: View {
                         }
                     } label: {
                         Image(systemName: showManualInput ? "arrow.left" : "xmark")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
-                            .frame(width: 40, height: 40)
-                            .background(
-                                Circle()
-                                    .stroke(AppTheme.border, lineWidth: 1.5)
-                            )
+                            .frame(width: 36, height: 36)
+                            .background(Circle().fill(AppTheme.surfaceHeavy))
                     }
                     .accessibilityLabel(showManualInput ? "Retour" : "Fermer")
 
@@ -657,18 +873,14 @@ struct ScannerSheet: View {
                             isTorchOn.toggle()
                         } label: {
                             Image(systemName: isTorchOn ? "flashlight.on.fill" : "flashlight.off.fill")
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(isTorchOn ? .yellow : AppTheme.textPrimary)
-                                .frame(width: 40, height: 40)
-                                .background(
-                                    Circle()
-                                        .stroke(AppTheme.border, lineWidth: 1.5)
-                                )
+                                .frame(width: 36, height: 36)
+                                .background(Circle().fill(AppTheme.surfaceHeavy))
                         }
                         .accessibilityLabel("Lampe torche")
                     } else {
-                        Color.clear
-                            .frame(width: 40, height: 40)
+                        Color.clear.frame(width: 36, height: 36)
                     }
                 }
                 .padding(.horizontal, 24)
@@ -677,7 +889,6 @@ struct ScannerSheet: View {
                 if showManualInput {
                     Spacer()
 
-                    // Manual LPA Input
                     VStack(spacing: 24) {
                         VStack(spacing: 8) {
                             Text("Enter your LPA code")
@@ -696,8 +907,12 @@ struct ScannerSheet: View {
                                 .foregroundColor(AppTheme.textPrimary)
                                 .padding(16)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(lpaCode.isEmpty ? AppTheme.border : AppTheme.textPrimary, lineWidth: 1.5)
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(AppTheme.surfaceLight)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 14)
+                                                .stroke(lpaCode.isEmpty ? AppTheme.border : AppTheme.accent, lineWidth: lpaCode.isEmpty ? 1 : 2)
+                                        )
                                 )
                                 .autocorrectionDisabled()
                                 .textInputAutocapitalization(.never)
@@ -709,7 +924,7 @@ struct ScannerSheet: View {
                                     Text(errorMessage)
                                         .font(.system(size: 13, weight: .medium))
                                 }
-                                .foregroundColor(.red)
+                                .foregroundColor(AppTheme.error)
                             }
                         }
                         .padding(.horizontal, 24)
@@ -730,10 +945,10 @@ struct ScannerSheet: View {
                             }
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 54)
+                            .frame(height: 56)
                             .background(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .fill(lpaCode.isEmpty ? AppTheme.textTertiary : AppTheme.textPrimary)
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(lpaCode.isEmpty ? AppTheme.gray300 : AppTheme.accent)
                             )
                         }
                         .disabled(lpaCode.isEmpty || isProcessing)
@@ -742,7 +957,6 @@ struct ScannerSheet: View {
 
                     Spacer()
                 } else {
-                    // QR Scanner View
                     ZStack {
                         QRScannerView(
                             scannedCode: $scannedCode,
@@ -750,21 +964,18 @@ struct ScannerSheet: View {
                         )
                         .ignoresSafeArea()
 
-                        // Overlay with scanning frame
                         VStack {
                             Spacer()
 
                             ZStack {
-                                // Scanning frame
                                 RoundedRectangle(cornerRadius: 20)
                                     .stroke(Color.white, lineWidth: 3)
                                     .frame(width: 250, height: 250)
                                     .background(
                                         RoundedRectangle(cornerRadius: 20)
-                                            .fill(Color.black.opacity(0.001)) // For hit testing
+                                            .fill(Color.black.opacity(0.001))
                                     )
 
-                                // Corner accents
                                 ScannerCorners()
                             }
 
@@ -826,7 +1037,6 @@ struct ScannerSheet: View {
         isProcessing = true
         showError = false
 
-        // Validate LPA format
         if !lpaCode.hasPrefix("LPA:1$") && !lpaCode.hasPrefix("lpa:1$") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isProcessing = false
@@ -836,10 +1046,8 @@ struct ScannerSheet: View {
             return
         }
 
-        // Simulate processing - in real implementation, this would call the eSIM activation API
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             isProcessing = false
-            // For now, show success and dismiss
             dismiss()
         }
     }
@@ -924,7 +1132,6 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
 
         do {
             let videoInput = try AVCaptureDeviceInput(device: videoCaptureDevice)
-
             if captureSession.canAddInput(videoInput) {
                 captureSession.addInput(videoInput)
             } else {
@@ -933,7 +1140,6 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
             }
 
             let metadataOutput = AVCaptureMetadataOutput()
-
             if captureSession.canAddOutput(metadataOutput) {
                 captureSession.addOutput(metadataOutput)
                 metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
@@ -942,9 +1148,7 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
                 showNoCameraAlert()
                 return
             }
-
         } catch {
-            print("Camera setup error: \(error.localizedDescription)")
             showNoCameraAlert()
             return
         }
@@ -980,9 +1184,7 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
             try device.lockForConfiguration()
             device.torchMode = on ? .on : .off
             device.unlockForConfiguration()
-        } catch {
-            print("Torch error: \(error.localizedDescription)")
-        }
+        } catch {}
     }
 
     func metadataOutput(_ output: AVCaptureMetadataOutput,
@@ -994,16 +1196,11 @@ class QRScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsD
               let stringValue = readableObject.stringValue else { return }
 
         hasScanned = true
-
-        // Haptic feedback
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
-
+        HapticFeedback.success()
         delegate?.didScanCode(stringValue)
     }
 
     private func showNoCameraAlert() {
-        // Show placeholder view when camera is not available
         let label = UILabel()
         label.text = "Camera not available"
         label.textColor = .white
@@ -1025,75 +1222,42 @@ struct ScannerCorners: View {
 
     var body: some View {
         ZStack {
-            // Top Left
-            VStack(spacing: 0) {
-                HStack(spacing: 0) {
-                    Rectangle()
-                        .fill(Color.white)
-                        .frame(width: cornerLength, height: lineWidth)
-                    Spacer()
-                }
-                Rectangle()
-                    .fill(Color.white)
-                    .frame(width: lineWidth, height: cornerLength - lineWidth)
-                Spacer()
+            ForEach(0..<4, id: \.self) { corner in
+                CornerShape(corner: corner, length: cornerLength)
+                    .stroke(AppTheme.accent, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                    .frame(width: 250, height: 250)
             }
-            .frame(width: 250, height: 250)
-
-            // Top Right
-            VStack(spacing: 0) {
-                HStack(spacing: 0) {
-                    Spacer()
-                    Rectangle()
-                        .fill(Color.white)
-                        .frame(width: cornerLength, height: lineWidth)
-                }
-                HStack {
-                    Spacer()
-                    Rectangle()
-                        .fill(Color.white)
-                        .frame(width: lineWidth, height: cornerLength - lineWidth)
-                }
-                Spacer()
-            }
-            .frame(width: 250, height: 250)
-
-            // Bottom Left
-            VStack(spacing: 0) {
-                Spacer()
-                HStack {
-                    Rectangle()
-                        .fill(Color.white)
-                        .frame(width: lineWidth, height: cornerLength - lineWidth)
-                    Spacer()
-                }
-                HStack(spacing: 0) {
-                    Rectangle()
-                        .fill(Color.white)
-                        .frame(width: cornerLength, height: lineWidth)
-                    Spacer()
-                }
-            }
-            .frame(width: 250, height: 250)
-
-            // Bottom Right
-            VStack(spacing: 0) {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Rectangle()
-                        .fill(Color.white)
-                        .frame(width: lineWidth, height: cornerLength - lineWidth)
-                }
-                HStack(spacing: 0) {
-                    Spacer()
-                    Rectangle()
-                        .fill(Color.white)
-                        .frame(width: cornerLength, height: lineWidth)
-                }
-            }
-            .frame(width: 250, height: 250)
         }
+    }
+}
+
+struct CornerShape: Shape {
+    let corner: Int
+    let length: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        switch corner {
+        case 0: // Top left
+            path.move(to: CGPoint(x: 0, y: length))
+            path.addLine(to: CGPoint(x: 0, y: 0))
+            path.addLine(to: CGPoint(x: length, y: 0))
+        case 1: // Top right
+            path.move(to: CGPoint(x: rect.width - length, y: 0))
+            path.addLine(to: CGPoint(x: rect.width, y: 0))
+            path.addLine(to: CGPoint(x: rect.width, y: length))
+        case 2: // Bottom left
+            path.move(to: CGPoint(x: 0, y: rect.height - length))
+            path.addLine(to: CGPoint(x: 0, y: rect.height))
+            path.addLine(to: CGPoint(x: length, y: rect.height))
+        case 3: // Bottom right
+            path.move(to: CGPoint(x: rect.width - length, y: rect.height))
+            path.addLine(to: CGPoint(x: rect.width, y: rect.height))
+            path.addLine(to: CGPoint(x: rect.width, y: rect.height - length))
+        default:
+            break
+        }
+        return path
     }
 }
 

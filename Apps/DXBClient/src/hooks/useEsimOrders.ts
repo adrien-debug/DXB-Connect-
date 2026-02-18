@@ -48,7 +48,7 @@ interface EsimOrdersResponse {
   }
 }
 
-async function fetchOrders(page = 1, pageSize = 50): Promise<EsimOrder[]> {
+async function fetchOrders(page = 1, pageSize = 50, showAll = true): Promise<EsimOrder[]> {
   // 🔒 Ajouter token d'authentification
   const headers: HeadersInit = {}
   if (typeof window !== 'undefined') {
@@ -67,7 +67,9 @@ async function fetchOrders(page = 1, pageSize = 50): Promise<EsimOrder[]> {
     }
   }
 
-  const response = await fetch(`/api/esim/orders?page=${page}&pageSize=${pageSize}`, { headers })
+  // all=true permet aux admins de voir TOUTES les eSIMs de l'entreprise
+  const allParam = showAll ? '&all=true' : ''
+  const response = await fetch(`/api/esim/orders?page=${page}&pageSize=${pageSize}${allParam}`, { headers })
 
   if (!response.ok) {
     throw new Error('Failed to fetch orders')
@@ -82,10 +84,16 @@ async function fetchOrders(page = 1, pageSize = 50): Promise<EsimOrder[]> {
   return data.obj?.esimList || []
 }
 
-export function useEsimOrders(page = 1, pageSize = 50) {
+/**
+ * Hook pour récupérer les commandes eSIM
+ * @param page - Page (défaut 1)
+ * @param pageSize - Taille page (défaut 50)
+ * @param showAll - Si true et admin, affiche TOUTES les eSIMs (défaut true pour dashboard admin)
+ */
+export function useEsimOrders(page = 1, pageSize = 50, showAll = true) {
   return useQuery({
-    queryKey: ['esim-orders', page, pageSize],
-    queryFn: () => fetchOrders(page, pageSize),
+    queryKey: ['esim-orders', page, pageSize, showAll],
+    queryFn: () => fetchOrders(page, pageSize, showAll),
     staleTime: 1000 * 60, // 1 minute
   })
 }

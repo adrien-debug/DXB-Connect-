@@ -1,10 +1,13 @@
 import { requireAuthFlexible } from '@/lib/auth-middleware'
-import { isStripeConfigured, stripe } from '@/lib/stripe'
-import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/database.types'
+import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
+import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+type EsimOrderInsert = Database['public']['Tables']['esim_orders']['Insert']
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseAny = any
 
 interface ApplePayRequest {
   packageCode: string
@@ -13,9 +16,36 @@ interface ApplePayRequest {
   paymentNetwork: string
 }
 
+interface OrderResponse {
+  success?: boolean
+  errorCode?: string
+  errorMsg?: string
+  obj?: {
+    orderNo?: string
+    esimList?: Array<{
+      iccid?: string
+      ac?: string
+      qrCodeUrl?: string
+      smdpStatus?: string
+    }>
+    packageList?: Array<{
+      packageCode?: string
+      packageName?: string
+      totalVolume?: number
+      expiredTime?: string
+    }>
+  }
+}
+
+/**
+ * POST /api/esim/purchase/apple-pay
+ * Achat eSIM via Apple Pay.
+ * - Valide le token Apple Pay
+ * - Commande on-demand via eSIM Access API
+ * - Enregistre dans Supabase
+ */
 export async function POST(request: NextRequest) {
   try {
-    // Vérifier l'authentification
     const { user, error: authError } = await requireAuthFlexible(request)
     
     if (authError || !user) {
@@ -28,7 +58,6 @@ export async function POST(request: NextRequest) {
 
     const body: ApplePayRequest = await request.json()
     
-    // Validation
     if (!body.packageCode) {
       return NextResponse.json(
         { success: false, error: 'Package code required' },
@@ -43,120 +72,90 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`[Apple Pay] Processing payment for user ${user.id}, package: ${body.packageCode}`)
+    console.log('[Apple Pay] Processing for user=%s, package=%s', user.id, body.packageCode)
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
-    // 1. Récupérer les détails du package depuis eSIM Access
-    const esimAccessToken = process.env.ESIM_ACCESS_TOKEN
+    // 1. Commander on-demand via eSIM Access API
+    const transactionId = `dxb_ap_${user.id.slice(0, 8)}_${Date.now()}`
     
-    if (!esimAccessToken) {
-      console.error('[Apple Pay] eSIM Access token not configured')
-      return NextResponse.json(
-        { success: false, error: 'Payment service not configured' },
-        { status: 500 }
-      )
-    }
-
-    // 2. Créer le paiement Stripe avec le token Apple Pay
-    let paymentResult: { success: boolean; paymentIntentId?: string; error?: string }
-    
-    if (isStripeConfigured() && stripe) {
-      try {
-        // Décoder le token Apple Pay
-        const paymentTokenData = Buffer.from(body.paymentToken, 'base64').toString('utf8')
-        
-        // Créer un PaymentIntent avec le token Apple Pay
-        // Note: En production, le token Apple Pay doit être traité via Stripe.js côté client
-        // ou via le Payment Method API
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: 999, // À récupérer du package - placeholder
-          currency: 'usd',
-          payment_method_types: ['card'],
-          metadata: {
-            user_id: user.id,
-            package_code: body.packageCode,
-            payment_method: 'apple_pay',
-            payment_network: body.paymentNetwork
-          },
-          confirm: false // On confirme après création
-        })
-
-        paymentResult = {
-          success: true,
-          paymentIntentId: paymentIntent.id
-        }
-        
-        console.log(`[Apple Pay] PaymentIntent created: ${paymentIntent.id}`)
-      } catch (stripeError) {
-        console.error('[Apple Pay] Stripe error:', stripeError)
-        return NextResponse.json(
-          { success: false, error: 'Payment processing failed' },
-          { status: 500 }
-        )
-      }
-    } else {
-      // Mode simulation (dev)
-      console.log('[Apple Pay] Stripe not configured, simulating payment')
-      paymentResult = {
-        success: true,
-        paymentIntentId: `pi_sim_${Date.now()}`
-      }
-    }
-
-    // 3. Passer la commande eSIM via eSIM Access API
-    const esimResponse = await fetch('https://api.esimaccess.com/api/v1/open/esim/order', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'RT-AccessCode': esimAccessToken
-      },
-      body: JSON.stringify({
+    const orderResponse = await esimPost<OrderResponse>('/open/esim/order', {
+      transactionId,
+      packageInfoList: [{
         packageCode: body.packageCode,
-        quantity: 1
-      })
+        count: 1,
+      }]
     })
 
-    const esimData = await esimResponse.json()
-    
-    if (!esimData.success && esimData.errorCode !== '0') {
-      console.error('[Apple Pay] eSIM order failed:', esimData)
+    if (!orderResponse.obj?.orderNo) {
+      console.error('[Apple Pay] eSIM order failed:', orderResponse.errorMsg || 'No order number')
       return NextResponse.json(
-        { success: false, error: esimData.errorMsg || 'eSIM order failed' },
+        { success: false, error: orderResponse.errorMsg || 'eSIM order failed' },
         { status: 500 }
       )
     }
 
-    const orderData = esimData.obj
+    const orderNo = orderResponse.obj.orderNo
 
-    // 4. Enregistrer la commande en base
-    const { error: dbError } = await supabase
-      .from('esim_orders')
-      .insert({
-        user_id: user.id,
-        order_no: orderData?.orderNo,
-        package_code: body.packageCode,
-        payment_method: 'apple_pay',
-        payment_intent_id: paymentResult.paymentIntentId,
-        payment_status: 'completed',
-        status: 'ACTIVE',
-        created_at: new Date().toISOString()
-      })
+    // 2. Récupérer les détails (QR code, LPA)
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    const queryResponse = await esimPost<OrderResponse>('/open/esim/query', {
+      orderNo,
+    })
+
+    const esimDetails = queryResponse.obj?.esimList?.[0]
+    const pkgDetails = queryResponse.obj?.packageList?.[0] || orderResponse.obj?.packageList?.[0]
+
+    // 3. Enregistrer dans Supabase
+    const supabase = await createClient()
+
+    const row: EsimOrderInsert = {
+      user_id: user.id,
+      order_no: orderNo,
+      package_code: body.packageCode,
+      iccid: esimDetails?.iccid || '',
+      lpa_code: esimDetails?.ac || '',
+      qr_code_url: esimDetails?.qrCodeUrl || '',
+      status: esimDetails?.smdpStatus || 'PENDING',
+      payment_method: 'apple_pay' as EsimOrderInsert['payment_method'],
+      raw_response: queryResponse.obj as unknown as EsimOrderInsert['raw_response'],
+    } as EsimOrderInsert
+
+    const { error: dbError } = await (supabase.from('esim_orders') as SupabaseAny).insert(row)
 
     if (dbError) {
-      console.error('[Apple Pay] DB insert error:', dbError)
-      // Ne pas échouer - la commande eSIM est passée
+      console.error('[Apple Pay] DB insert error:', dbError.message)
     }
 
-    console.log(`[Apple Pay] Order completed: ${orderData?.orderNo}`)
+    console.log('[Apple Pay] Order completed: orderNo=%s, status=%s', orderNo, esimDetails?.smdpStatus || 'PENDING')
 
-    // 5. Retourner la réponse avec les détails de l'eSIM
+    // 4. Retourner au format attendu par iOS
     return NextResponse.json({
       success: true,
-      obj: orderData
+      obj: {
+        orderNo,
+        esimList: esimDetails ? [{
+          iccid: esimDetails.iccid,
+          ac: esimDetails.ac,
+          qrCodeUrl: esimDetails.qrCodeUrl,
+          smdpStatus: esimDetails.smdpStatus,
+        }] : [],
+        packageList: pkgDetails ? [{
+          packageCode: pkgDetails.packageCode,
+          packageName: pkgDetails.packageName,
+          totalVolume: pkgDetails.totalVolume,
+          expiredTime: pkgDetails.expiredTime,
+        }] : []
+      }
     })
 
   } catch (error) {
+    if (error instanceof ESIMAccessError) {
+      console.error('[Apple Pay] eSIM API error:', error.status, error.body)
+      return NextResponse.json(
+        { success: false, error: 'eSIM provider error' },
+        { status: error.status }
+      )
+    }
     console.error('[Apple Pay] Unexpected error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },

@@ -4,56 +4,65 @@ import DXBCore
 struct AuthView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @StateObject private var viewModel = AuthViewModel()
-    
+
     var body: some View {
         ZStack {
-            // Background gradient
-            LinearGradient(
-                colors: [Color.white, Color(hex: "F8F9FA")],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            
+            AppTheme.backgroundPrimary
+                .ignoresSafeArea()
+
+            // Subtle radial accent glow
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [AppTheme.accent.opacity(0.06), Color.clear],
+                        center: .center,
+                        startRadius: 10,
+                        endRadius: 300
+                    )
+                )
+                .frame(width: 600, height: 600)
+                .offset(y: -100)
+
             VStack(spacing: 0) {
                 Spacer()
-                
-                // Logo & Title
-                VStack(spacing: 24) {
+
+                VStack(spacing: 28) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 28)
+                        Circle()
+                            .fill(AppTheme.accent.opacity(0.08))
+                            .frame(width: 140, height: 140)
+
+                        RoundedRectangle(cornerRadius: 30)
                             .fill(AppTheme.textPrimary)
                             .frame(width: 100, height: 100)
-                        
+                            .shadow(color: AppTheme.textPrimary.opacity(0.15), radius: 24, y: 12)
+
                         Image(systemName: "antenna.radiowaves.left.and.right")
                             .font(.system(size: 44, weight: .semibold))
-                            .foregroundColor(.white)
+                            .foregroundColor(AppTheme.accent)
                     }
-                    .shadow(color: .black.opacity(0.1), radius: 20, y: 10)
-                    
+
                     VStack(spacing: 10) {
                         Text("DXB CONNECT")
-                            .font(.system(size: 32, weight: .bold))
-                            .tracking(1)
+                            .font(.system(size: 30, weight: .bold, design: .rounded))
+                            .tracking(2)
                             .foregroundColor(AppTheme.textPrimary)
-                        
+
                         Text("Connected the moment you land")
                             .font(.system(size: 15, weight: .medium))
                             .foregroundColor(AppTheme.textTertiary)
                     }
                 }
-                
+
                 Spacer()
-                
-                // Auth Buttons
+
                 VStack(spacing: 14) {
-                    // Login Button
                     Button {
                         viewModel.showLoginModal = true
                     } label: {
                         HStack(spacing: 10) {
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 17, weight: .semibold))
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.system(size: 18, weight: .semibold))
                             Text("LOGIN")
                                 .font(.system(size: 14, weight: .bold))
                                 .tracking(1)
@@ -63,11 +72,11 @@ struct AuthView: View {
                         .foregroundColor(.white)
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(AppTheme.textPrimary)
+                                .fill(AppTheme.accent)
                         )
                     }
-                    
-                    // Register Button
+                    .scaleOnPress()
+
                     Button {
                         viewModel.showRegisterModal = true
                     } label: {
@@ -83,24 +92,28 @@ struct AuthView: View {
                         .foregroundColor(AppTheme.textPrimary)
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(AppTheme.border, lineWidth: 1.5)
+                                .fill(AppTheme.surfaceLight)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(AppTheme.border, lineWidth: 1.5)
+                                )
                         )
                     }
+                    .scaleOnPress()
                 }
                 .padding(.horizontal, 24)
-                
-                // Terms
+
                 VStack(spacing: 8) {
                     Text("By continuing, you agree to our")
                         .foregroundColor(AppTheme.textTertiary)
-                    
+
                     HStack(spacing: 4) {
                         Button("Terms of Service") {}
-                            .foregroundColor(AppTheme.textPrimary)
+                            .foregroundColor(AppTheme.accent)
                         Text("&")
                             .foregroundColor(AppTheme.textTertiary)
                         Button("Privacy Policy") {}
-                            .foregroundColor(AppTheme.textPrimary)
+                            .foregroundColor(AppTheme.accent)
                     }
                 }
                 .font(.system(size: 12, weight: .medium))
@@ -134,75 +147,58 @@ struct LoginModalView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @StateObject private var viewModel = LoginViewModel()
     @FocusState private var focusedField: Field?
-    
+
     enum Field { case email, password }
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.white.ignoresSafeArea()
-                
+                AppTheme.backgroundPrimary.ignoresSafeArea()
+
                 ScrollView {
                     VStack(spacing: 32) {
-                        // Header
-                        VStack(spacing: 12) {
-                            Image(systemName: "person.circle.fill")
-                                .font(.system(size: 60))
-                                .foregroundColor(AppTheme.textPrimary)
-                            
+                        VStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(AppTheme.accentSoft)
+                                    .frame(width: 80, height: 80)
+
+                                Image(systemName: "person.circle.fill")
+                                    .font(.system(size: 40, weight: .medium))
+                                    .foregroundColor(AppTheme.accent)
+                            }
+
                             Text("Welcome Back")
-                                .font(.system(size: 28, weight: .bold))
+                                .font(.system(size: 26, weight: .bold))
                                 .foregroundColor(AppTheme.textPrimary)
-                            
+
                             Text("Sign in to your account")
                                 .font(.system(size: 15, weight: .medium))
                                 .foregroundColor(AppTheme.textTertiary)
                         }
-                        .padding(.top, 20)
-                        
-                        // Form
+                        .padding(.top, 24)
+
                         VStack(spacing: 20) {
-                            // Email
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("EMAIL")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .tracking(1.2)
-                                    .foregroundColor(AppTheme.textTertiary)
-                                
-                                TextField("you@example.com", text: $viewModel.email)
-                                    .font(.system(size: 16, weight: .medium))
-                                    .textContentType(.emailAddress)
-                                    .autocapitalization(.none)
-                                    .keyboardType(.emailAddress)
-                                    .focused($focusedField, equals: .email)
-                                    .padding(16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(focusedField == .email ? AppTheme.textPrimary : AppTheme.border, lineWidth: 1.5)
-                                    )
-                            }
-                            
-                            // Password
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("PASSWORD")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .tracking(1.2)
-                                    .foregroundColor(AppTheme.textTertiary)
-                                
-                                SecureField("Enter your password", text: $viewModel.password)
-                                    .font(.system(size: 16, weight: .medium))
-                                    .textContentType(.password)
-                                    .focused($focusedField, equals: .password)
-                                    .padding(16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(focusedField == .password ? AppTheme.textPrimary : AppTheme.border, lineWidth: 1.5)
-                                    )
-                            }
+                            AuthTextField(
+                                label: "EMAIL",
+                                placeholder: "you@example.com",
+                                text: $viewModel.email,
+                                isFocused: focusedField == .email,
+                                keyboardType: .emailAddress,
+                                textContentType: .emailAddress
+                            )
+                            .focused($focusedField, equals: .email)
+
+                            AuthSecureField(
+                                label: "PASSWORD",
+                                placeholder: "Enter your password",
+                                text: $viewModel.password,
+                                isFocused: focusedField == .password
+                            )
+                            .focused($focusedField, equals: .password)
                         }
                         .padding(.horizontal, 24)
-                        
-                        // Login Button
+
                         Button {
                             Task {
                                 await viewModel.login(coordinator: coordinator, dismiss: dismiss)
@@ -225,12 +221,12 @@ struct LoginModalView: View {
                             .foregroundColor(.white)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(viewModel.isFormValid ? AppTheme.textPrimary : AppTheme.gray300)
+                                    .fill(viewModel.isFormValid ? AppTheme.accent : AppTheme.gray300)
                             )
                         }
                         .disabled(!viewModel.isFormValid || viewModel.isLoading)
                         .padding(.horizontal, 24)
-                        
+
                         Spacer(minLength: 40)
                     }
                 }
@@ -245,7 +241,7 @@ struct LoginModalView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 36, height: 36)
-                            .background(Circle().stroke(AppTheme.border, lineWidth: 1.5))
+                            .background(Circle().fill(AppTheme.surfaceHeavy))
                     }
                 }
             }
@@ -265,117 +261,85 @@ struct RegisterModalView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @StateObject private var viewModel = RegisterViewModel()
     @FocusState private var focusedField: Field?
-    
+
     enum Field { case name, email, password, confirmPassword }
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.white.ignoresSafeArea()
-                
+                AppTheme.backgroundPrimary.ignoresSafeArea()
+
                 ScrollView {
                     VStack(spacing: 32) {
-                        // Header
-                        VStack(spacing: 12) {
-                            Image(systemName: "person.badge.plus.fill")
-                                .font(.system(size: 60))
-                                .foregroundColor(AppTheme.textPrimary)
-                            
+                        VStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(AppTheme.accentSoft)
+                                    .frame(width: 80, height: 80)
+
+                                Image(systemName: "person.badge.plus.fill")
+                                    .font(.system(size: 36, weight: .medium))
+                                    .foregroundColor(AppTheme.accent)
+                            }
+
                             Text("Create Account")
-                                .font(.system(size: 28, weight: .bold))
+                                .font(.system(size: 26, weight: .bold))
                                 .foregroundColor(AppTheme.textPrimary)
-                            
+
                             Text("Join DXB Connect today")
                                 .font(.system(size: 15, weight: .medium))
                                 .foregroundColor(AppTheme.textTertiary)
                         }
-                        .padding(.top, 20)
-                        
-                        // Form
+                        .padding(.top, 24)
+
                         VStack(spacing: 16) {
-                            // Name
+                            AuthTextField(
+                                label: "FULL NAME",
+                                placeholder: "John Doe",
+                                text: $viewModel.name,
+                                isFocused: focusedField == .name,
+                                textContentType: .name
+                            )
+                            .focused($focusedField, equals: .name)
+
+                            AuthTextField(
+                                label: "EMAIL",
+                                placeholder: "you@example.com",
+                                text: $viewModel.email,
+                                isFocused: focusedField == .email,
+                                keyboardType: .emailAddress,
+                                textContentType: .emailAddress
+                            )
+                            .focused($focusedField, equals: .email)
+
+                            AuthSecureField(
+                                label: "PASSWORD",
+                                placeholder: "Min 8 characters",
+                                text: $viewModel.password,
+                                isFocused: focusedField == .password,
+                                isNew: true
+                            )
+                            .focused($focusedField, equals: .password)
+
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("FULL NAME")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .tracking(1.2)
-                                    .foregroundColor(AppTheme.textTertiary)
-                                
-                                TextField("John Doe", text: $viewModel.name)
-                                    .font(.system(size: 16, weight: .medium))
-                                    .textContentType(.name)
-                                    .focused($focusedField, equals: .name)
-                                    .padding(16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(focusedField == .name ? AppTheme.textPrimary : AppTheme.border, lineWidth: 1.5)
-                                    )
-                            }
-                            
-                            // Email
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("EMAIL")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .tracking(1.2)
-                                    .foregroundColor(AppTheme.textTertiary)
-                                
-                                TextField("you@example.com", text: $viewModel.email)
-                                    .font(.system(size: 16, weight: .medium))
-                                    .textContentType(.emailAddress)
-                                    .autocapitalization(.none)
-                                    .keyboardType(.emailAddress)
-                                    .focused($focusedField, equals: .email)
-                                    .padding(16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(focusedField == .email ? AppTheme.textPrimary : AppTheme.border, lineWidth: 1.5)
-                                    )
-                            }
-                            
-                            // Password
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("PASSWORD")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .tracking(1.2)
-                                    .foregroundColor(AppTheme.textTertiary)
-                                
-                                SecureField("Min 8 characters", text: $viewModel.password)
-                                    .font(.system(size: 16, weight: .medium))
-                                    .textContentType(.newPassword)
-                                    .focused($focusedField, equals: .password)
-                                    .padding(16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(focusedField == .password ? AppTheme.textPrimary : AppTheme.border, lineWidth: 1.5)
-                                    )
-                            }
-                            
-                            // Confirm Password
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("CONFIRM PASSWORD")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .tracking(1.2)
-                                    .foregroundColor(AppTheme.textTertiary)
-                                
-                                SecureField("Re-enter password", text: $viewModel.confirmPassword)
-                                    .font(.system(size: 16, weight: .medium))
-                                    .textContentType(.newPassword)
-                                    .focused($focusedField, equals: .confirmPassword)
-                                    .padding(16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(focusedField == .confirmPassword ? AppTheme.textPrimary : AppTheme.border, lineWidth: 1.5)
-                                    )
-                                
+                                AuthSecureField(
+                                    label: "CONFIRM PASSWORD",
+                                    placeholder: "Re-enter password",
+                                    text: $viewModel.confirmPassword,
+                                    isFocused: focusedField == .confirmPassword,
+                                    isNew: true
+                                )
+                                .focused($focusedField, equals: .confirmPassword)
+
                                 if !viewModel.confirmPassword.isEmpty && viewModel.password != viewModel.confirmPassword {
                                     Text("Passwords don't match")
                                         .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.red)
+                                        .foregroundColor(AppTheme.error)
                                 }
                             }
                         }
                         .padding(.horizontal, 24)
-                        
-                        // Register Button
+
                         Button {
                             Task {
                                 await viewModel.register(coordinator: coordinator, dismiss: dismiss)
@@ -398,12 +362,12 @@ struct RegisterModalView: View {
                             .foregroundColor(.white)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(viewModel.isFormValid ? AppTheme.textPrimary : AppTheme.gray300)
+                                    .fill(viewModel.isFormValid ? AppTheme.accent : AppTheme.gray300)
                             )
                         }
                         .disabled(!viewModel.isFormValid || viewModel.isLoading)
                         .padding(.horizontal, 24)
-                        
+
                         Spacer(minLength: 40)
                     }
                 }
@@ -418,7 +382,7 @@ struct RegisterModalView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 36, height: 36)
-                            .background(Circle().stroke(AppTheme.border, lineWidth: 1.5))
+                            .background(Circle().fill(AppTheme.surfaceHeavy))
                     }
                 }
             }
@@ -427,6 +391,74 @@ struct RegisterModalView: View {
             } message: {
                 Text(viewModel.errorMessage)
             }
+        }
+    }
+}
+
+// MARK: - Reusable Auth Fields
+
+struct AuthTextField: View {
+    let label: String
+    let placeholder: String
+    @Binding var text: String
+    var isFocused: Bool = false
+    var keyboardType: UIKeyboardType = .default
+    var textContentType: UITextContentType? = nil
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label)
+                .font(.system(size: 11, weight: .bold))
+                .tracking(1.2)
+                .foregroundColor(AppTheme.textTertiary)
+
+            TextField(placeholder, text: $text)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(AppTheme.textPrimary)
+                .textContentType(textContentType)
+                .autocapitalization(.none)
+                .keyboardType(keyboardType)
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(isFocused ? AppTheme.accentSoft : AppTheme.surfaceLight)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(isFocused ? AppTheme.accent : AppTheme.border, lineWidth: isFocused ? 2 : 1)
+                        )
+                )
+                .animation(.easeInOut(duration: 0.2), value: isFocused)
+        }
+    }
+}
+
+struct AuthSecureField: View {
+    let label: String
+    let placeholder: String
+    @Binding var text: String
+    var isFocused: Bool = false
+    var isNew: Bool = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label)
+                .font(.system(size: 11, weight: .bold))
+                .tracking(1.2)
+                .foregroundColor(AppTheme.textTertiary)
+
+            SecureField(placeholder, text: $text)
+                .font(.system(size: 16, weight: .medium))
+                .textContentType(isNew ? .newPassword : .password)
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(isFocused ? AppTheme.accentSoft : AppTheme.surfaceLight)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(isFocused ? AppTheme.accent : AppTheme.border, lineWidth: isFocused ? 2 : 1)
+                        )
+                )
+                .animation(.easeInOut(duration: 0.2), value: isFocused)
         }
     }
 }
@@ -440,19 +472,20 @@ final class LoginViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var showError = false
     @Published var errorMessage = ""
-    
+
     var isFormValid: Bool {
         let emailRegex = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
         let isValidEmail = email.range(of: emailRegex, options: .regularExpression) != nil
         return isValidEmail && password.count >= 6
     }
-    
+
     func login(coordinator: AppCoordinator, dismiss: DismissAction) async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             try await coordinator.signInWithPassword(email: email, password: password)
+            HapticFeedback.success()
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
@@ -472,19 +505,20 @@ final class RegisterViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var showError = false
     @Published var errorMessage = ""
-    
+
     var isFormValid: Bool {
         let emailRegex = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
         let isValidEmail = email.range(of: emailRegex, options: .regularExpression) != nil
         return !name.isEmpty && isValidEmail && password.count >= 8 && password == confirmPassword
     }
-    
+
     func register(coordinator: AppCoordinator, dismiss: DismissAction) async {
         isLoading = true
         defer { isLoading = false }
-        
+
         do {
             try await coordinator.signUpWithPassword(email: email, password: password, name: name)
+            HapticFeedback.success()
             dismiss()
         } catch {
             errorMessage = error.localizedDescription

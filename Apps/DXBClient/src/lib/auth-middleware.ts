@@ -6,6 +6,34 @@ import { NextResponse } from 'next/server'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
 
+function safeJwtSummary(token: string) {
+  try {
+    const [h, p] = token.split('.')
+    if (!h || !p) return null
+
+    const decodeBase64UrlJson = (part: string) => {
+      const base64 = part.replace(/-/g, '+').replace(/_/g, '/')
+      const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
+      return JSON.parse(Buffer.from(padded, 'base64').toString('utf8'))
+    }
+
+    const header = decodeBase64UrlJson(h)
+    const payload = decodeBase64UrlJson(p)
+
+    return {
+      alg: header?.alg,
+      kid: header?.kid,
+      iss: payload?.iss,
+      aud: payload?.aud,
+      sub: payload?.sub,
+      exp: payload?.exp,
+      iat: payload?.iat,
+    }
+  } catch {
+    return null
+  }
+}
+
 /**
  * Client Supabase standard (non-SSR) pour vérification JWT Bearer.
  * Le client SSR (@supabase/ssr) utilise les cookies et ne supporte pas
@@ -114,9 +142,21 @@ export async function requireAuthFlexible(request: Request) {
       if (!error && user) {
         return { error: null, user }
       }
-      console.error('[Auth] Bearer verification failed:', error?.message)
+      console.error('[Auth] Bearer verification failed:', {
+        message: error?.message,
+        jwt: safeJwtSummary(token),
+        supabaseUrlHost: (() => {
+          try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).host } catch { return null }
+        })(),
+      })
     } catch (error) {
-      console.error('[Auth] Bearer verification error:', error)
+      console.error('[Auth] Bearer verification error:', {
+        error,
+        jwt: safeJwtSummary(token),
+        supabaseUrlHost: (() => {
+          try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).host } catch { return null }
+        })(),
+      })
     }
   }
 
