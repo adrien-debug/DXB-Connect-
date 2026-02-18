@@ -9,6 +9,7 @@ public protocol DXBAPIServiceProtocol: Sendable {
     func signInWithPassword(email: String, password: String) async throws -> AuthResponse
     func signUpWithPassword(email: String, password: String, name: String) async throws -> AuthResponse
     func fetchPlans(locale: String) async throws -> [Plan]
+    func fetchStock() async throws -> [ESIMOrder]
     func fetchMyESIMs() async throws -> [ESIMOrder]
     func purchasePlan(planId: String) async throws -> ESIMOrder
     func processApplePayPayment(planId: String, paymentToken: String, paymentNetwork: String) async throws -> ESIMOrder
@@ -141,6 +142,41 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
         return plans
     }
 
+    public func fetchStock() async throws -> [ESIMOrder] {
+        await AppLogger.shared.logData("Fetching eSIM stock (available for sale)")
+
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        let response: StockResponse = try await apiClient.request(
+            endpoint: "esim/stock",
+            requiresAuth: true
+        )
+
+        let orders = response.obj?.esimList?.compactMap { esim -> ESIMOrder? in
+            let volumeBytes = esim.totalVolume ?? esim.packageList?.first?.volume ?? 0
+            let volumeGB = volumeBytes / 1_073_741_824
+            let volumeDisplay = volumeGB > 0 ? "\(volumeGB) GB" : "\(volumeBytes / 1_048_576) MB"
+            
+            return ESIMOrder(
+                id: esim.iccid ?? esim.orderNo ?? UUID().uuidString,
+                orderNo: esim.orderNo ?? esim.esimTranNo ?? "",
+                iccid: esim.iccid ?? "",
+                lpaCode: esim.ac ?? "",
+                qrCodeUrl: esim.qrCodeUrl ?? "",
+                status: esim.smdpStatus ?? "UNKNOWN",
+                packageName: esim.packageList?.first?.packageName ?? "eSIM",
+                totalVolume: volumeDisplay,
+                expiredTime: esim.expiredTime ?? "",
+                createdAt: Date()
+            )
+        } ?? []
+
+        await AppLogger.shared.logData("Fetched \(orders.count) eSIMs in stock")
+        return orders
+    }
+
     public func fetchMyESIMs() async throws -> [ESIMOrder] {
         await AppLogger.shared.logData("Fetching user eSIMs")
 
@@ -153,17 +189,22 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
             requiresAuth: true
         )
 
-        let orders = response.obj?.orderList?.compactMap { order in
-            ESIMOrder(
-                id: order.orderNo ?? UUID().uuidString,
-                orderNo: order.orderNo ?? "",
-                iccid: order.esimList?.first?.iccid ?? "",
-                lpaCode: order.esimList?.first?.ac ?? "",
-                qrCodeUrl: order.esimList?.first?.qrCodeUrl ?? "",
-                status: order.esimList?.first?.smdpStatus ?? "UNKNOWN",
-                packageName: order.packageList?.first?.packageName ?? "eSIM",
-                totalVolume: "\((order.packageList?.first?.totalVolume ?? 0) / 1_073_741_824) GB", // bytes to GB
-                expiredTime: order.packageList?.first?.expiredTime ?? "",
+        // L'API retourne esimList (structure plate) avec toutes les infos par eSIM
+        let orders = response.obj?.esimList?.compactMap { esim -> ESIMOrder? in
+            let volumeBytes = esim.totalVolume ?? esim.packageList?.first?.totalVolume ?? 0
+            let volumeGB = volumeBytes / 1_073_741_824
+            let volumeDisplay = volumeGB > 0 ? "\(volumeGB) GB" : "\(volumeBytes / 1_048_576) MB"
+            
+            return ESIMOrder(
+                id: esim.iccid ?? esim.orderNo ?? UUID().uuidString,
+                orderNo: esim.orderNo ?? esim.esimTranNo ?? "",
+                iccid: esim.iccid ?? "",
+                lpaCode: esim.ac ?? "",
+                qrCodeUrl: esim.qrCodeUrl ?? "",
+                status: esim.smdpStatus ?? "UNKNOWN",
+                packageName: esim.packageList?.first?.packageName ?? "eSIM",
+                totalVolume: volumeDisplay,
+                expiredTime: esim.expiredTime ?? esim.packageList?.first?.expiredTime ?? "",
                 createdAt: Date()
             )
         } ?? []
@@ -278,7 +319,22 @@ struct OrdersResponse: Codable {
 }
 
 struct OrderList: Codable {
+    let esimList: [EsimOrderItem]?
     let orderList: [OrderItem]?
+}
+
+struct EsimOrderItem: Codable {
+    let esimTranNo: String?
+    let orderNo: String?
+    let iccid: String?
+    let ac: String?
+    let qrCodeUrl: String?
+    let smdpStatus: String?
+    let totalVolume: Int?
+    let totalDuration: Int?
+    let durationUnit: String?
+    let expiredTime: String?
+    let packageList: [PackageStatus]?
 }
 
 struct OrderItem: Codable {
@@ -302,4 +358,50 @@ struct PackageStatus: Codable {
 
 struct PurchaseResponse: Codable {
     let obj: OrderItem?
+}
+
+struct StockResponse: Codable {
+    let obj: StockData?
+}
+
+struct StockData: Codable {
+    let stats: StockStats?
+    let byPackage: [PackageGroup]?
+    let esimList: [StockEsimItem]?
+}
+
+struct StockStats: Codable {
+    let total: Int?
+    let available: Int?
+    let inUse: Int?
+    let expired: Int?
+}
+
+struct PackageGroup: Codable {
+    let name: String?
+    let count: Int?
+    let volume: Int?
+}
+
+struct StockEsimItem: Codable {
+    let esimTranNo: String?
+    let orderNo: String?
+    let iccid: String?
+    let ac: String?
+    let qrCodeUrl: String?
+    let smdpStatus: String?
+    let totalVolume: Int?
+    let totalDuration: Int?
+    let durationUnit: String?
+    let expiredTime: String?
+    let packageList: [StockPackage]?
+}
+
+struct StockPackage: Codable {
+    let packageName: String?
+    let packageCode: String?
+    let slug: String?
+    let duration: Int?
+    let volume: Int?
+    let locationCode: String?
 }
