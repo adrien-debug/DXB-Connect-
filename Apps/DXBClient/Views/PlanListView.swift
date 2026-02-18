@@ -281,7 +281,6 @@ struct PremiumFilterChip: View {
 
 struct PlanTechRow: View {
     let plan: Plan
-    @State private var isPressed = false
 
     var body: some View {
         HStack(spacing: 16) {
@@ -345,25 +344,12 @@ struct PlanTechRow: View {
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(AppTheme.border, lineWidth: 1.5)
                 )
-                .shadow(color: Color.black.opacity(isPressed ? 0.01 : 0.03), radius: isPressed ? 4 : 8, x: 0, y: isPressed ? 1 : 3)
+                .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 3)
         )
-        .scaleEffect(isPressed ? 0.98 : 1.0)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(plan.location), \(plan.dataGB) gigabytes, \(plan.durationDays) jours, \(plan.priceUSD.formattedPrice)")
         .accessibilityHint("Double-tap pour voir les détails")
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                        isPressed = true
-                    }
-                }
-                .onEnded { _ in
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-                        isPressed = false
-                    }
-                }
-        )
+        .contentShape(Rectangle())
     }
 
     private var flagEmoji: String {
