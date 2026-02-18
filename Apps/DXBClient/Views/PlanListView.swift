@@ -376,6 +376,8 @@ struct CountryPlansView: View {
     let country: String
     let plans: [Plan]
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var coordinator: AppCoordinator
+    @State private var selectedPlan: Plan?
 
     private var flagEmoji: String {
         let base: UInt32 = 127397
@@ -444,7 +446,9 @@ struct CountryPlansView: View {
                 ScrollView(showsIndicators: false) {
                     LazyVStack(spacing: 14) {
                         ForEach(plans) { plan in
-                            NavigationLink(value: plan) {
+                            Button {
+                                selectedPlan = plan
+                            } label: {
                                 PlanTechRow(plan: plan)
                             }
                             .buttonStyle(.plain)
@@ -456,8 +460,9 @@ struct CountryPlansView: View {
             }
         }
         .navigationBarHidden(true)
-        .navigationDestination(for: Plan.self) { plan in
+        .sheet(item: $selectedPlan) { plan in
             PlanDetailView(plan: plan)
+                .environmentObject(coordinator)
         }
     }
 }
