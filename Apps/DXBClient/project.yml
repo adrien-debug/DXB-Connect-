@@ -33,7 +33,7 @@ targets:
         INFOPLIST_FILE: Info.plist
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: DXBConnect.entitlements
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: 3CU82K426J
         SWIFT_VERSION: "5.9"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
@@ -44,6 +44,9 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
     entitlements:
       path: DXBConnect.entitlements
+      properties:
+        com.apple.developer.in-app-payments:
+          - merchant.com.dxbconnect.app
     info:
       path: Info.plist
       properties:
