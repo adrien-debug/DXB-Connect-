@@ -14,37 +14,22 @@ struct DashboardView: View {
                 AppTheme.backgroundPrimary
                     .ignoresSafeArea()
 
-                // Subtle top gradient glow
-                VStack {
-                    RadialGradient(
-                        colors: [AppTheme.accent.opacity(0.06), Color.clear],
-                        center: .top,
-                        startRadius: 10,
-                        endRadius: 300
-                    )
-                    .frame(height: 300)
-                    .ignoresSafeArea()
-
-                    Spacer()
-                }
-
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 14) {
-                        headerSection
-                            .padding(.top, 50)
+                    VStack(spacing: 0) {
+                        heroHeader
+                        
+                        VStack(spacing: 20) {
+                            statsGrid
+                            
+                            promoSection
 
-                        statsCard
-                            .padding(.horizontal, 20)
+                            quickActionsGrid
 
-                        promoSection
-                            .padding(.horizontal, 20)
-
-                        quickActionsGrid
-                            .padding(.horizontal, 20)
-
-                        activeEsimsSection
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 100)
+                            activeEsimsSection
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        .padding(.bottom, 100)
                     }
                 }
             }
@@ -60,89 +45,147 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Header
+    // MARK: - Hero Header
 
     private var firstName: String {
         let name = coordinator.user.name
         return name.components(separatedBy: " ").first ?? name
     }
 
-    private var headerSection: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(greeting)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(AppTheme.textSecondary)
+    private var heroHeader: some View {
+        ZStack(alignment: .bottom) {
+            LinearGradient(
+                colors: [Color(hex: "0F172A"), Color(hex: "1E293B"), Color(hex: "0C4A6E")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
 
-                Text(firstName.isEmpty ? "Dashboard" : firstName)
-                    .font(.system(size: 24, weight: .bold))
-                    .tracking(-0.5)
-                    .foregroundColor(AppTheme.textPrimary)
-            }
+            // Decorative blobs
+            Circle()
+                .fill(AppTheme.accent.opacity(0.08))
+                .frame(width: 200, height: 200)
+                .offset(x: 120, y: -60)
+                .blur(radius: 40)
 
-            Spacer()
+            Circle()
+                .fill(Color(hex: "6366F1").opacity(0.06))
+                .frame(width: 150, height: 150)
+                .offset(x: -100, y: 20)
+                .blur(radius: 30)
 
-            HStack(spacing: 10) {
-                Button {
-                    HapticFeedback.light()
-                    coordinator.showNotifications = true
-                } label: {
-                    ZStack(alignment: .topTrailing) {
-                        Image(systemName: "bell")
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundColor(AppTheme.textPrimary)
-                            .frame(width: 42, height: 42)
-                            .background(
+            VStack(spacing: 0) {
+                // Top bar
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(greeting)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(Color(hex: "7DD3FC"))
+
+                        Text(firstName.isEmpty ? "Dashboard" : firstName)
+                            .font(.system(size: 26, weight: .bold))
+                            .tracking(-0.5)
+                            .foregroundColor(.white)
+                    }
+
+                    Spacer()
+
+                    HStack(spacing: 10) {
+                        Button {
+                            HapticFeedback.light()
+                            coordinator.showNotifications = true
+                        } label: {
+                            ZStack(alignment: .topTrailing) {
+                                Image(systemName: "bell")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.9))
+                                    .frame(width: 40, height: 40)
+                                    .background(
+                                        Circle()
+                                            .fill(Color.white.opacity(0.12))
+                                            .overlay(Circle().stroke(Color.white.opacity(0.1), lineWidth: 1))
+                                    )
+
                                 Circle()
-                                    .fill(AppTheme.surfaceLight)
-                                    .overlay(Circle().stroke(AppTheme.border, lineWidth: 1))
-                            )
+                                    .fill(Color(hex: "38BDF8"))
+                                    .frame(width: 8, height: 8)
+                                    .offset(x: 1, y: 1)
+                            }
+                        }
+                        .accessibilityLabel("Notifications")
 
-                        Circle()
-                            .fill(AppTheme.accent)
-                            .frame(width: 8, height: 8)
-                            .offset(x: 1, y: 1)
+                        Button {
+                            HapticFeedback.light()
+                            coordinator.selectedTab = 3
+                        } label: {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color(hex: "0EA5E9"), Color(hex: "6366F1")],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 40, height: 40)
+                                .overlay(
+                                    Text(String(coordinator.user.name.prefix(1)).uppercased())
+                                        .font(.system(size: 15, weight: .bold))
+                                        .foregroundColor(.white)
+                                )
+                                .shadow(color: AppTheme.accent.opacity(0.3), radius: 8, x: 0, y: 4)
+                        }
+                        .accessibilityLabel("Profil")
                     }
                 }
-                .accessibilityLabel("Notifications")
+                .padding(.horizontal, 20)
+                .padding(.top, 60)
 
-                Button {
-                    HapticFeedback.light()
-                    coordinator.selectedTab = 3
-                } label: {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [AppTheme.accent, AppTheme.accentGradientEnd],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 42, height: 42)
-                        .overlay(
-                            Text(String(coordinator.user.name.prefix(1)).uppercased())
-                                .font(.system(size: 15, weight: .bold))
-                                .foregroundColor(.white)
-                        )
-                        .shadow(color: AppTheme.accent.opacity(0.25), radius: 6, x: 0, y: 3)
+                // Data summary bar
+                HStack(spacing: 0) {
+                    DataMetricPill(icon: "simcard.fill", value: "\(coordinator.user.activeESIMs)", label: "Active")
+                    
+                    Capsule()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(width: 1, height: 28)
+
+                    DataMetricPill(icon: "globe", value: "\(coordinator.user.countriesVisited)", label: "Countries")
+                    
+                    Capsule()
+                        .fill(Color.white.opacity(0.1))
+                        .frame(width: 1, height: 28)
+
+                    DataMetricPill(icon: "arrow.down.circle", value: totalDataGB + " GB", label: "Data")
                 }
-                .accessibilityLabel("Profil")
+                .padding(.vertical, 14)
+                .padding(.horizontal, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white.opacity(0.07))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                        )
+                )
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 24)
             }
         }
-        .padding(.horizontal, 20)
+        .clipShape(RoundedCorner(radius: 28, corners: [.bottomLeft, .bottomRight]))
+        .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
+        .slideIn(delay: 0)
     }
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
-        case 5..<12: return "Good morning"
-        case 12..<17: return "Good afternoon"
-        case 17..<21: return "Good evening"
-        default: return "Good night"
+        case 5..<12: return "Good morning 👋"
+        case 12..<17: return "Good afternoon ☀️"
+        case 17..<21: return "Good evening 🌆"
+        default: return "Good night 🌙"
         }
     }
 
-    // MARK: - Stats Card
+    // MARK: - Stats Grid
 
     private var totalDataGB: String {
         let totalMB = coordinator.esimOrders
@@ -161,92 +204,59 @@ struct DashboardView: View {
         return gb > 0 ? String(format: "%.0f", gb) : "0"
     }
 
-    private var dataProgress: Double {
-        let val = Double(totalDataGB) ?? 0
-        return val > 0 ? min(val / max(val + 5, 10), 1.0) : 0
-    }
-
-    private var statsCard: some View {
-        HStack(spacing: 0) {
-            // Ring
-            ZStack {
-                Circle()
-                    .stroke(AppTheme.border.opacity(0.4), lineWidth: 5)
-                    .frame(width: 72, height: 72)
-
-                Circle()
-                    .trim(from: 0, to: ringAppear ? dataProgress : 0)
-                    .stroke(
-                        LinearGradient(
-                            colors: [AppTheme.accent, AppTheme.accentGradientEnd],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        style: StrokeStyle(lineWidth: 5, lineCap: .round)
-                    )
-                    .frame(width: 72, height: 72)
-                    .rotationEffect(.degrees(-90))
-
-                VStack(spacing: 1) {
-                    Text(totalDataGB)
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundColor(AppTheme.textPrimary)
-
-                    Text("GB")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(AppTheme.textTertiary)
-                }
-            }
-            .onAppear {
-                withAnimation(.spring(response: 1.2, dampingFraction: 0.8).delay(0.3)) {
-                    ringAppear = true
-                }
-            }
-
-            Spacer()
-
-            // Metrics
-            HStack(spacing: 0) {
-                MiniMetric(icon: "simcard.fill", value: "\(coordinator.user.activeESIMs)", label: "Active", color: AppTheme.accent)
-                    .frame(maxWidth: .infinity)
-
-                Rectangle()
-                    .fill(AppTheme.border)
-                    .frame(width: 1, height: 32)
-
-                MiniMetric(icon: "globe", value: "\(coordinator.user.countriesVisited)", label: "Countries", color: AppTheme.accent)
-                    .frame(maxWidth: .infinity)
-
-                Rectangle()
-                    .fill(AppTheme.border)
-                    .frame(width: 1, height: 32)
-
-                MiniMetric(icon: "dollarsign.circle", value: String(format: "$%.0f", coordinator.user.totalSaved), label: "Saved", color: AppTheme.accent)
-                    .frame(maxWidth: .infinity)
-            }
+    private var statsGrid: some View {
+        LazyVGrid(columns: [
+            GridItem(.flexible(), spacing: 10),
+            GridItem(.flexible(), spacing: 10),
+            GridItem(.flexible(), spacing: 10)
+        ], spacing: 10) {
+            StatTile(
+                icon: "simcard.fill",
+                value: "\(coordinator.user.activeESIMs)",
+                label: "eSIMs actives",
+                accentColor: Color(hex: "0EA5E9")
+            )
+            StatTile(
+                icon: "globe",
+                value: "\(coordinator.user.countriesVisited)",
+                label: "Pays",
+                accentColor: Color(hex: "8B5CF6")
+            )
+            StatTile(
+                icon: "dollarsign.circle",
+                value: String(format: "$%.0f", coordinator.user.totalSaved),
+                label: "Économisé",
+                accentColor: Color(hex: "10B981")
+            )
         }
-        .padding(.vertical, 6)
         .slideIn(delay: 0.1)
     }
 
     // MARK: - Quick Actions
 
     private var quickActionsGrid: some View {
-        HStack(spacing: 0) {
-            QuickActionTech(icon: "plus", title: "Buy", color: AppTheme.accent, isPrimary: true) {
-                coordinator.selectedTab = 1
-            }
-            QuickActionTech(icon: "qrcode", title: "Scan", color: AppTheme.accent) {
-                showScanner = true
-            }
-            QuickActionTech(icon: "gift", title: "Rewards", color: AppTheme.accent) {
-                showRewards = true
-            }
-            QuickActionTech(icon: "headphones", title: "Support", color: AppTheme.accent) {
-                showSupport = true
+        VStack(alignment: .leading, spacing: 12) {
+            Text("ACTIONS RAPIDES")
+                .font(.system(size: 11, weight: .bold))
+                .tracking(1.2)
+                .foregroundColor(AppTheme.textTertiary)
+
+            HStack(spacing: 10) {
+                QuickActionTech(icon: "plus", title: "Buy", color: AppTheme.accent, isPrimary: true) {
+                    coordinator.selectedTab = 1
+                }
+                QuickActionTech(icon: "qrcode", title: "Scan", color: AppTheme.accent) {
+                    showScanner = true
+                }
+                QuickActionTech(icon: "gift", title: "Rewards", color: Color(hex: "8B5CF6")) {
+                    showRewards = true
+                }
+                QuickActionTech(icon: "headphones", title: "Support", color: Color(hex: "10B981")) {
+                    showSupport = true
+                }
             }
         }
-        .slideIn(delay: 0.12)
+        .slideIn(delay: 0.15)
         .sheet(isPresented: $showSupport) {
             SupportView()
         }
@@ -261,56 +271,63 @@ struct DashboardView: View {
     // MARK: - Promo Section
 
     private var promoSection: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                PromoCard(
-                    flag: "🇦🇪",
-                    title: "UAE",
-                    data: "10 GB • 30 days",
-                    price: "$14.99",
-                    oldPrice: "$24.99",
-                    tag: "-40%",
-                    gradientEnd: Color(hex: "0369A1")
-                ) {
-                    coordinator.selectedTab = 1
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            Text("OFFRES SPÉCIALES")
+                .font(.system(size: 11, weight: .bold))
+                .tracking(1.2)
+                .foregroundColor(AppTheme.textTertiary)
 
-                PromoCard(
-                    flag: "🇪🇺",
-                    title: "Europe",
-                    data: "20 GB • 30 days",
-                    price: "$37.49",
-                    oldPrice: "$49.99",
-                    tag: "-25%",
-                    gradientEnd: Color(hex: "4F46E5")
-                ) {
-                    coordinator.selectedTab = 1
-                }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    PromoCard(
+                        flag: "🇦🇪",
+                        title: "UAE",
+                        data: "10 GB • 30 days",
+                        price: "$14.99",
+                        oldPrice: "$24.99",
+                        tag: "-40%",
+                        gradientEnd: Color(hex: "0369A1")
+                    ) {
+                        coordinator.selectedTab = 1
+                    }
 
-                PromoCard(
-                    flag: "🇯🇵",
-                    title: "Asia",
-                    data: "10 GB • 15 days",
-                    price: "$27.99",
-                    oldPrice: "$39.99",
-                    tag: "-30%",
-                    gradientEnd: Color(hex: "1D4ED8")
-                ) {
-                    coordinator.selectedTab = 1
+                    PromoCard(
+                        flag: "🇪🇺",
+                        title: "Europe",
+                        data: "20 GB • 30 days",
+                        price: "$37.49",
+                        oldPrice: "$49.99",
+                        tag: "-25%",
+                        gradientEnd: Color(hex: "4F46E5")
+                    ) {
+                        coordinator.selectedTab = 1
+                    }
+
+                    PromoCard(
+                        flag: "🇯🇵",
+                        title: "Asia",
+                        data: "10 GB • 15 days",
+                        price: "$27.99",
+                        oldPrice: "$39.99",
+                        tag: "-30%",
+                        gradientEnd: Color(hex: "1D4ED8")
+                    ) {
+                        coordinator.selectedTab = 1
+                    }
                 }
             }
         }
-        .slideIn(delay: 0.15)
+        .slideIn(delay: 0.12)
     }
 
     // MARK: - Active eSIMs
 
     private var activeEsimsSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("ACTIVE PLANS")
-                    .font(.system(size: 10, weight: .bold))
-                    .tracking(1.5)
+                    .font(.system(size: 11, weight: .bold))
+                    .tracking(1.2)
                     .foregroundColor(AppTheme.textTertiary)
 
                 Spacer()
@@ -335,7 +352,7 @@ struct DashboardView: View {
                 }
             } else {
                 VStack(spacing: 8) {
-                    ForEach(coordinator.esimOrders.prefix(2)) { order in
+                    ForEach(coordinator.esimOrders.prefix(3)) { order in
                         NavigationLink {
                             ESIMDetailView(order: order)
                         } label: {
@@ -351,6 +368,85 @@ struct DashboardView: View {
 }
 
 // MARK: - Tech Components
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
+}
+
+struct DataMetricPill: View {
+    let icon: String
+    let value: String
+    let label: String
+
+    var body: some View {
+        VStack(spacing: 3) {
+            Image(systemName: icon)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(Color(hex: "7DD3FC"))
+
+            Text(value)
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+
+            Text(label)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(.white.opacity(0.5))
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct StatTile: View {
+    let icon: String
+    let value: String
+    let label: String
+    var accentColor: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(accentColor.opacity(0.1))
+                    .frame(width: 34, height: 34)
+
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(accentColor)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundColor(AppTheme.textPrimary)
+
+                Text(label)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(AppTheme.textTertiary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(AppTheme.surfaceLight)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(AppTheme.border.opacity(0.6), lineWidth: 1)
+                )
+                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+        )
+    }
+}
 
 struct MiniMetric: View {
     let icon: String
@@ -498,32 +594,36 @@ struct QuickActionTech: View {
             HapticFeedback.light()
             action()
         } label: {
-            VStack(spacing: 6) {
+            VStack(spacing: 8) {
                 ZStack {
                     if isPrimary {
-                        Circle()
+                        RoundedRectangle(cornerRadius: 14)
                             .fill(
                                 LinearGradient(
-                                    colors: [AppTheme.accent, AppTheme.accentGradientEnd],
+                                    colors: [AppTheme.accent, Color(hex: "0284C7")],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .frame(width: 42, height: 42)
-                            .shadow(color: AppTheme.accent.opacity(0.25), radius: 6, x: 0, y: 3)
+                            .frame(width: 48, height: 48)
+                            .shadow(color: AppTheme.accent.opacity(0.3), radius: 8, x: 0, y: 4)
                     } else {
-                        Circle()
+                        RoundedRectangle(cornerRadius: 14)
                             .fill(color.opacity(0.08))
-                            .frame(width: 42, height: 42)
+                            .frame(width: 48, height: 48)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(color.opacity(0.12), lineWidth: 1)
+                            )
                     }
 
                     Image(systemName: icon)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(isPrimary ? .white : color)
                 }
 
                 Text(title)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(AppTheme.textSecondary)
             }
             .frame(maxWidth: .infinity)
@@ -560,67 +660,79 @@ struct EsimTechItem: View {
     }
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(AppTheme.accent.opacity(0.08))
-                    .frame(width: 36, height: 36)
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(
+                        LinearGradient(
+                            colors: [statusColor.opacity(0.12), statusColor.opacity(0.06)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 40, height: 40)
 
                 Image(systemName: "simcard.fill")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(AppTheme.accent)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(statusColor)
             }
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(order.packageName)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(AppTheme.textPrimary)
                     .lineLimit(1)
 
-                if isActive {
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 1.5)
-                                .fill(AppTheme.border.opacity(0.4))
-                                .frame(height: 2.5)
-
-                            RoundedRectangle(cornerRadius: 1.5)
-                                .fill(AppTheme.accent)
-                                .frame(width: geo.size.width * 0.65, height: 2.5)
-                        }
-                    }
-                    .frame(height: 2.5)
-                } else {
+                HStack(spacing: 6) {
                     Text(order.totalVolume)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(AppTheme.textTertiary)
+
+                    if isActive {
+                        Circle()
+                            .fill(AppTheme.textMuted)
+                            .frame(width: 2.5, height: 2.5)
+
+                        HStack(spacing: 3) {
+                            Circle()
+                                .fill(statusColor)
+                                .frame(width: 5, height: 5)
+                            Text(statusText)
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(statusColor)
+                        }
+                    }
                 }
             }
 
             Spacer()
 
-            HStack(spacing: 4) {
-                Circle()
-                    .fill(statusColor)
-                    .frame(width: 5, height: 5)
+            if !isActive {
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(statusColor)
+                        .frame(width: 5, height: 5)
 
-                Text(statusText)
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundColor(statusColor)
+                    Text(statusText)
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(statusColor)
+                }
             }
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 10, weight: .semibold))
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(AppTheme.textMuted)
         }
-        .padding(12)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
         .background(
-            RoundedRectangle(cornerRadius: 14)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(AppTheme.surfaceLight)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(AppTheme.border, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(AppTheme.border.opacity(0.6), lineWidth: 1)
                 )
+                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
         )
         .contentShape(Rectangle())
     }
