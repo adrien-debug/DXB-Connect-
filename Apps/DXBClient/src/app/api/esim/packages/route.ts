@@ -2,41 +2,87 @@ import { requireAuthFlexible } from '@/lib/auth-middleware'
 import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
 import { NextResponse } from 'next/server'
 
+interface PackageFromAPI {
+  packageCode: string
+  name: string
+  price: number
+  currencyCode: string
+  volume: number
+  duration: number
+  durationUnit: string
+  location: string
+  locationCode: string
+  speed?: string
+  smsSupported?: number
+  activeType?: number
+  retailPrice?: number
+  locationNetworkList?: Array<{ locationName: string; operatorList?: Array<{ operatorName: string }> }>
+}
+
+interface PackageListResponse {
+  success?: boolean
+  obj?: {
+    packageList?: PackageFromAPI[]
+  }
+}
+
 /**
  * GET /api/esim/packages
- * Liste les packages eSIM disponibles.
- * - Authentification requise (Bearer iOS ou Cookie Web)
- * - Réponse mise en cache 1h côté Next.js (revalidate ISR)
+ * Liste les packages eSIM disponibles depuis l'API partenaire.
+ * Utilise /open/package/list pour obtenir les prix réels.
  */
 export async function GET(request: Request) {
-  // Auth flexible (Bearer OU Cookie)
-  const { error: authError, user } = await requireAuthFlexible(request)
+  const { error: authError } = await requireAuthFlexible(request)
   if (authError) return authError
 
   const { searchParams } = new URL(request.url)
   const locationCode = searchParams.get('location') ?? undefined
-  const type = searchParams.get('type') ?? undefined
+  const type = searchParams.get('type') ?? 'BASE'
 
   try {
-    const data = await esimPost<{ success: boolean; obj?: { packageList?: unknown[] }; packageList?: unknown[] }>(
-      '/open/package/list',
-      {
-        ...(locationCode && { locationCode }),
-        ...(type && { type }),
-      },
-      { revalidate: 3600 } // Cache ISR 1h — les packages changent peu
-    )
+    // Récupérer les packages avec prix depuis l'API partenaire
+    const packagesData = await esimPost<PackageListResponse>('/open/package/list', {
+      type,
+      ...(locationCode && { locationCode: locationCode.toUpperCase() }),
+    })
 
-    // Normalisation : retourner { success, obj: { packageList } }
-    // Format attendu par useEsimAccess.ts → data.obj?.packageList
-    const packageList =
-      data?.obj?.packageList ??
-      data?.packageList ??
-      []
+    const allPackages = packagesData.obj?.packageList || []
+
+    // Transformer et formater les packages
+    const packageList = allPackages.map(pkg => {
+      // Volume en bytes → convertir en MB
+      const volumeInMB = Math.round((pkg.volume || 0) / (1024 * 1024))
+      // Prix en millièmes de dollar → diviser par 1000
+      // Ex: 50000 = $50.00, retailPrice 100000 = $100.00 (prix suggéré)
+      const costPrice = (pkg.price || 0) / 1000
+      const retailPrice = (pkg.retailPrice || pkg.price || 0) / 1000
+      
+      return {
+        packageCode: pkg.packageCode,
+        name: pkg.name,
+        volume: volumeInMB,
+        volumeDisplay: formatVolume(pkg.volume),
+        duration: pkg.duration,
+        durationUnit: pkg.durationUnit || 'DAY',
+        price: retailPrice,
+        costPrice: costPrice,
+        currencyCode: pkg.currencyCode || 'USD',
+        location: pkg.location,
+        locationCode: pkg.locationCode,
+        speed: pkg.speed || '4G/LTE',
+        locationNetworkList: pkg.locationNetworkList || [{ locationName: pkg.location }],
+      }
+    })
+
+    // Trier par prix
+    packageList.sort((a, b) => a.price - b.price)
 
     return NextResponse.json({
-      success: data?.success ?? true,
-      obj: { packageList },
+      success: true,
+      obj: { 
+        packageList,
+        totalCount: packageList.length
+      },
     })
   } catch (error) {
     if (error instanceof ESIMAccessError) {
@@ -52,4 +98,11 @@ export async function GET(request: Request) {
       { status: 500 }
     )
   }
+}
+
+function formatVolume(bytes: number): string {
+  const gb = bytes / (1024 * 1024 * 1024)
+  if (gb >= 1) return `${Math.round(gb * 10) / 10}GB`
+  const mb = bytes / (1024 * 1024)
+  return `${Math.round(mb)}MB`
 }
