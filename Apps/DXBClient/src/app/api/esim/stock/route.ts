@@ -1,77 +1,129 @@
-import { requireAuth } from '@/lib/auth-middleware'
+import { requireAuthFlexible } from '@/lib/auth-middleware'
+import { createClient } from '@/lib/supabase/server'
+import { esimPost, ESIMAccessError } from '@/lib/esim-access-client'
 import { NextResponse } from 'next/server'
 
-const ESIM_API_URL = 'https://api.esimaccess.com/api/v1'
+interface EsimItem {
+  esimTranNo?: string
+  orderNo?: string
+  iccid?: string
+  ac?: string
+  qrCodeUrl?: string
+  smdpStatus?: string
+  packageList?: Array<{
+    packageCode?: string
+    packageName?: string
+    totalVolume?: number
+    expiredTime?: string
+    price?: number
+    currencyCode?: string
+  }>
+}
 
+interface EsimQueryResponse {
+  success?: boolean
+  obj?: {
+    esimList?: EsimItem[]
+    pager?: { total?: number }
+  }
+}
+
+/**
+ * GET /api/esim/stock
+ * Retourne les eSIMs en stock disponibles à la vente.
+ * Filtre : eSIMs avec smdpStatus=RELEASED et non attribuées à un client.
+ */
 export async function GET(request: Request) {
-  // Vérifier l'authentification
-  const { error: authError } = await requireAuth(request)
+  const { error: authError } = await requireAuthFlexible(request)
   if (authError) return authError
 
   try {
-    // Récupérer toutes les eSIMs du compte marchand
-    const response = await fetch(`${ESIM_API_URL}/open/esim/query`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'RT-AccessCode': process.env.ESIM_ACCESS_CODE || '',
-        'RT-SecretKey': process.env.ESIM_SECRET_KEY || '',
-      },
-      body: JSON.stringify({
-        pager: { pageNum: 1, pageSize: 100 }
-      }),
+    // 1. Récupérer toutes les eSIMs depuis l'API
+    const data = await esimPost<EsimQueryResponse>('/open/esim/query', {
+      pager: { pageNum: 1, pageSize: 200 }
     })
 
-    if (!response.ok) {
-      console.error('[esim/stock] API error:', response.status)
-      return NextResponse.json(
-        { success: false, error: 'eSIM API error' },
-        { status: response.status }
-      )
-    }
+    const allEsims = data.obj?.esimList || []
 
-    const data = await response.json()
+    // 2. Récupérer les ICCIDs déjà attribués à des clients (dans Supabase)
+    const supabase = await createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: assignedOrders } = await (supabase.from('esim_orders') as any)
+      .select('iccid')
     
-    if (!data.success) {
-      return NextResponse.json(
-        { success: false, error: data.errorMsg || 'API error' },
-        { status: 400 }
-      )
-    }
+    const assignedIccids = new Set(
+      (assignedOrders || []).map((o: { iccid: string }) => o.iccid)
+    )
 
-    const esimList = data.obj?.esimList || []
-    const total = data.obj?.pager?.total || esimList.length
+    // 3. Filtrer : seulement RELEASED + non attribuées
+    const availableEsims = allEsims.filter(esim => 
+      esim.smdpStatus === 'RELEASED' && 
+      esim.iccid && 
+      !assignedIccids.has(esim.iccid)
+    )
 
-    // Calculer les stats par statut
-    const stats = {
-      total,
-      available: esimList.filter((e: any) => e.esimStatus === 'GOT_RESOURCE').length,
-      inUse: esimList.filter((e: any) => e.esimStatus === 'IN_USE').length,
-      expired: esimList.filter((e: any) => e.esimStatus === 'EXPIRED').length,
-    }
+    // 4. Grouper par package pour l'affichage
+    const byPackage: Record<string, {
+      packageCode: string
+      packageName: string
+      count: number
+      totalVolume: number
+      price: number
+      currencyCode: string
+      esims: EsimItem[]
+    }> = {}
 
-    // Grouper par package
-    const byPackage: Record<string, { name: string; count: number; volume: number }> = {}
-    esimList.forEach((esim: any) => {
+    availableEsims.forEach(esim => {
       const pkg = esim.packageList?.[0]
-      if (pkg) {
+      if (pkg?.packageCode) {
         const key = pkg.packageCode
         if (!byPackage[key]) {
-          byPackage[key] = { name: pkg.packageName, count: 0, volume: pkg.volume }
+          byPackage[key] = {
+            packageCode: key,
+            packageName: pkg.packageName || 'eSIM',
+            count: 0,
+            totalVolume: pkg.totalVolume || 0,
+            price: pkg.price || 0,
+            currencyCode: pkg.currencyCode || 'USD',
+            esims: []
+          }
         }
         byPackage[key].count++
+        byPackage[key].esims.push(esim)
       }
     })
+
+    // LOG DIAGNOSTIC DXB PROD 2026-02-18
+    console.log('### DXB PROD BACKEND STOCK DEBUG 2026-02-18-LOG')
+    console.log(`[stock] (1) Total eSIMs récupérées de l’API eSIMAccess: ${allEsims.length}`)
+    console.log(`[stock] (2) ICCIDs attribués (dans Supabase): ${assignedIccids.size}`)
+    console.log(`[stock] (3) eSIMs dispos après filtre: ${availableEsims.length}`)
+    if (availableEsims.length < 5) {
+      console.log('[stock] Détail eSIMs dispo:', JSON.stringify(availableEsims, null, 2))
+    }
+// 5. Stats
+    const stats = {
+      total: allEsims.length,
+      available: availableEsims.length,
+      assigned: assignedIccids.size,
+    }
 
     return NextResponse.json({
       success: true,
       obj: {
         stats,
-        byPackage: Object.values(byPackage),
-        esimList: esimList.slice(0, 20), // Limiter pour la réponse
+        stockList: Object.values(byPackage),
+        esimList: availableEsims
       }
     })
   } catch (error) {
+    if (error instanceof ESIMAccessError) {
+      console.error('[esim/stock] eSIM API error:', error.status, error.body)
+      return NextResponse.json(
+        { success: false, error: 'eSIM provider error' },
+        { status: error.status }
+      )
+    }
     console.error('[esim/stock] Error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
