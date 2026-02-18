@@ -118,14 +118,19 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
             requiresAuth: true
         )
 
-        let plans = response.obj?.packageList?.compactMap { pkg in
-            Plan(
+        let plans: [Plan] = response.obj?.packageList?.compactMap { pkg -> Plan? in
+            // L'API retourne volume en MB et price en dollars
+            let volumeMB = pkg.volume ?? 0
+            let volumeGB = volumeMB >= 1024 ? Int(volumeMB / 1024) : 0
+            let dataDisplay = volumeGB > 0 ? volumeGB : max(1, Int(volumeMB / 100))
+            
+            return Plan(
                 id: pkg.packageCode ?? UUID().uuidString,
                 name: pkg.name ?? "eSIM Plan",
                 description: "\(pkg.locationNetworkList?.first?.locationName ?? pkg.location ?? "Global") - \(pkg.duration ?? 0) days",
-                dataGB: Int((pkg.volume ?? 0) / 1_073_741_824), // bytes to GB
+                dataGB: dataDisplay,
                 durationDays: pkg.duration ?? 0,
-                priceUSD: Double(pkg.price ?? 0) / 10000.0,
+                priceUSD: pkg.price.map { Double($0) } ?? 0.0,
                 speed: pkg.speed ?? "4G/LTE",
                 location: pkg.locationNetworkList?.first?.locationName ?? pkg.location ?? "Global",
                 locationCode: pkg.locationCode ?? ""
