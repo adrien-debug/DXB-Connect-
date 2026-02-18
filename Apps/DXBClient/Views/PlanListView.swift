@@ -4,65 +4,63 @@ import DXBCore
 struct PlanListView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @State private var searchText = ""
-    @State private var selectedRegion = "All"
-    @State private var showFilterSheet = false
-    @State private var sortOption: SortOption = .popular
-    @State private var minData: Int = 0
-    @State private var maxPrice: Double = 100
+    @State private var selectedFilter = "All"
     @State private var viewMode: ViewMode = .countries
+    @State private var selectedPlan: Plan?
 
     enum ViewMode: String, CaseIterable {
         case countries = "Countries"
         case list = "All Plans"
     }
 
-    enum SortOption: String, CaseIterable {
-        case popular = "Popular"
-        case priceLow = "Price: Low to High"
-        case priceHigh = "Price: High to Low"
-        case dataHigh = "Data: High to Low"
-    }
+    let filters = ["All", "Europe", "Asia", "Americas"]
 
-    let regions = ["All", "Europe", "Asia", "Americas", "Middle East", "Africa"]
-
+    /// Plans filtrés par recherche et région
     var filteredPlans: [Plan] {
         var plans = coordinator.plans.filter { plan in
-            (searchText.isEmpty || plan.name.localizedCaseInsensitiveContains(searchText) || plan.location.localizedCaseInsensitiveContains(searchText)) &&
-            (selectedRegion == "All" || plan.location.localizedCaseInsensitiveContains(selectedRegion)) &&
-            plan.dataGB >= minData &&
-            plan.priceUSD <= maxPrice
+            searchText.isEmpty || 
+            plan.name.localizedCaseInsensitiveContains(searchText) ||
+            plan.location.localizedCaseInsensitiveContains(searchText)
         }
 
-        switch sortOption {
-        case .popular:
-            break // Keep original order
-        case .priceLow:
-            plans.sort { $0.priceUSD < $1.priceUSD }
-        case .priceHigh:
-            plans.sort { $0.priceUSD > $1.priceUSD }
-        case .dataHigh:
-            plans.sort { $0.dataGB > $1.dataGB }
+        switch selectedFilter {
+        case "Europe":
+            plans = plans.filter { isEuropean($0.locationCode) }
+        case "Asia":
+            plans = plans.filter { isAsian($0.locationCode) }
+        case "Americas":
+            plans = plans.filter { isAmericas($0.locationCode) }
+        default:
+            break
         }
 
         return plans
     }
 
-    var hasActiveFilters: Bool {
-        sortOption != .popular || minData > 0 || maxPrice < 100
-    }
-
-    /// Plans groupés par pays (pour la vue countries)
+    /// Plans groupés par pays
     var plansByCountry: [(country: String, code: String, plans: [Plan])] {
         let grouped = Dictionary(grouping: coordinator.plans) { $0.location }
         return grouped.map { (country: $0.key, code: $0.value.first?.locationCode ?? "", plans: $0.value) }
             .sorted { $0.country < $1.country }
             .filter { searchText.isEmpty || $0.country.localizedCaseInsensitiveContains(searchText) }
     }
+    
+    private func isEuropean(_ code: String) -> Bool {
+        ["FR", "DE", "IT", "ES", "GB", "NL", "BE", "PT", "AT", "CH", "PL", "CZ", "GR", "SE", "NO", "DK", "FI", "IE", "HU", "RO", "BG", "HR", "SK", "SI", "LT", "LV", "EE", "LU", "MT", "CY", "EU"].contains(code.uppercased())
+    }
+    
+    private func isAsian(_ code: String) -> Bool {
+        ["JP", "KR", "CN", "HK", "TW", "SG", "TH", "VN", "MY", "ID", "PH", "IN", "AE", "SA", "QA", "KW", "BH", "OM", "IL", "TR"].contains(code.uppercased())
+    }
+    
+    private func isAmericas(_ code: String) -> Bool {
+        ["US", "CA", "MX", "BR", "AR", "CL", "CO", "PE", "VE", "EC", "UY", "PY", "BO", "CR", "PA", "DO", "PR", "JM", "TT", "BB"].contains(code.uppercased())
+    }
 
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.white
+                AppTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -72,9 +70,6 @@ struct PlanListView: View {
                 }
             }
             .navigationBarHidden(true)
-            .navigationDestination(for: Plan.self) { plan in
-                PlanDetailView(plan: plan)
-            }
             .refreshable {
                 await coordinator.loadPlans()
             }
@@ -82,6 +77,10 @@ struct PlanListView: View {
                 if coordinator.plans.isEmpty {
                     await coordinator.loadPlans()
                 }
+            }
+            .sheet(item: $selectedPlan) { plan in
+                PlanDetailView(plan: plan)
+                    .environmentObject(coordinator)
             }
         }
     }
@@ -96,7 +95,7 @@ struct PlanListView: View {
                     .tracking(1.8)
                     .foregroundColor(AppTheme.textTertiary)
 
-                Text("eSIM Plans")
+                Text("Explore")
                     .font(.system(size: 36, weight: .bold))
                     .tracking(-0.5)
                     .foregroundColor(AppTheme.textPrimary)
@@ -104,38 +103,11 @@ struct PlanListView: View {
 
             Spacer()
 
-            // Filter button
-            Button {
-                showFilterSheet = true
-            } label: {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(hasActiveFilters ? AppTheme.textPrimary : AppTheme.border, lineWidth: 1.5)
-                        .frame(width: 44, height: 44)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(hasActiveFilters ? AppTheme.textPrimary.opacity(0.1) : Color.white)
-                        )
-
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(AppTheme.textPrimary)
-                }
-            }
-            .accessibilityLabel("Filtres et tri")
-            .scaleOnPress()
-            .sheet(isPresented: $showFilterSheet) {
-                FilterSheet(
-                    sortOption: $sortOption,
-                    minData: $minData,
-                    maxPrice: $maxPrice,
-                    onReset: {
-                        sortOption = .popular
-                        minData = 0
-                        maxPrice = 100
-                    }
-                )
-                .presentationDetents([.medium])
+            // Refresh indicator
+            if coordinator.isLoadingPlans {
+                ProgressView()
+                    .tint(AppTheme.textPrimary)
+                    .frame(width: 44, height: 44)
             }
         }
         .padding(.horizontal, 24)
@@ -153,7 +125,7 @@ struct PlanListView: View {
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(AppTheme.textTertiary)
 
-                TextField("Search countries...", text: $searchText)
+                TextField("Search eSIMs...", text: $searchText)
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(AppTheme.textPrimary)
 
@@ -170,55 +142,23 @@ struct PlanListView: View {
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
+                    .fill(AppTheme.surfaceLight)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(AppTheme.border, lineWidth: 1.5)
                     )
             )
 
-            // View Mode Toggle
-            HStack(spacing: 0) {
-                ForEach(ViewMode.allCases, id: \.self) { mode in
-                    Button {
-                        withAnimation(.spring(response: 0.3)) {
-                            viewMode = mode
-                        }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: mode == .countries ? "globe" : "list.bullet")
-                                .font(.system(size: 13, weight: .semibold))
-                            Text(mode.rawValue)
-                                .font(.system(size: 13, weight: .semibold))
-                        }
-                        .foregroundColor(viewMode == mode ? .white : AppTheme.textSecondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(viewMode == mode ? AppTheme.textPrimary : Color.clear)
-                        )
-                    }
-                }
-            }
-            .padding(4)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(AppTheme.gray100)
-            )
-
-            // Region Chips (only show in list mode)
-            if viewMode == .list {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(regions, id: \.self) { region in
-                            TechChip(
-                                title: region,
-                                isSelected: selectedRegion == region
-                            ) {
-                                withAnimation(.spring(response: 0.3)) {
-                                    selectedRegion = region
-                                }
+            // Filter Chips
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(filters, id: \.self) { filter in
+                        TechChip(
+                            title: filter,
+                            isSelected: selectedFilter == filter
+                        ) {
+                            withAnimation(.spring(response: 0.3)) {
+                                selectedFilter = filter
                             }
                         }
                     }
@@ -236,51 +176,22 @@ struct PlanListView: View {
         if coordinator.isLoadingPlans {
             loadingView
         } else if coordinator.plans.isEmpty {
-            ErrorStateTech(message: "Unable to load plans") {
-                Task { await coordinator.loadPlans() }
-            }
+            emptyView
         } else {
-            switch viewMode {
-            case .countries:
-                countriesGrid
-            case .list:
-                plansList
-            }
-        }
-    }
-
-    private var countriesGrid: some View {
-        ScrollView(showsIndicators: false) {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
-                ForEach(Array(plansByCountry.enumerated()), id: \.element.country) { index, item in
-                    NavigationLink {
-                        CountryPlansView(country: item.country, plans: item.plans)
-                    } label: {
-                        CountryCard(
-                            country: item.country,
-                            code: item.code,
-                            planCount: item.plans.count,
-                            minPrice: item.plans.map(\.priceUSD).min() ?? 0
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .slideIn(delay: 0.03 * Double(index))
-                }
-            }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 140)
+            plansList
         }
     }
 
     private var plansList: some View {
         ScrollView(showsIndicators: false) {
             LazyVStack(spacing: 14) {
-                ForEach(Array(filteredPlans.enumerated()), id: \.element.id) { index, plan in
-                    NavigationLink(value: plan) {
+                ForEach(Array(filteredPlans.prefix(100).enumerated()), id: \.element.id) { index, plan in
+                    Button {
+                        selectedPlan = plan
+                    } label: {
                         PlanTechRow(plan: plan)
                     }
                     .buttonStyle(.plain)
-                    .slideIn(delay: 0.02 * Double(index))
                 }
             }
             .padding(.horizontal, 24)
@@ -299,6 +210,133 @@ struct PlanListView: View {
                 .foregroundColor(AppTheme.textTertiary)
             Spacer()
         }
+    }
+
+    private var emptyView: some View {
+        VStack(spacing: 28) {
+            Spacer()
+
+            ZStack {
+                Circle()
+                    .fill(AppTheme.gray100)
+                    .frame(width: 88, height: 88)
+
+                Image(systemName: "globe")
+                    .font(.system(size: 36, weight: .semibold))
+                    .foregroundColor(AppTheme.textPrimary)
+            }
+
+            VStack(spacing: 10) {
+                Text("No Plans Available")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(AppTheme.textPrimary)
+
+                Text("Pull to refresh")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(AppTheme.textTertiary)
+                    .multilineTextAlignment(.center)
+            }
+
+            Spacer()
+        }
+        .padding()
+    }
+}
+
+// MARK: - ESIMOrder Row
+
+struct ESIMOrderRow: View {
+    let order: ESIMOrder
+
+    private var statusColor: Color {
+        switch order.status.uppercased() {
+        case "RELEASED", "IN_USE": return AppTheme.textPrimary
+        case "EXPIRED": return AppTheme.gray400
+        default: return AppTheme.gray500
+        }
+    }
+
+    private var statusText: String {
+        switch order.status.uppercased() {
+        case "RELEASED": return "ACTIVE"
+        case "IN_USE": return "IN USE"
+        case "EXPIRED": return "EXPIRED"
+        default: return order.status.uppercased()
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 16) {
+            // Icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(AppTheme.textPrimary)
+                    .frame(width: 56, height: 56)
+
+                Image(systemName: "simcard.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+
+            // Info
+            VStack(alignment: .leading, spacing: 6) {
+                Text(order.packageName)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(AppTheme.textPrimary)
+
+                HStack(spacing: 12) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(order.totalVolume)
+                            .font(.system(size: 12, weight: .medium))
+                    }
+
+                    HStack(spacing: 5) {
+                        Image(systemName: "number")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(String(order.iccid.prefix(8)) + "...")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                }
+                .foregroundColor(AppTheme.textTertiary)
+            }
+
+            Spacer()
+
+            // Status
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 6, height: 6)
+
+                Text(statusText)
+                    .font(.system(size: 10, weight: .bold))
+                    .tracking(0.5)
+                    .foregroundColor(statusColor)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(statusColor.opacity(0.1))
+            )
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(AppTheme.textMuted)
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(AppTheme.surfaceLight)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(AppTheme.border, lineWidth: 1.5)
+                )
+                .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 3)
+        )
+        .contentShape(Rectangle())
     }
 }
 
@@ -359,7 +397,7 @@ struct CountryCard: View {
         .padding(.horizontal, 12)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
+                .fill(AppTheme.surfaceLight)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
                         .stroke(AppTheme.border, lineWidth: 1.5)
@@ -394,7 +432,7 @@ struct CountryPlansView: View {
 
     var body: some View {
         ZStack {
-            Color.white
+            AppTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -578,7 +616,7 @@ struct PlanTechRow: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
+                .fill(AppTheme.surfaceLight)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(AppTheme.border, lineWidth: 1.5)
@@ -706,188 +744,6 @@ final class PlanListViewModel: ObservableObject {
     }
 }
 
-// MARK: - Filter Sheet
-
-struct FilterSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @Binding var sortOption: PlanListView.SortOption
-    @Binding var minData: Int
-    @Binding var maxPrice: Double
-    var onReset: () -> Void
-
-    var body: some View {
-        ZStack {
-            Color.white
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(AppTheme.textPrimary)
-                            .frame(width: 40, height: 40)
-                            .background(
-                                Circle()
-                                    .stroke(AppTheme.border, lineWidth: 1.5)
-                            )
-                    }
-                    .accessibilityLabel("Fermer")
-
-                    Spacer()
-
-                    Text("FILTERS")
-                        .font(.system(size: 12, weight: .bold))
-                        .tracking(1.5)
-                        .foregroundColor(AppTheme.textTertiary)
-
-                    Spacer()
-
-                    Button {
-                        onReset()
-                    } label: {
-                        Text("Reset")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(AppTheme.textTertiary)
-                    }
-                    .frame(width: 40, height: 40)
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
-
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 28) {
-                        // Sort Section
-                        VStack(alignment: .leading, spacing: 14) {
-                            Text("SORT BY")
-                                .font(.system(size: 11, weight: .bold))
-                                .tracking(1.2)
-                                .foregroundColor(AppTheme.textTertiary)
-
-                            VStack(spacing: 10) {
-                                ForEach(PlanListView.SortOption.allCases, id: \.self) { option in
-                                    Button {
-                                        sortOption = option
-                                    } label: {
-                                        HStack {
-                                            Text(option.rawValue)
-                                                .font(.system(size: 15, weight: .medium))
-                                                .foregroundColor(AppTheme.textPrimary)
-
-                                            Spacer()
-
-                                            if sortOption == option {
-                                                Image(systemName: "checkmark.circle.fill")
-                                                    .font(.system(size: 20, weight: .semibold))
-                                                    .foregroundColor(AppTheme.textPrimary)
-                                            } else {
-                                                Circle()
-                                                    .stroke(AppTheme.border, lineWidth: 1.5)
-                                                    .frame(width: 20, height: 20)
-                                            }
-                                        }
-                                        .padding(16)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(sortOption == option ? AppTheme.textPrimary : AppTheme.border, lineWidth: 1.5)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Min Data Section
-                        VStack(alignment: .leading, spacing: 14) {
-                            HStack {
-                                Text("MINIMUM DATA")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .tracking(1.2)
-                                    .foregroundColor(AppTheme.textTertiary)
-
-                                Spacer()
-
-                                Text("\(minData)GB+")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(AppTheme.textPrimary)
-                            }
-
-                            HStack(spacing: 10) {
-                                ForEach([0, 1, 3, 5, 10], id: \.self) { value in
-                                    Button {
-                                        minData = value
-                                    } label: {
-                                        Text(value == 0 ? "Any" : "\(value)GB")
-                                            .font(.system(size: 12, weight: .bold))
-                                            .foregroundColor(minData == value ? .white : AppTheme.textSecondary)
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 10)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .fill(minData == value ? AppTheme.textPrimary : Color.white)
-                                                    .overlay(
-                                                        RoundedRectangle(cornerRadius: 10)
-                                                            .stroke(minData == value ? Color.clear : AppTheme.border, lineWidth: 1.5)
-                                                    )
-                                            )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Max Price Section
-                        VStack(alignment: .leading, spacing: 14) {
-                            HStack {
-                                Text("MAX PRICE")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .tracking(1.2)
-                                    .foregroundColor(AppTheme.textTertiary)
-
-                                Spacer()
-
-                                Text(maxPrice >= 100 ? "Any" : "$\(Int(maxPrice))")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(AppTheme.textPrimary)
-                            }
-
-                            Slider(value: $maxPrice, in: 5...100, step: 5)
-                                .tint(AppTheme.textPrimary)
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 28)
-                    .padding(.bottom, 100)
-                }
-
-                // Apply Button
-                VStack {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("APPLY FILTERS")
-                            .font(.system(size: 13, weight: .bold))
-                            .tracking(1.2)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 54)
-                            .background(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .fill(AppTheme.textPrimary)
-                            )
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 24)
-                }
-                .background(
-                    Color.white
-                        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: -5)
-                )
-            }
-        }
-    }
-}
 
 #Preview {
     PlanListView()
