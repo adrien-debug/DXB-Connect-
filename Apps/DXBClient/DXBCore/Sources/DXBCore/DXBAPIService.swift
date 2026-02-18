@@ -119,10 +119,10 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
         )
 
         let plans: [Plan] = response.obj?.packageList?.compactMap { pkg -> Plan? in
-            // L'API retourne volume en MB et price en dollars
+            // L'API retourne volume en MB et price en dollars directement
             let volumeMB = pkg.volume ?? 0
-            let volumeGB = volumeMB >= 1024 ? Int(volumeMB / 1024) : 0
-            let dataDisplay = volumeGB > 0 ? volumeGB : max(1, Int(volumeMB / 100))
+            let volumeGB = volumeMB >= 1024 ? volumeMB / 1024 : 0
+            let dataDisplay = volumeGB > 0 ? volumeGB : max(1, volumeMB)
             
             return Plan(
                 id: pkg.packageCode ?? UUID().uuidString,
@@ -130,7 +130,7 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
                 description: "\(pkg.locationNetworkList?.first?.locationName ?? pkg.location ?? "Global") - \(pkg.duration ?? 0) days",
                 dataGB: dataDisplay,
                 durationDays: pkg.duration ?? 0,
-                priceUSD: pkg.price.map { Double($0) } ?? 0.0,
+                priceUSD: pkg.price ?? 0.0,
                 speed: pkg.speed ?? "4G/LTE",
                 location: pkg.locationNetworkList?.first?.locationName ?? pkg.location ?? "Global",
                 locationCode: pkg.locationCode ?? ""
@@ -260,8 +260,11 @@ struct PackageItem: Codable {
     let location: String?
     let locationCode: String?
     let duration: Int?
-    let volume: Int64?
-    let price: Int?
+    let volume: Int?
+    let volumeDisplay: String?
+    let price: Double?
+    let costPrice: Double?
+    let currencyCode: String?
     let speed: String?
     let locationNetworkList: [LocationNetwork]?
 }
