@@ -8,24 +8,24 @@ import { NextResponse } from 'next/server'
  * Query params: iccid (requis)
  */
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const iccid = searchParams.get('iccid')
-
-  if (!iccid) {
-    return NextResponse.json(
-      { success: false, error: 'iccid is required' },
-      { status: 400 }
-    )
-  }
-
   try {
-    // Auth flexible (Bearer OU Cookie)
+    // Auth flexible (Bearer OU Cookie) — vérifiée en premier
     const { error: authError } = await requireAuthFlexible(request)
     if (authError) return authError
 
+    const { searchParams } = new URL(request.url)
+    const iccid = searchParams.get('iccid')
+
+    if (!iccid) {
+      return NextResponse.json(
+        { success: false, error: 'iccid is required' },
+        { status: 400 }
+      )
+    }
+
     const data = await esimPost<{ success: boolean; obj?: Record<string, number | string | null> }>(
       '/open/esim/query',
-      { iccid, queryType: ['USAGE', 'VALIDITY'] }
+      { iccid, queryType: ['USAGE', 'VALIDITY'], pager: { pageNum: 1, pageSize: 1 } }
     )
 
     if (data.success && data.obj) {
