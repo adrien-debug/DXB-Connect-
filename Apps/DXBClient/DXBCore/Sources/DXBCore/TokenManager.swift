@@ -5,26 +5,28 @@ import Foundation
 /// Gestionnaire de tokens avec refresh automatique
 public actor TokenManager {
     private let authService: AuthServiceProtocol
+    private var apiClient: APIClient?
     private var tokenExpiryDate: Date?
-    private let refreshThreshold: TimeInterval = 300 // 5 minutes
+    private let refreshThreshold: TimeInterval = 300
+    private var isRefreshing = false
 
     public init(authService: AuthServiceProtocol) {
         self.authService = authService
     }
 
-    /// Récupère un token valide, le rafraîchit si nécessaire
+    public func setAPIClient(_ client: APIClient) {
+        self.apiClient = client
+    }
+
     public func getValidToken() async throws -> String? {
         guard let token = try await authService.getAccessToken() else {
             return nil
         }
 
-        // Vérifier si le token expire bientôt
         if let expiryDate = getTokenExpiry(from: token) {
             tokenExpiryDate = expiryDate
 
-            // Si le token expire dans moins de 5 minutes, le rafraîchir
             if Date().addingTimeInterval(refreshThreshold) > expiryDate {
-                print("[TokenManager] Token expires soon, refreshing...")
                 return try await refreshToken()
             }
         }
@@ -32,18 +34,39 @@ public actor TokenManager {
         return token
     }
 
-    /// Rafraîchit le token d'accès
     private func refreshToken() async throws -> String? {
-        guard let refreshToken = try await authService.getRefreshToken() else {
+        guard !isRefreshing else {
+            return try await authService.getAccessToken()
+        }
+
+        guard let refreshTokenValue = try await authService.getRefreshToken() else {
             throw TokenError.noRefreshToken
         }
 
-        // TODO: Appeler l'endpoint /api/auth/refresh
-        // Pour l'instant, retourner le token actuel
-        // À implémenter quand l'endpoint sera créé
+        guard let client = apiClient else {
+            throw TokenError.refreshFailed
+        }
 
-        print("[TokenManager] Refresh token endpoint not yet implemented")
-        return try await authService.getAccessToken()
+        isRefreshing = true
+        defer { isRefreshing = false }
+
+        let body: [String: Any] = ["refreshToken": refreshTokenValue]
+
+        do {
+            let response: AuthResponse = try await client.request(
+                endpoint: "auth/refresh",
+                method: "POST",
+                body: body,
+                requiresAuth: false
+            )
+
+            try await authService.saveTokens(access: response.accessToken, refresh: response.refreshToken)
+            await client.setAccessToken(response.accessToken)
+
+            return response.accessToken
+        } catch {
+            throw TokenError.refreshFailed
+        }
     }
 
     /// Extrait la date d'expiration d'un JWT

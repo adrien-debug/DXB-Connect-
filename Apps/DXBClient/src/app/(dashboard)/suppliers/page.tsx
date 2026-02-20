@@ -112,12 +112,12 @@ export default function SuppliersPage() {
       label: 'Nom',
       render: (supplier: Supplier) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+          <div className="w-9 h-9 rounded-xl bg-lime-400 flex items-center justify-center text-zinc-950 text-xs font-bold">
             {supplier.name?.charAt(0)?.toUpperCase()}
           </div>
           <div>
-            <p className="font-semibold text-gray-800">{supplier.name}</p>
-            {supplier.email && <p className="text-xs text-gray-400">{supplier.email}</p>}
+            <p className="font-semibold text-white">{supplier.name}</p>
+            {supplier.email && <p className="text-xs text-zinc-500">{supplier.email}</p>}
           </div>
         </div>
       )
@@ -178,8 +178,8 @@ export default function SuppliersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-14 h-14 rounded-2xl bg-sky-500 flex items-center justify-center animate-pulse">
-          <Truck className="w-7 h-7 text-white" />
+        <div className="w-14 h-14 rounded-2xl bg-lime-400 flex items-center justify-center animate-pulse">
+          <Truck className="w-7 h-7 text-zinc-950" />
         </div>
       </div>
     )
@@ -189,8 +189,8 @@ export default function SuppliersPage() {
     <div className="space-y-8">
       {/* Header */}
       <div className="animate-fade-in-up">
-        <h1 className="text-2xl font-semibold text-gray-800">Fournisseurs</h1>
-        <p className="text-gray-400 text-sm mt-1">Gérez vos fournisseurs et partenaires</p>
+        <h1 className="text-2xl font-semibold text-white">Fournisseurs</h1>
+        <p className="text-zinc-400 text-sm mt-1">Gérez vos fournisseurs et partenaires</p>
       </div>
 
       <DataTable
@@ -213,7 +213,7 @@ export default function SuppliersPage() {
         <form onSubmit={handleSave} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Nom *</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Nom *</label>
               <input
                 type="text"
                 required
@@ -223,7 +223,7 @@ export default function SuppliersPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Société</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Société</label>
               <input
                 type="text"
                 value={editingSupplier.company || ''}
@@ -232,7 +232,7 @@ export default function SuppliersPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Email</label>
               <input
                 type="email"
                 value={editingSupplier.email || ''}
@@ -241,7 +241,7 @@ export default function SuppliersPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Téléphone</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Téléphone</label>
               <input
                 type="tel"
                 value={editingSupplier.phone || ''}
@@ -250,7 +250,7 @@ export default function SuppliersPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Pays</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Pays</label>
               <input
                 type="text"
                 value={editingSupplier.country || ''}
@@ -259,7 +259,7 @@ export default function SuppliersPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Catégorie</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Catégorie</label>
               <select
                 value={editingSupplier.category || ''}
                 onChange={e => setEditingSupplier(prev => ({ ...prev, category: e.target.value }))}
@@ -275,7 +275,7 @@ export default function SuppliersPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Statut</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Statut</label>
               <select
                 value={editingSupplier.status || 'active'}
                 onChange={e => setEditingSupplier(prev => ({ ...prev, status: e.target.value }))}
@@ -288,14 +288,14 @@ export default function SuppliersPage() {
           </div>
 
           {/* Section API */}
-          <div className="bg-sky-50 rounded-xl p-5 space-y-4 border border-sky-100">
+          <div className="bg-lime-400/10 rounded-xl p-5 space-y-4 border border-lime-400/20">
             <div className="flex items-center gap-2 mb-2">
-              <Wifi size={18} className="text-sky-600" />
-              <h4 className="font-semibold text-gray-800">Connexion API</h4>
+              <Wifi size={18} className="text-lime-400" />
+              <h4 className="font-semibold text-white">Connexion API</h4>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Statut API</label>
+                <label className="block text-sm font-medium text-zinc-200 mb-2">Statut API</label>
                 <select
                   value={editingSupplier.api_status || 'disconnected'}
                   onChange={e => setEditingSupplier(prev => ({ ...prev, api_status: e.target.value as Supplier['api_status'] }))}
@@ -307,7 +307,7 @@ export default function SuppliersPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Clé API</label>
+                <label className="block text-sm font-medium text-zinc-200 mb-2">Clé API</label>
                 <input
                   type="password"
                   value={editingSupplier.api_key || ''}
@@ -320,7 +320,7 @@ export default function SuppliersPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Adresse</label>
+            <label className="block text-sm font-medium text-zinc-200 mb-2">Adresse</label>
             <textarea
               value={editingSupplier.address || ''}
               onChange={e => setEditingSupplier(prev => ({ ...prev, address: e.target.value }))}
@@ -329,7 +329,7 @@ export default function SuppliersPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Notes</label>
+            <label className="block text-sm font-medium text-zinc-200 mb-2">Notes</label>
             <textarea
               value={editingSupplier.notes || ''}
               onChange={e => setEditingSupplier(prev => ({ ...prev, notes: e.target.value }))}
@@ -337,11 +337,11 @@ export default function SuppliersPage() {
               className="input-premium resize-none"
             />
           </div>
-          <div className="flex justify-end gap-3 pt-5 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-5 border-t border-zinc-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-5 py-2.5 text-gray-500 hover:bg-gray-50 rounded-2xl transition-all font-medium"
+              className="px-5 py-2.5 text-zinc-400 hover:bg-zinc-800 rounded-2xl transition-all font-medium"
             >
               Annuler
             </button>
@@ -350,9 +350,9 @@ export default function SuppliersPage() {
               disabled={saving}
               className="
                 px-6 py-2.5
-                bg-sky-500 hover:bg-sky-600
-                text-white font-medium rounded-2xl
-                
+                bg-lime-400 hover:bg-lime-300
+                text-zinc-950 font-medium rounded-2xl
+
                 hover:-translate-y-0.5
                 transition-all duration-300
                 disabled:opacity-50 disabled:cursor-not-allowed

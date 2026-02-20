@@ -97,9 +97,9 @@ if (!userOrders || userOrders.length === 0) {
 }
 
 // ✅ /api/esim/stock - Stock disponible (non attribué)
-const availableEsims = allEsims.filter(esim => 
-  esim.smdpStatus === 'RELEASED' && 
-  esim.iccid && 
+const availableEsims = allEsims.filter(esim =>
+  esim.smdpStatus === 'RELEASED' &&
+  esim.iccid &&
   !assignedIccids.has(esim.iccid)  // ← CRITIQUE : Exclure les attribués
 )
 ```
@@ -144,7 +144,7 @@ export async function requireAuthFlexible(request: Request) {
     const token = authHeader.substring(7)
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser(token)
-    
+
     if (error || !user) {
       return {
         error: NextResponse.json(
@@ -160,7 +160,7 @@ export async function requireAuthFlexible(request: Request) {
   // 2. Fallback Cookie Session (Web)
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
-  
+
   if (error || !user) {
     return {
       error: NextResponse.json(
@@ -170,7 +170,7 @@ export async function requireAuthFlexible(request: Request) {
       user: null
     }
   }
-  
+
   return { user, error: null }
 }
 ```
@@ -184,7 +184,7 @@ public enum APIConfig {
     case development
     case staging
     case production
-    
+
     public static var current: APIConfig = {
         #if DEBUG
         return .development
@@ -192,7 +192,7 @@ public enum APIConfig {
         return .production
         #endif
     }()
-    
+
     public static var baseURL: URL {
         switch current {
         case .development:
@@ -334,7 +334,7 @@ git push origin Clean1
 
 ## 📋 Règles Cursor
 
-6 règles absolues définies dans `.cursor/rules/` :
+7 règles absolues définies dans `.cursor/rules/` :
 
 | Fichier | Description | Scope |
 |---------|-------------|-------|
@@ -344,6 +344,7 @@ git push origin Clean1
 | `03-swift-ios.mdc` | Standards Swift/SwiftUI | Fichiers `*.swift` |
 | `04-database-supabase.mdc` | Supabase & migrations | Fichiers `*.sql` |
 | `05-architecture-railway.mdc` | **Architecture Railway stricte** | **Toujours actif** |
+| `06-figma-integration.mdc` | **Intégration Figma MCP** | Design System |
 
 **🚂 Architecture Railway (NON NÉGOCIABLE)** :
 ```
@@ -393,9 +394,9 @@ APIConfig.current = .production  // ⚠️ Pointe vers Railway (ancien)
 ```
 
 ### Problèmes Identifiés
-1. 🔴 **CRITIQUE**: App iOS pointe vers ancienne API Railway
-2. 🟡 **Attention**: Pas de refresh token automatique
-3. 🟡 **Attention**: Gestion d'erreur basique (print uniquement)
+1. ~~🔴 **CRITIQUE**: App iOS pointe vers ancienne API Railway~~ → ✅ Corrigé
+2. ~~🟡 **Attention**: Pas de refresh token automatique~~ → ✅ Implémenté
+3. ~~🟡 **Attention**: Gestion d'erreur basique (print uniquement)~~ → ✅ Logger structuré
 4. 🟡 **Attention**: Pas de cache local pour mode offline
 
 ### ✅ Corrections Appliquées (Priorité 1)
@@ -416,9 +417,10 @@ APIConfig.current = .production  // ⚠️ Pointe vers Railway (ancien)
 ### ✅ Corrections Appliquées (Priorité 2)
 
 1. ✅ **Refresh Token Automatique**
-   - `TokenManager.swift` créé avec vérification auto
-   - Endpoint `/api/auth/refresh` implémenté
-   - Intégration dans APIClient
+   - `TokenManager.swift` implémenté avec appel réel `/api/auth/refresh`
+   - Guard anti-concurrence (pas de double refresh)
+   - Endpoint `/api/auth/refresh` fonctionnel (Supabase session refresh)
+   - Intégration complète dans APIClient avec `setTokenManager()`
 
 2. ✅ **Logging Structuré**
    - `Logger.swift` avec OSLog
@@ -430,10 +432,39 @@ APIConfig.current = .production  // ⚠️ Pointe vers Railway (ancien)
    - AuthServiceTests, APIClientTests, ConfigTests, TokenManagerTests
    - Couverture ~60%
 
-### 🔄 Prochaines Étapes (Priorité 3)
+### ✅ Corrections Appliquées (Priorité 3 - Février 2026)
+
+1. ✅ **Usage Réel API** (remplace hardcoded 65%/75%)
+   - `fetchUsage(iccid:)` dans DXBAPIService → `/api/esim/usage`
+   - `usageCache` dans AppCoordinator avec chargement automatique
+   - DashboardView, MyESIMsView, ESIMDetailView affichent données réelles
+   - Modèle `ESIMUsage` avec calcul %, formatage bytes
+
+2. ✅ **Top-Up eSIM** (rechargement data)
+   - `fetchTopUpPackages(iccid:)` → `GET /api/esim/topup`
+   - `topUpESIM(iccid:, packageCode:)` → `POST /api/esim/topup`
+   - `TopUpSheet` dans ESIMDetailView avec sélection package + achat
+
+3. ✅ **Cancel / Suspend / Resume**
+   - `cancelOrder(orderNo:)` → `POST /api/esim/cancel`
+   - `suspendESIM(orderNo:)` / `resumeESIM(orderNo:)` → `POST /api/esim/suspend`
+   - Section "Manage" dans ESIMDetailView avec confirmations
+   - Fix backend : `suspend/route.ts` utilise `requireAuthFlexible` (Bearer iOS)
+
+4. ✅ **Nettoyage**
+   - `bypassAuthForTesting` supprimé (auth réelle obligatoire)
+   - `preferredColorScheme(.light)` supprimé (respect préférence user)
+   - `loadStock()` retiré du customer (admin-only)
+   - Polling progressif (5s → 30s backoff au lieu de 3s constant)
+   - Forgot Password dans LoginModalView
+   - Terms/Privacy fonctionnels dans AuthView
+   - Validation input dans EditProfileSheet
+   - Persistence Language/Appearance avec `savePreferences()`
+
+### 🔄 Prochaines Étapes
 1. **Cache**: Ajouter cache local pour mode offline
 2. **Analytics**: Implémenter tracking événements
-3. **Erreurs**: Améliorer gestion d'erreurs
+3. **Webhook eSIM**: Sécuriser avec signature
 
 ### Scripts Disponibles
 ```bash
@@ -515,6 +546,93 @@ cd Apps/DXBClient
 | **Admin Web** | NextJS 14, TailwindCSS, React Query |
 | **Backend** | Supabase (Auth, PostgreSQL, Edge Functions) |
 | **eSIM API** | eSIM Access Provider |
+| **Design** | Figma (MCP intégré via Cursor) |
+
+## 🎨 Design System & Figma
+
+### ✅ Migration Tokens Terminée (19 février 2026)
+
+**Statut** : 🎉 **100% des vues iOS migrées vers les design tokens**
+
+| Métrique | Valeur |
+|----------|--------|
+| Vues migrées | 5 principales |
+| Lignes changées | ~2370 |
+| Valeurs hardcodées remplacées | ~350+ |
+| Erreurs de compilation | 0 |
+
+**Fichiers** : `DashboardView`, `AuthView`, `PlanListView`, `MyESIMsView`, `ProfileView`
+
+📖 **Détails complets** : `DESIGN_MIGRATION_COMPLETE.md`
+
+### Figma MCP Intégration
+
+Le design Flysim est connecté à Cursor via MCP (Model Context Protocol) :
+
+**Design File** : [Flysim sur Figma](https://www.figma.com/design/nhn7vx1XRE4r4dOUXEBDkM/Flysim)
+
+**Configuration MCP** : `~/.cursor/mcp.json`
+
+```json
+{
+  "figma-flysim": {
+    "url": "https://mcp.figma.com/mcp",
+    "designUrl": "https://www.figma.com/design/nhn7vx1XRE4r4dOUXEBDkM/Flysim"
+  }
+}
+```
+
+### Synchronisation Design Tokens
+
+**Script de synchronisation** : `scripts/sync-figma-tokens.js`
+
+Extrait les tokens de design depuis Figma et génère automatiquement :
+- `Theme.generated.swift` (iOS SwiftUI)
+- `tokens.generated.css` (Next.js Web)
+
+**Usage** :
+
+```bash
+# 1. Configurer token Figma (optionnel)
+echo "FIGMA_ACCESS_TOKEN=your_token" >> .env.local
+
+# 2. Lancer la synchronisation
+node scripts/sync-figma-tokens.js
+
+# 3. Vérifier les fichiers générés
+git diff Apps/DXBClient/Views/Theme.generated.swift
+git diff Apps/DXBClient/src/styles/tokens.generated.css
+```
+
+### Design Tokens Actuels
+
+**Couleurs (Pulse Theme)** :
+- Accent : `#CDFF00` (Lime)
+- Primary : `#09090B` / `#FAFAFA` (Dark/Light)
+- Grayscale : Zinc scale (50-900)
+- Semantic : Success, Error, Warning, Info
+
+**Spacing** : `xs:4px → xxxl:48px`
+
+**Radius** : `xs:6px → full:9999px`
+
+**Règle absolue** : Toujours utiliser les tokens, jamais de valeurs hardcodées.
+
+```swift
+// ✅ iOS - Utiliser les tokens
+.foregroundColor(AppTheme.accent)
+.padding(AppTheme.Spacing.base)
+.cornerRadius(AppTheme.Radius.md)
+```
+
+```css
+/* ✅ Web - Utiliser les tokens */
+color: var(--accent);
+padding: var(--spacing-base);
+border-radius: var(--radius-md);
+```
+
+**Documentation complète** : `.cursor/rules/06-figma-integration.mdc`
 
 ## Flux eSIM
 
@@ -742,7 +860,18 @@ Apps/DXBClient/
 │   │   │   └── esim/           # API eSIM Access
 │   │   ├── login/              # Page de connexion
 │   │   ├── layout.tsx          # Root layout
-│   │   └── page.tsx            # Redirect vers dashboard
+│   │   ├── page.tsx            # Homepage marketing
+│   │   ├── features/           # Fonctionnalités (marketing)
+│   │   ├── pricing/            # Page tarifs (marketing)
+│   │   ├── coverage/           # Page couverture (marketing)
+│   │   ├── how-it-works/       # Explication (marketing)
+│   │   ├── faq/                # FAQ (marketing)
+│   │   ├── contact/            # Contact (marketing)
+│   │   ├── blog/               # Blog (marketing)
+│   │   ├── partners/           # Partenaires (marketing)
+│   │   ├── legal/              # CGU/Privacy (marketing)
+│   │   ├── sitemap.ts          # SEO sitemap
+│   │   └── robots.ts           # SEO robots
 │   ├── components/
 │   │   ├── Sidebar.tsx         # Navigation + logout
 │   │   ├── DataTable.tsx       # Table réutilisable

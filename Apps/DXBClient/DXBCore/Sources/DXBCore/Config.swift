@@ -63,6 +63,13 @@ public enum APIEndpoint {
     case esimOrders
     case esimPurchase
     case esimBalance
+    case esimUsage
+    case esimTopup
+    case esimSuspend
+    case esimCancel
+
+    // Auth
+    case authRefresh
 
     // Checkout
     case checkout
@@ -74,12 +81,17 @@ public enum APIEndpoint {
         case .authApple: return "auth/apple"
         case .authEmailSendOTP: return "auth/email/send-otp"
         case .authEmailVerify: return "auth/email/verify"
+        case .authRefresh: return "auth/refresh"
 
         // eSIM
         case .esimPackages: return "esim/packages"
         case .esimOrders: return "esim/orders"
         case .esimPurchase: return "esim/purchase"
         case .esimBalance: return "esim/balance"
+        case .esimUsage: return "esim/usage"
+        case .esimTopup: return "esim/topup"
+        case .esimSuspend: return "esim/suspend"
+        case .esimCancel: return "esim/cancel"
 
         // Checkout
         case .checkout: return "checkout"

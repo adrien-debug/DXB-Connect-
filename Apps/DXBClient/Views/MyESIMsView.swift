@@ -6,7 +6,7 @@ struct MyESIMsView: View {
     @State private var selectedFilter = "All"
     @State private var pollingTask: Task<Void, Never>?
 
-    let filters = ["All", "Active", "Expired"]
+    let filters = ["Active", "All", "Expired"]
 
     var filteredOrders: [ESIMOrder] {
         guard selectedFilter != "All" else { return coordinator.esimOrders }
@@ -29,7 +29,7 @@ struct MyESIMsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundPrimary
+                AppTheme.backgroundSecondary
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -73,10 +73,11 @@ struct MyESIMsView: View {
 
         pollingTask = Task {
             var attempts = 0
-            let maxAttempts = 20
+            let maxAttempts = 10
 
             while !Task.isCancelled && attempts < maxAttempts {
-                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                let delay = min(5 + attempts * 5, 30)
+                try? await Task.sleep(nanoseconds: UInt64(delay) * 1_000_000_000)
                 guard !Task.isCancelled else { break }
                 await coordinator.loadESIMs()
                 attempts += 1
@@ -93,17 +94,18 @@ struct MyESIMsView: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        HStack(alignment: .top) {
+        HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("MY ESIMS")
-                    .font(.system(size: 12, weight: .bold))
-                    .tracking(1.8)
-                    .foregroundColor(AppTheme.textTertiary)
-
-                Text("Your Plans")
-                    .font(.system(size: 34, weight: .bold))
+                Text("My eSIMs")
+                    .font(.system(size: 30, weight: .bold))
                     .tracking(-0.5)
                     .foregroundColor(AppTheme.textPrimary)
+
+                if !coordinator.esimOrders.isEmpty {
+                    Text("\(coordinator.esimOrders.count) plan\(coordinator.esimOrders.count > 1 ? "s" : "")")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(AppTheme.textTertiary)
+                }
             }
 
             Spacer()
@@ -111,28 +113,32 @@ struct MyESIMsView: View {
             Button {
                 coordinator.selectedTab = 1
             } label: {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(AppTheme.accent)
-                        .frame(width: 44, height: 44)
-
+                HStack(spacing: 6) {
                     Image(systemName: "plus")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
+                        .font(.system(size: 12, weight: .bold))
+                    Text("New")
+                        .font(.system(size: 14, weight: .semibold))
                 }
+                .foregroundColor(Color(hex: "0F172A"))
+                .padding(.horizontal, 18)
+                .padding(.vertical, 11)
+                .background(
+                    Capsule()
+                        .fill(AppTheme.accent)
+                )
             }
-            .accessibilityLabel("Acheter un nouveau plan")
             .scaleOnPress()
+            .accessibilityLabel("Acheter un nouveau plan")
         }
         .padding(.horizontal, 20)
-        .padding(.top, 60)
-        .padding(.bottom, 16)
+        .padding(.top, 56)
+        .padding(.bottom, AppTheme.Spacing.base)
     }
 
     // MARK: - Filter
 
     private var filterSection: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             ForEach(filters, id: \.self) { filter in
                 TechChip(
                     title: filter,
@@ -146,8 +152,8 @@ struct MyESIMsView: View {
             }
             Spacer()
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 16)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 12)
     }
 
     // MARK: - Content
@@ -165,7 +171,7 @@ struct MyESIMsView: View {
 
     private var esimsList: some View {
         ScrollView(showsIndicators: false) {
-            LazyVStack(spacing: 12) {
+            LazyVStack(spacing: 10) {
                 ForEach(Array(filteredOrders.enumerated()), id: \.element.id) { index, order in
                     NavigationLink(value: order) {
                         EsimCardTech(order: order)
@@ -174,69 +180,77 @@ struct MyESIMsView: View {
                     .slideIn(delay: 0.03 * Double(index))
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 120)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 100)
         }
     }
 
     private var loadingView: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            ProgressView()
-                .tint(AppTheme.accent)
-                .scaleEffect(1.2)
-            Text("Loading eSIMs...")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(AppTheme.textTertiary)
-            Spacer()
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: AppTheme.Spacing.md) {
+                ForEach(0..<3, id: \.self) { index in
+                    ShimmerPlaceholder(cornerRadius: 20)
+                        .frame(height: 140)
+                        .padding(.horizontal, 16)
+                        .bounceIn(delay: Double(index) * 0.1)
+                }
+            }
+            .padding(.top, AppTheme.Spacing.md)
         }
     }
 
     private var emptyView: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 0) {
             Spacer()
 
-            ZStack {
-                Circle()
-                    .fill(AppTheme.accentSoft)
-                    .frame(width: 80, height: 80)
+            VStack(spacing: 32) {
+                ZStack {
+                    Circle()
+                        .fill(AppTheme.accent.opacity(0.06))
+                        .frame(width: 120, height: 120)
 
-                Image(systemName: "simcard")
-                    .font(.system(size: 34, weight: .semibold))
-                    .foregroundColor(AppTheme.accent)
-            }
+                    Circle()
+                        .fill(AppTheme.accent.opacity(0.1))
+                        .frame(width: 88, height: 88)
 
-            VStack(spacing: 8) {
-                Text("No eSIMs Yet")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(AppTheme.textPrimary)
-
-                Text("Purchase your first eSIM and\nstay connected worldwide")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(AppTheme.textTertiary)
-                    .multilineTextAlignment(.center)
-            }
-
-            Button {
-                coordinator.selectedTab = 1
-            } label: {
-                HStack(spacing: 10) {
-                    Text("BROWSE PLANS")
-                        .font(.system(size: 13, weight: .bold))
-                        .tracking(1)
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 13, weight: .bold))
+                    Image(systemName: "simcard")
+                        .font(.system(size: 36, weight: .medium))
+                        .foregroundColor(AppTheme.accent)
                 }
-                .foregroundColor(.white)
-                .padding(.horizontal, 32)
-                .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(AppTheme.accent)
-                )
+
+                VStack(spacing: 12) {
+                    Text("No eSIMs yet")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(AppTheme.textPrimary)
+
+                    Text("Get your first eSIM and stay\nconnected in 190+ countries")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(AppTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(5)
+                }
+
+                Button {
+                    coordinator.selectedTab = 1
+                } label: {
+                    HStack(spacing: 8) {
+                        Text("Browse plans")
+                            .font(.system(size: 17, weight: .semibold))
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                    .foregroundColor(Color(hex: "0F172A"))
+                    .padding(.horizontal, 36)
+                    .padding(.vertical, 16)
+                    .background(
+                        Capsule()
+                            .fill(AppTheme.accent)
+                            .shadow(color: AppTheme.accent.opacity(0.3), radius: 12, x: 0, y: 4)
+                    )
+                }
+                .accessibilityLabel("Voir les plans disponibles")
+                .scaleOnPress()
             }
-            .accessibilityLabel("Voir les plans disponibles")
-            .scaleOnPress()
 
             Spacer()
         }
@@ -248,13 +262,14 @@ struct MyESIMsView: View {
 
 struct EsimCardTech: View {
     let order: ESIMOrder
+    @EnvironmentObject private var coordinator: AppCoordinator
 
     private var statusColor: Color {
         switch order.status.uppercased() {
         case "RELEASED", "IN_USE": return AppTheme.success
-        case "EXPIRED": return AppTheme.gray400
+        case "EXPIRED": return AppTheme.textSecondary
         case "PENDING", "PENDING_PAYMENT", "PROCESSING": return AppTheme.warning
-        default: return AppTheme.gray500
+        default: return AppTheme.textSecondary
         }
     }
 
@@ -267,6 +282,11 @@ struct EsimCardTech: View {
         case "PROCESSING": return "PROCESSING"
         default: return order.status.uppercased()
         }
+    }
+
+    private var isActive: Bool {
+        let s = order.status.uppercased()
+        return s == "RELEASED" || s == "IN_USE"
     }
 
     private var daysRemaining: Int {
@@ -296,57 +316,73 @@ struct EsimCardTech: View {
     }
 
     private var usagePercentage: Double {
-        return 0.65
+        coordinator.usagePercentage(for: order)
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 14) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(AppTheme.accent.opacity(0.1))
-                        .frame(width: 48, height: 48)
+        HStack(spacing: 0) {
+            // Left status bar
+            RoundedRectangle(cornerRadius: 3)
+                .fill(statusColor)
+                .frame(width: 4)
+                .padding(.vertical, 12)
 
-                    Image(systemName: "simcard.fill")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(AppTheme.accent)
+            VStack(spacing: 14) {
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(isActive ? AppTheme.accent.opacity(0.1) : AppTheme.backgroundTertiary)
+                            .frame(width: 50, height: 50)
+
+                        Image(systemName: "simcard.fill")
+                            .font(.system(size: 19, weight: .semibold))
+                            .foregroundColor(isActive ? AppTheme.accent : AppTheme.textTertiary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(order.packageName)
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(AppTheme.textPrimary)
+                            .lineLimit(1)
+
+                        HStack(spacing: 6) {
+                            Text(order.totalVolume)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(AppTheme.textSecondary)
+
+                            Text("·")
+                                .foregroundColor(AppTheme.textMuted)
+
+                            Text(daysRemainingText)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(isActive ? AppTheme.textSecondary : AppTheme.textTertiary)
+                        }
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 6) {
+                        Text(statusText)
+                            .font(.system(size: 11, weight: .bold))
+                            .tracking(0.5)
+                            .foregroundColor(statusColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                Capsule().fill(statusColor.opacity(0.1))
+                            )
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(AppTheme.textMuted)
+                    }
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(order.packageName)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(AppTheme.textPrimary)
-
-                    Text("ICCID: \(String(order.iccid.prefix(8)))...")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(AppTheme.textMuted)
-                }
-
-                Spacer()
-
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(statusColor)
-                        .frame(width: 6, height: 6)
-
-                    Text(statusText)
-                        .font(.system(size: 10, weight: .bold))
-                        .tracking(0.5)
-                        .foregroundColor(statusColor)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule()
-                        .fill(statusColor.opacity(0.1))
-                )
-            }
-
-            VStack(spacing: 8) {
+                // Progress bar
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(AppTheme.gray100)
+                            .fill(AppTheme.backgroundTertiary)
 
                         RoundedRectangle(cornerRadius: 4)
                             .fill(
@@ -362,39 +398,22 @@ struct EsimCardTech: View {
                 .frame(height: 6)
 
                 HStack {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chart.bar.fill")
-                            .font(.system(size: 10, weight: .semibold))
-                        Text("\(Int(usagePercentage * 100))% used")
-                            .font(.system(size: 11, weight: .medium))
-                    }
+                    Text("\(Int(usagePercentage * 100))% used")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(AppTheme.textTertiary)
 
                     Spacer()
-
-                    Text(order.totalVolume)
-                        .font(.system(size: 12, weight: .bold))
-
-                    Spacer()
-
-                    HStack(spacing: 4) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 10, weight: .semibold))
-                        Text(daysRemainingText)
-                            .font(.system(size: 11, weight: .medium))
-                    }
                 }
-                .foregroundColor(AppTheme.textTertiary)
             }
+            .padding(.leading, 14)
+            .padding(.trailing, 18)
+            .padding(.vertical, 18)
         }
-        .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.surfaceLight)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(AppTheme.border, lineWidth: 1)
-                )
-                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+                .fill(AppTheme.backgroundPrimary)
+                .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(order.packageName), \(statusText), \(order.totalVolume)")
@@ -422,7 +441,7 @@ struct MiniStat: View {
     var body: some View {
         Label(label, systemImage: icon)
             .font(.caption)
-            .foregroundColor(AppTheme.textTertiary)
+            .foregroundColor(AppTheme.textSecondary)
     }
 }
 

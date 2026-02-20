@@ -47,7 +47,7 @@ interface OrderResponse {
 export async function POST(request: NextRequest) {
   try {
     const { user, error: authError } = await requireAuthFlexible(request)
-    
+
     if (authError || !user) {
       console.error('[Apple Pay] Auth error:', authError)
       return NextResponse.json(
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: ApplePayRequest = await request.json()
-    
+
     if (!body.packageCode) {
       return NextResponse.json(
         { success: false, error: 'Package code required' },
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     // 1. Commander on-demand via eSIM Access API
     const transactionId = `dxb_ap_${user.id.slice(0, 8)}_${Date.now()}`
-    
+
     const orderResponse = await esimPost<OrderResponse>('/open/esim/order', {
       transactionId,
       packageInfoList: [{
@@ -116,7 +116,6 @@ export async function POST(request: NextRequest) {
       lpa_code: esimDetails?.ac || '',
       qr_code_url: esimDetails?.qrCodeUrl || '',
       status: esimDetails?.smdpStatus || 'PENDING',
-      payment_method: 'apple_pay' as EsimOrderInsert['payment_method'],
       raw_response: queryResponse.obj as unknown as EsimOrderInsert['raw_response'],
     } as EsimOrderInsert
 

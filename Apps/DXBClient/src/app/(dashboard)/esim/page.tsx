@@ -57,8 +57,8 @@ export default function EsimProvidersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="animate-fade-in-up">
-        <h1 className="text-2xl font-semibold text-gray-800">Acheter eSIM</h1>
-        <p className="text-gray-400 text-sm mt-1">Choisissez votre fournisseur eSIM</p>
+        <h1 className="text-2xl font-semibold text-white">Acheter eSIM</h1>
+        <p className="text-zinc-500 text-sm mt-1">Choisissez votre fournisseur eSIM</p>
       </div>
 
       {/* Stats */}
@@ -91,7 +91,7 @@ export default function EsimProvidersPage() {
 
       {/* Providers Grid */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-700 animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'backwards' }}>
+        <h2 className="text-lg font-semibold text-zinc-200 animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'backwards' }}>
           Fournisseurs disponibles
         </h2>
 
@@ -105,7 +105,7 @@ export default function EsimProvidersPage() {
       {/* Coming Soon */}
       {comingSoonProviders.length > 0 && (
         <div className="space-y-4 opacity-60">
-          <h2 className="text-lg font-semibold text-gray-500">
+          <h2 className="text-lg font-semibold text-zinc-400">
             Bientôt disponible
           </h2>
 
@@ -132,13 +132,13 @@ function ProviderCard({
   const CardContent = (
     <div
       className={`
-        group bg-white rounded-3xl overflow-hidden
-        shadow-sm border border-gray-100/50
+        group bg-zinc-900 rounded-3xl overflow-hidden
+        border border-zinc-800
         transition-all duration-300 ease-out
         animate-fade-in-up
-        ${disabled 
-          ? 'opacity-60 cursor-not-allowed' 
-          : 'hover:shadow-lg hover:-translate-y-1 cursor-pointer'
+        ${disabled
+          ? 'opacity-60 cursor-not-allowed'
+          : 'hover:-translate-y-1 cursor-pointer'
         }
       `}
       style={{ animationDelay: `${0.25 + index * 0.05}s`, animationFillMode: 'backwards' }}
@@ -149,23 +149,23 @@ function ProviderCard({
           <div className="flex items-center gap-3">
             <div className={`
               w-14 h-14 rounded-2xl flex items-center justify-center
-              ${disabled ? 'bg-gray-100' : 'bg-sky-500'}
+              ${disabled ? 'bg-zinc-800' : 'bg-lime-400'}
             `}>
-              <Wifi className={`w-7 h-7 ${disabled ? 'text-gray-400' : 'text-white'}`} />
+              <Wifi className={`w-7 h-7 ${disabled ? 'text-zinc-500' : 'text-zinc-950'}`} />
             </div>
             <div>
-              <h3 className={`font-semibold text-lg ${disabled ? 'text-gray-500' : 'text-gray-800 group-hover:text-sky-600'} transition-colors`}>
+              <h3 className={`font-semibold text-lg ${disabled ? 'text-zinc-400' : 'text-white group-hover:text-lime-400'} transition-colors`}>
                 {provider.name}
               </h3>
-              <p className="text-sm text-gray-400">{provider.coverage}</p>
+              <p className="text-sm text-zinc-500">{provider.coverage}</p>
             </div>
           </div>
           {!disabled && (
-            <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
+            <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-lime-400 group-hover:translate-x-1 transition-all" />
           )}
         </div>
 
-        <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+        <p className="text-sm text-zinc-400 mb-4 line-clamp-2">
           {provider.description}
         </p>
 
@@ -173,30 +173,30 @@ function ProviderCard({
         <div className="space-y-2">
           {provider.features.map((feature, i) => (
             <div key={i} className="flex items-center gap-2 text-sm">
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${disabled ? 'bg-gray-100' : 'bg-sky-50'}`}>
-                {i === 0 && <Zap size={12} className={disabled ? 'text-gray-400' : 'text-sky-500'} />}
-                {i === 1 && <Shield size={12} className={disabled ? 'text-gray-400' : 'text-sky-500'} />}
-                {i === 2 && <Globe size={12} className={disabled ? 'text-gray-400' : 'text-sky-500'} />}
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${disabled ? 'bg-zinc-800' : 'bg-lime-400/10'}`}>
+                {i === 0 && <Zap size={12} className={disabled ? 'text-zinc-500' : 'text-lime-400'} />}
+                {i === 1 && <Shield size={12} className={disabled ? 'text-zinc-500' : 'text-lime-400'} />}
+                {i === 2 && <Globe size={12} className={disabled ? 'text-zinc-500' : 'text-lime-400'} />}
               </div>
-              <span className={disabled ? 'text-gray-400' : 'text-gray-600'}>{feature}</span>
+              <span className={disabled ? 'text-zinc-500' : 'text-zinc-300'}>{feature}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Footer */}
-      <div className={`px-6 py-4 border-t ${disabled ? 'bg-gray-50 border-gray-100' : 'bg-sky-50/50 border-sky-100/50'}`}>
+      <div className={`px-6 py-4 border-t ${disabled ? 'bg-zinc-800 border-zinc-800' : 'bg-lime-400/5 border-lime-400/20'}`}>
         <div className="flex items-center justify-between">
-          <span className={`text-sm font-medium ${disabled ? 'text-gray-400' : 'text-sky-600'}`}>
+          <span className={`text-sm font-medium ${disabled ? 'text-zinc-500' : 'text-lime-400'}`}>
             {disabled ? 'Bientôt' : `${provider.packagesCount}+ packages`}
           </span>
           {!disabled && (
-            <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-600 font-medium">
+            <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-medium">
               Actif
             </span>
           )}
           {disabled && (
-            <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-500 font-medium">
+            <span className="text-xs px-2 py-1 rounded-full bg-zinc-800 text-zinc-400 font-medium">
               Coming soon
             </span>
           )}

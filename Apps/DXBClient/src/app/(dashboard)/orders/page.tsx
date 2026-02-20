@@ -76,7 +76,7 @@ export default function OrdersPage() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 flex items-center gap-2">
+      <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-rose-400 flex items-center gap-2">
         <AlertCircle size={18} />
         Erreur: {error.message}
       </div>
@@ -93,13 +93,13 @@ export default function OrdersPage() {
               <ShoppingBag className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-800">Mes Commandes</h1>
-              <p className="text-slate-500">{orders?.length || 0} commande(s)</p>
+              <h1 className="text-3xl font-bold text-white">Mes Commandes</h1>
+              <p className="text-zinc-400">{orders?.length || 0} commande(s)</p>
             </div>
           </div>
           <button
             onClick={() => refetch()}
-            className="p-3 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-all"
+            className="p-3 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-lime-400 transition-all"
           >
             <RefreshCw size={18} />
           </button>
@@ -134,21 +134,21 @@ export default function OrdersPage() {
                     </div>
 
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-lg font-bold text-slate-800">
+                      <span className="text-lg font-bold text-white">
                         {order.order_number}
                       </span>
-                      <span className="text-sm text-slate-400">
+                      <span className="text-sm text-zinc-500">
                         {formatDate(order.created_at)}
                       </span>
                     </div>
 
                     {/* Items preview */}
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Package size={14} className="text-slate-400" />
+                    <div className="flex items-center gap-2 text-sm text-zinc-300">
+                      <Package size={14} className="text-zinc-500" />
                       <span>
                         {order.items?.length || 0} article(s)
                         {order.items && order.items.length > 0 && (
-                          <span className="text-slate-400 ml-1">
+                          <span className="text-zinc-500 ml-1">
                             - {order.items.slice(0, 2).map(i => i.product_name).join(', ')}
                             {order.items.length > 2 && ` +${order.items.length - 2}`}
                           </span>
@@ -157,7 +157,7 @@ export default function OrdersPage() {
                     </div>
 
                     {/* Payment method */}
-                    <div className="flex items-center gap-2 text-sm text-slate-500 mt-2">
+                    <div className="flex items-center gap-2 text-sm text-zinc-400 mt-2">
                       <CreditCard size={14} />
                       {getPaymentMethodIcon(order.payment_method)}
                     </div>
@@ -165,10 +165,10 @@ export default function OrdersPage() {
 
                   {/* Right side - Total */}
                   <div className="text-right flex-shrink-0">
-                    <div className="text-2xl font-bold text-indigo-600">
+                    <div className="text-2xl font-bold text-lime-400">
                       {formatPrice(order.total)}
                     </div>
-                    <div className="text-xs text-slate-400 mt-1">
+                    <div className="text-xs text-zinc-500 mt-1">
                       dont TVA: {formatPrice(order.tax)}
                     </div>
                   </div>
@@ -176,21 +176,21 @@ export default function OrdersPage() {
 
                 {/* Expandable items */}
                 {order.items && order.items.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-slate-200/60">
+                  <div className="mt-4 pt-4 border-t border-zinc-800">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                       {order.items.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg"
+                          className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg"
                         >
-                          <div className="w-8 h-8 rounded bg-slate-200 flex items-center justify-center flex-shrink-0">
-                            <Package size={14} className="text-slate-400" />
+                          <div className="w-8 h-8 rounded bg-zinc-700 flex items-center justify-center flex-shrink-0">
+                            <Package size={14} className="text-zinc-500" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-700 truncate">
+                            <p className="text-sm font-medium text-zinc-200 truncate">
                               {item.product_name}
                             </p>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-zinc-500">
                               {item.quantity}x {formatPrice(item.unit_price)}
                             </p>
                           </div>
@@ -205,14 +205,14 @@ export default function OrdersPage() {
         </div>
       ) : (
         <div className="text-center py-16 animate-fade-in-up">
-          <div className="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-            <ShoppingBag className="w-10 h-10 text-slate-300" />
+          <div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center mx-auto mb-4">
+            <ShoppingBag className="w-10 h-10 text-zinc-600" />
           </div>
-          <p className="text-slate-500 font-medium text-lg">Aucune commande</p>
-          <p className="text-sm text-slate-400 mt-1 mb-6">Vos commandes apparaîtront ici</p>
+          <p className="text-zinc-400 font-medium text-lg">Aucune commande</p>
+          <p className="text-sm text-zinc-500 mt-1 mb-6">Vos commandes apparaîtront ici</p>
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-xl  hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-lime-400 hover:bg-lime-300 text-zinc-950 font-medium rounded-xl hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             Voir les produits
             <ChevronRight size={18} />

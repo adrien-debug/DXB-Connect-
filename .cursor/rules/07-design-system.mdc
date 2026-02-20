@@ -1,0 +1,106 @@
+# DXB Connect - Design System Rules
+
+## Token Definitions
+
+Tous les design tokens sont définis dans `Apps/DXBClient/Views/Theme.swift` via la struct `AppTheme`.
+
+### Couleurs
+```swift
+AppTheme.accent          // #CDFF00 (lime)
+AppTheme.gray50..gray900 // Zinc scale
+AppTheme.textPrimary     // Adaptatif light/dark
+AppTheme.textSecondary
+AppTheme.textTertiary
+AppTheme.backgroundPrimary / Secondary / Tertiary
+AppTheme.success / warning / error / info
+```
+
+### Spacing
+```swift
+AppTheme.Spacing.xs   // 4pt
+AppTheme.Spacing.sm   // 8pt
+AppTheme.Spacing.md   // 12pt
+AppTheme.Spacing.base // 16pt
+AppTheme.Spacing.lg   // 20pt
+AppTheme.Spacing.xl   // 24pt
+AppTheme.Spacing.xxl  // 32pt
+AppTheme.Spacing.xxxl // 48pt
+```
+
+### Border Radius
+```swift
+AppTheme.Radius.xs   // 6pt
+AppTheme.Radius.sm   // 10pt
+AppTheme.Radius.md   // 14pt
+AppTheme.Radius.lg   // 18pt
+AppTheme.Radius.xl   // 22pt
+AppTheme.Radius.xxl  // 28pt
+AppTheme.Radius.full // 9999pt
+```
+
+### Typography
+```swift
+AppTheme.Typography.heroAmount()    // 48pt bold rounded
+AppTheme.Typography.sectionTitle()  // 22pt semibold
+AppTheme.Typography.body()          // 15pt regular
+AppTheme.Typography.caption()       // 13pt regular
+AppTheme.Typography.button()        // 14pt bold
+AppTheme.Typography.label()         // 10pt bold
+```
+
+## Component Library
+
+Composants dans `Apps/DXBClient/Views/` :
+
+| Composant | Fichier | Description |
+|-----------|---------|-------------|
+| DashboardView | DashboardView.swift | Home page principale |
+| AuthView | AuthView.swift | Login/Register |
+| PlanListView | PlanListView.swift | Liste des plans eSIM |
+| PlanDetailView | PlanDetailView.swift | Détail d'un plan |
+| PaymentSheetView | PaymentSheetView.swift | Checkout/Paiement |
+| PaymentSuccessView | PaymentSuccessView.swift | Confirmation achat |
+| MyESIMsView | MyESIMsView.swift | Liste des eSIMs |
+| ESIMDetailView | ESIMDetailView.swift | Détail eSIM + QR |
+| ProfileView | ProfileView.swift | Profil utilisateur |
+| SupportView | SupportView.swift | FAQ + Contact |
+
+## Styling Approach
+
+- **Framework** : SwiftUI natif
+- **Tokens** : Struct statique `AppTheme` avec `adaptiveColor()` pour light/dark
+- **Modifiers** : `.techCard()`, `.glassCard()`, `.premiumCard()`
+- **Animations** : `.slideIn()`, `.scaleOnPress()`, `.floating()`, `.shimmer()`
+
+## Règles de Design
+
+### OBLIGATOIRE
+- Toujours utiliser `AppTheme.*` pour couleurs, spacing, radius, typo
+- JAMAIS de `Color(hex: "...")` hardcodé dans les vues
+- Les backgrounds utilisent `AppTheme.backgroundSecondary`
+- Les cards utilisent `AppTheme.gray900` + `AppTheme.gray800` border
+
+### Palette
+- Accent : Lime `#CDFF00` (`AppTheme.accent`)
+- Fond : Dark `#0A0A0A` → `#18181B`
+- Texte : White → `#71717A` → `#A1A1AA`
+- Success : Green `#16A34A`
+- Warning : Orange `#D97706`
+- Error : Red `#DC2626`
+
+### Figma Tokens
+Fichier JSON exportable : `scripts/figma-tokens.json`
+Compatible avec Tokens Studio for Figma.
+
+## Icon System
+
+- SF Symbols (natif Apple)
+- Convention : `Image(systemName: "...")`
+- Tailles standard : 11-20pt
+- Couleur : `AppTheme.accent` ou `AppTheme.textTertiary`
+
+## Asset Management
+
+- Images dans `Assets.xcassets/`
+- Pas de CDN (assets embarqués)
+- QR codes chargés via `AsyncImage(url:)`

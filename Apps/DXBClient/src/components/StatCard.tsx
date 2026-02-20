@@ -10,80 +10,79 @@ interface StatCardProps {
     value: number
     isPositive: boolean
   }
-  color?: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'indigo'
+  color?: 'lime' | 'green' | 'purple' | 'orange' | 'red' | 'blue'
 }
 
 const colorConfig = {
-  blue: {
-    accent: 'from-sky-500 to-sky-400',
-    iconBg: 'bg-sky-50',
-    iconColor: 'text-sky-600',
-    ring: 'ring-sky-100',
+  lime: {
+    iconBg: 'bg-lime-400/10',
+    iconColor: 'text-lime-400',
+    ring: 'ring-lime-400/20',
+    accent: 'bg-lime-400',
   },
   green: {
-    accent: 'from-emerald-500 to-emerald-400',
-    iconBg: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
-    ring: 'ring-emerald-100',
+    iconBg: 'bg-emerald-500/10',
+    iconColor: 'text-emerald-400',
+    ring: 'ring-emerald-500/20',
+    accent: 'bg-emerald-400',
   },
   purple: {
-    accent: 'from-violet-500 to-violet-400',
-    iconBg: 'bg-violet-50',
-    iconColor: 'text-violet-600',
-    ring: 'ring-violet-100',
+    iconBg: 'bg-violet-500/10',
+    iconColor: 'text-violet-400',
+    ring: 'ring-violet-500/20',
+    accent: 'bg-violet-400',
   },
   orange: {
-    accent: 'from-amber-500 to-orange-400',
-    iconBg: 'bg-amber-50',
-    iconColor: 'text-amber-600',
-    ring: 'ring-amber-100',
+    iconBg: 'bg-amber-500/10',
+    iconColor: 'text-amber-400',
+    ring: 'ring-amber-500/20',
+    accent: 'bg-amber-400',
   },
   red: {
-    accent: 'from-rose-500 to-rose-400',
-    iconBg: 'bg-rose-50',
-    iconColor: 'text-rose-600',
-    ring: 'ring-rose-100',
+    iconBg: 'bg-rose-500/10',
+    iconColor: 'text-rose-400',
+    ring: 'ring-rose-500/20',
+    accent: 'bg-rose-400',
   },
-  indigo: {
-    accent: 'from-indigo-500 to-indigo-400',
-    iconBg: 'bg-indigo-50',
-    iconColor: 'text-indigo-600',
-    ring: 'ring-indigo-100',
+  blue: {
+    iconBg: 'bg-blue-500/10',
+    iconColor: 'text-blue-400',
+    ring: 'ring-blue-500/20',
+    accent: 'bg-blue-400',
   },
 }
 
-export default function StatCard({ title, value, icon: Icon, trend, color = 'purple' }: StatCardProps) {
+export default function StatCard({ title, value, icon: Icon, trend, color = 'lime' }: StatCardProps) {
   const config = colorConfig[color]
 
   return (
     <div
       className="
-        group relative bg-white rounded-2xl overflow-hidden
-        shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]
+        group relative bg-zinc-900 rounded-2xl overflow-hidden
+        border border-zinc-800 hover:border-zinc-700
         transition-all duration-500 ease-out
-        border border-gray-100
         hover:-translate-y-0.5
       "
     >
-      <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${config.accent}`} />
+      <div className={`absolute top-0 left-0 right-0 h-[3px] ${config.accent}`} />
 
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1.5 min-w-0 flex-1">
-            <p className="text-[11px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider truncate">
+            <p className="text-[11px] sm:text-xs font-semibold text-zinc-500 uppercase tracking-wider truncate">
               {title}
             </p>
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight break-words">
+            <p className="text-xl sm:text-2xl font-bold text-white tracking-tight break-words">
               {value}
             </p>
             {trend && (
               <div className={`
                 inline-flex items-center gap-1 text-[11px] font-semibold mt-1
-                ${trend.isPositive ? 'text-emerald-600' : 'text-rose-500'}
+                ${trend.isPositive ? 'text-emerald-400' : 'text-rose-400'}
               `}>
                 <span className={`
                   inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px]
-                  ${trend.isPositive ? 'bg-emerald-100' : 'bg-rose-100'}
+                  ${trend.isPositive ? 'bg-emerald-500/20' : 'bg-rose-500/20'}
                 `}>
                   {trend.isPositive ? '↑' : '↓'}
                 </span>

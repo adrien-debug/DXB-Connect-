@@ -1,0 +1,1293 @@
+{
+  "project": "DXB Connect iOS App",
+  "frameSize": {
+    "width": 402,
+    "height": 874
+  },
+  "deviceFrame": "iPhone 16 Pro",
+  "designTokens": {
+    "colors": {
+      "accent": "#CDFF00",
+      "accentDark": "#B8F000",
+      "background": "#09090B",
+      "backgroundSecondary": "#18181B",
+      "surface": "#27272A",
+      "surfaceLight": "#3F3F46",
+      "border": "#27272A",
+      "borderLight": "#3F3F46",
+      "textPrimary": "#FAFAFA",
+      "textSecondary": "#A1A1AA",
+      "textTertiary": "#71717A",
+      "textMuted": "#52525B",
+      "success": "#4ADE80",
+      "warning": "#FBBF24",
+      "error": "#F87171",
+      "white": "#FFFFFF",
+      "black": "#000000"
+    },
+    "spacing": {
+      "xs": 4,
+      "sm": 8,
+      "md": 12,
+      "base": 16,
+      "lg": 20,
+      "xl": 24,
+      "xxl": 32,
+      "xxxl": 48
+    },
+    "radius": {
+      "xs": 6,
+      "sm": 10,
+      "md": 14,
+      "lg": 18,
+      "xl": 22,
+      "xxl": 28,
+      "full": 9999
+    },
+    "typography": {
+      "heroAmount": {
+        "size": 48,
+        "weight": "bold",
+        "design": "rounded"
+      },
+      "detailAmount": {
+        "size": 40,
+        "weight": "bold",
+        "design": "rounded"
+      },
+      "sectionTitle": {
+        "size": 22,
+        "weight": "semibold"
+      },
+      "cardAmount": {
+        "size": 18,
+        "weight": "semibold"
+      },
+      "body": {
+        "size": 15,
+        "weight": "regular"
+      },
+      "caption": {
+        "size": 13,
+        "weight": "regular"
+      },
+      "small": {
+        "size": 11,
+        "weight": "regular"
+      },
+      "navTitle": {
+        "size": 12,
+        "weight": "bold",
+        "tracking": 1.5
+      },
+      "button": {
+        "size": 14,
+        "weight": "bold"
+      },
+      "label": {
+        "size": 10,
+        "weight": "bold",
+        "tracking": 1.2
+      }
+    }
+  },
+  "screens": [
+    {
+      "name": "1. Splash",
+      "frame": "iPhone 16 & 17 Pro - Splash",
+      "background": "#0A0A0A",
+      "elements": [
+        {
+          "type": "circle",
+          "name": "Glow",
+          "x": "center",
+          "y": "center - 50",
+          "size": 120,
+          "fill": "#CDFF00",
+          "opacity": 0.12
+        },
+        {
+          "type": "roundedRect",
+          "name": "Logo Container",
+          "x": "center",
+          "y": "center - 50",
+          "width": 80,
+          "height": 80,
+          "radius": 24,
+          "fill": "#CDFF00"
+        },
+        {
+          "type": "icon",
+          "name": "Logo Icon",
+          "icon": "antenna.radiowaves.left.and.right",
+          "x": "center",
+          "y": "center - 50",
+          "size": 36,
+          "color": "#000000"
+        },
+        {
+          "type": "spinner",
+          "name": "Loading",
+          "x": "center",
+          "y": "center + 50",
+          "color": "#CDFF00"
+        }
+      ]
+    },
+    {
+      "name": "2. Auth",
+      "frame": "iPhone 16 & 17 Pro - Auth",
+      "background": "#18181B",
+      "elements": [
+        {
+          "type": "circle",
+          "name": "Background Glow",
+          "x": "center",
+          "y": 200,
+          "size": 600,
+          "fill": "radial-gradient(#CDFF00 8%, transparent)",
+          "opacity": 0.08
+        },
+        {
+          "type": "group",
+          "name": "Logo Section",
+          "y": 220,
+          "children": [
+            {
+              "type": "circle",
+              "size": 140,
+              "fill": "#CDFF00",
+              "opacity": 0.12
+            },
+            {
+              "type": "roundedRect",
+              "width": 100,
+              "height": 100,
+              "radius": 30,
+              "fill": "#CDFF00",
+              "shadow": {
+                "color": "#CDFF00",
+                "opacity": 0.3,
+                "blur": 24,
+                "y": 12
+              }
+            },
+            {
+              "type": "icon",
+              "icon": "antenna.radiowaves.left.and.right",
+              "size": 44,
+              "color": "#000000"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "name": "Title",
+          "text": "DXB CONNECT",
+          "x": "center",
+          "y": 380,
+          "font": {
+            "size": 30,
+            "weight": "bold",
+            "design": "rounded",
+            "tracking": 2
+          },
+          "color": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "name": "Subtitle",
+          "text": "Connected the moment you land",
+          "x": "center",
+          "y": 420,
+          "font": {
+            "size": 15,
+            "weight": "regular"
+          },
+          "color": "#A1A1AA"
+        },
+        {
+          "type": "button",
+          "name": "Login Button",
+          "x": 24,
+          "y": 680,
+          "width": 354,
+          "height": 56,
+          "radius": 18,
+          "fill": "#CDFF00",
+          "content": {
+            "icon": "arrow.right.circle.fill",
+            "text": "LOGIN",
+            "color": "#000000",
+            "font": {
+              "size": 14,
+              "weight": "bold",
+              "tracking": 1
+            }
+          }
+        },
+        {
+          "type": "button",
+          "name": "Register Button",
+          "x": 24,
+          "y": 748,
+          "width": 354,
+          "height": 56,
+          "radius": 18,
+          "fill": "#18181B",
+          "stroke": {
+            "color": "#27272A",
+            "width": 1.5
+          },
+          "content": {
+            "icon": "person.badge.plus",
+            "text": "CREATE ACCOUNT",
+            "color": "#FFFFFF",
+            "font": {
+              "size": 14,
+              "weight": "bold",
+              "tracking": 1
+            }
+          }
+        },
+        {
+          "type": "text",
+          "name": "Terms",
+          "text": "By continuing, you agree to our Terms of Service & Privacy Policy",
+          "x": "center",
+          "y": 820,
+          "font": {
+            "size": 11,
+            "weight": "regular"
+          },
+          "color": "#52525B",
+          "links": [
+            {
+              "text": "Terms of Service",
+              "color": "#CDFF00"
+            },
+            {
+              "text": "Privacy Policy",
+              "color": "#CDFF00"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Dashboard",
+      "frame": "iPhone 16 & 17 Pro - Dashboard",
+      "background": "#18181B",
+      "elements": [
+        {
+          "type": "group",
+          "name": "Header",
+          "y": 0,
+          "height": 280,
+          "children": [
+            {
+              "type": "rect",
+              "name": "Dark Header BG",
+              "width": 402,
+              "height": 80,
+              "fill": "#18181B"
+            },
+            {
+              "type": "hstack",
+              "name": "Top Bar",
+              "x": 20,
+              "y": 50,
+              "spacing": 8,
+              "children": [
+                {
+                  "type": "circle",
+                  "name": "Avatar",
+                  "size": 36,
+                  "fill": "#27272A",
+                  "content": {
+                    "text": "A",
+                    "size": 14,
+                    "color": "#FFFFFF"
+                  }
+                },
+                {
+                  "type": "vstack",
+                  "spacing": 0,
+                  "children": [
+                    {
+                      "type": "text",
+                      "text": "Good morning",
+                      "font": {
+                        "size": 11
+                      },
+                      "color": "#71717A"
+                    },
+                    {
+                      "type": "text",
+                      "text": "Adrien",
+                      "font": {
+                        "size": 16,
+                        "weight": "semibold"
+                      },
+                      "color": "#FFFFFF"
+                    }
+                  ]
+                },
+                {
+                  "type": "spacer"
+                },
+                {
+                  "type": "circle",
+                  "name": "Menu",
+                  "size": 36,
+                  "fill": "#27272A",
+                  "icon": "ellipsis",
+                  "iconSize": 14,
+                  "iconColor": "#FFFFFF"
+                },
+                {
+                  "type": "zstack",
+                  "children": [
+                    {
+                      "type": "circle",
+                      "size": 36,
+                      "fill": "#27272A",
+                      "icon": "bell",
+                      "iconSize": 15,
+                      "iconColor": "#FFFFFF"
+                    },
+                    {
+                      "type": "circle",
+                      "size": 8,
+                      "fill": "#CDFF00",
+                      "x": 26,
+                      "y": 2
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "rect",
+              "name": "Lime Hero Card",
+              "x": 0,
+              "y": 90,
+              "width": 402,
+              "height": 190,
+              "fill": "#CDFF00",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Active eSIMs",
+                  "x": "center",
+                  "y": 20,
+                  "font": {
+                    "size": 13
+                  },
+                  "color": "rgba(0,0,0,0.6)"
+                },
+                {
+                  "type": "text",
+                  "text": "3",
+                  "x": "center",
+                  "y": 45,
+                  "font": {
+                    "size": 48,
+                    "weight": "bold",
+                    "design": "rounded",
+                    "tracking": -2
+                  },
+                  "color": "#000000"
+                },
+                {
+                  "type": "hstack",
+                  "name": "Action Buttons",
+                  "x": 20,
+                  "y": 120,
+                  "spacing": 8,
+                  "children": [
+                    {
+                      "type": "button",
+                      "flex": 1,
+                      "height": 48,
+                      "radius": 14,
+                      "fill": "#000000",
+                      "text": "Buy eSIM",
+                      "icon": "arrow.up.right",
+                      "textColor": "#FFFFFF"
+                    },
+                    {
+                      "type": "button",
+                      "flex": 1,
+                      "height": 48,
+                      "radius": 14,
+                      "fill": "#000000",
+                      "text": "Scan QR",
+                      "icon": "qrcode",
+                      "textColor": "#FFFFFF"
+                    },
+                    {
+                      "type": "button",
+                      "width": 48,
+                      "height": 48,
+                      "radius": 14,
+                      "fill": "rgba(255,255,255,0.5)",
+                      "icon": "square.grid.2x2",
+                      "iconColor": "#000000"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "rect",
+          "name": "Content Area",
+          "x": 0,
+          "y": 260,
+          "width": 402,
+          "height": 614,
+          "fill": "#FFFFFF",
+          "cornerRadius": {
+            "topLeft": 28,
+            "topRight": 28
+          },
+          "children": [
+            {
+              "type": "text",
+              "name": "Cards Title",
+              "text": "Cards",
+              "x": 20,
+              "y": 24,
+              "font": {
+                "size": 22,
+                "weight": "semibold"
+              },
+              "color": "#09090B"
+            },
+            {
+              "type": "hscroll",
+              "name": "eSIM Cards",
+              "x": 20,
+              "y": 60,
+              "spacing": 12,
+              "children": [
+                {
+                  "type": "esimCard",
+                  "width": 160,
+                  "height": 100,
+                  "dark": true,
+                  "name": "Dubai 5GB",
+                  "data": "5 GB",
+                  "iccid": "*1234"
+                },
+                {
+                  "type": "esimCard",
+                  "width": 160,
+                  "height": 100,
+                  "dark": false,
+                  "name": "Europe",
+                  "data": "10 GB",
+                  "iccid": "*5678"
+                },
+                {
+                  "type": "addCard",
+                  "width": 80,
+                  "height": 100,
+                  "icon": "plus"
+                }
+              ]
+            },
+            {
+              "type": "dataUsageRow",
+              "x": 20,
+              "y": 180,
+              "progress": 0.75,
+              "leftLabel": "Data usage",
+              "leftValue": "15 GB total",
+              "rightLabel": "3 active",
+              "rightValue": "5 countries"
+            },
+            {
+              "type": "text",
+              "name": "Activity Title",
+              "text": "Recent activity",
+              "x": 20,
+              "y": 260,
+              "font": {
+                "size": 22,
+                "weight": "semibold"
+              },
+              "color": "#09090B"
+            },
+            {
+              "type": "vstack",
+              "name": "Activity List",
+              "x": 0,
+              "y": 300,
+              "children": [
+                {
+                  "type": "activityRow",
+                  "flag": "🇦🇪",
+                  "name": "Dubai 5GB",
+                  "data": "5 GB",
+                  "status": "Active",
+                  "statusColor": "#4ADE80",
+                  "time": "2h ago"
+                },
+                {
+                  "type": "activityRow",
+                  "flag": "🇪🇺",
+                  "name": "Europe 10GB",
+                  "data": "10 GB",
+                  "status": "Active",
+                  "statusColor": "#4ADE80",
+                  "time": "1d ago"
+                },
+                {
+                  "type": "activityRow",
+                  "flag": "🇺🇸",
+                  "name": "USA 3GB",
+                  "data": "3 GB",
+                  "status": "Expired",
+                  "statusColor": "#71717A",
+                  "time": "5d ago"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "tabBar",
+          "name": "Tab Bar",
+          "x": 32,
+          "y": 794,
+          "width": 338,
+          "height": 60,
+          "style": "capsule",
+          "fill": "#000000",
+          "tabs": [
+            {
+              "icon": "house.fill",
+              "active": true,
+              "color": "#CDFF00"
+            },
+            {
+              "icon": "safari",
+              "active": false,
+              "color": "rgba(250,250,250,0.6)"
+            },
+            {
+              "icon": "simcard",
+              "active": false,
+              "color": "rgba(250,250,250,0.6)"
+            },
+            {
+              "icon": "person",
+              "active": false,
+              "color": "rgba(250,250,250,0.6)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Plan List (Explore)",
+      "frame": "iPhone 16 & 17 Pro - Explore",
+      "background": "#18181B",
+      "elements": [
+        {
+          "type": "vstack",
+          "name": "Header",
+          "x": 16,
+          "y": 52,
+          "children": [
+            {
+              "type": "text",
+              "text": "ESIM PLANS",
+              "font": {
+                "size": 10,
+                "weight": "bold",
+                "tracking": 1.2
+              },
+              "color": "#71717A"
+            },
+            {
+              "type": "text",
+              "text": "Explore",
+              "font": {
+                "size": 26,
+                "weight": "bold"
+              },
+              "color": "#FFFFFF"
+            },
+            {
+              "type": "text",
+              "text": "124 plans available",
+              "font": {
+                "size": 11
+              },
+              "color": "#71717A"
+            }
+          ]
+        },
+        {
+          "type": "searchField",
+          "name": "Search",
+          "x": 16,
+          "y": 130,
+          "width": 370,
+          "height": 44,
+          "radius": 10,
+          "fill": "#18181B",
+          "stroke": "#27272A",
+          "placeholder": "Search plans...",
+          "icon": "magnifyingglass"
+        },
+        {
+          "type": "hscroll",
+          "name": "Filters",
+          "x": 16,
+          "y": 186,
+          "spacing": 6,
+          "children": [
+            {
+              "type": "chip",
+              "text": "All",
+              "selected": true,
+              "fill": "#CDFF00",
+              "textColor": "#000000"
+            },
+            {
+              "type": "chip",
+              "text": "1GB",
+              "selected": false,
+              "fill": "#18181B",
+              "stroke": "#27272A",
+              "textColor": "#71717A"
+            },
+            {
+              "type": "chip",
+              "text": "2GB",
+              "selected": false
+            },
+            {
+              "type": "chip",
+              "text": "5GB",
+              "selected": false
+            },
+            {
+              "type": "chip",
+              "text": "10GB",
+              "selected": false
+            }
+          ]
+        },
+        {
+          "type": "vstack",
+          "name": "Plan List",
+          "x": 16,
+          "y": 240,
+          "spacing": 10,
+          "children": [
+            {
+              "type": "planRow",
+              "flag": "🇦🇪",
+              "location": "UAE",
+              "data": "5GB",
+              "days": "7d",
+              "speed": "4G/LTE",
+              "price": "$9.99"
+            },
+            {
+              "type": "planRow",
+              "flag": "🇪🇺",
+              "location": "Europe",
+              "data": "10GB",
+              "days": "30d",
+              "speed": "5G",
+              "price": "$24.99"
+            },
+            {
+              "type": "planRow",
+              "flag": "🇺🇸",
+              "location": "USA",
+              "data": "3GB",
+              "days": "7d",
+              "speed": "4G/LTE",
+              "price": "$7.99"
+            },
+            {
+              "type": "planRow",
+              "flag": "🇹🇷",
+              "location": "Turkey",
+              "data": "5GB",
+              "days": "14d",
+              "speed": "4G/LTE",
+              "price": "$11.99"
+            },
+            {
+              "type": "planRow",
+              "flag": "🇯🇵",
+              "location": "Japan",
+              "data": "10GB",
+              "days": "30d",
+              "speed": "5G",
+              "price": "$29.99"
+            }
+          ]
+        },
+        {
+          "type": "tabBar",
+          "x": 32,
+          "y": 794,
+          "activeTab": 1
+        }
+      ]
+    },
+    {
+      "name": "5. Plan Detail",
+      "frame": "iPhone 16 & 17 Pro - Plan Detail",
+      "background": "#18181B",
+      "elements": [
+        {
+          "type": "navBar",
+          "x": 20,
+          "y": 8,
+          "backButton": true,
+          "title": "PLAN DETAILS"
+        },
+        {
+          "type": "vstack",
+          "name": "Hero",
+          "x": "center",
+          "y": 80,
+          "alignment": "center",
+          "children": [
+            {
+              "type": "circle",
+              "size": 80,
+              "fill": "#18181B",
+              "content": {
+                "text": "🇦🇪",
+                "size": 40
+              }
+            },
+            {
+              "type": "text",
+              "text": "United Arab Emirates",
+              "font": {
+                "size": 26,
+                "weight": "bold",
+                "tracking": -0.5
+              },
+              "color": "#FFFFFF"
+            },
+            {
+              "type": "text",
+              "text": "Dubai Starter - 5GB",
+              "font": {
+                "size": 15,
+                "weight": "medium"
+              },
+              "color": "#A1A1AA"
+            }
+          ]
+        },
+        {
+          "type": "priceCard",
+          "name": "Price",
+          "x": 20,
+          "y": 220,
+          "width": 362,
+          "height": 110,
+          "radius": 20,
+          "fill": "#CDFF00",
+          "price": "$9.99",
+          "label": "ONE-TIME PAYMENT"
+        },
+        {
+          "type": "grid",
+          "name": "Features",
+          "x": 20,
+          "y": 350,
+          "columns": 2,
+          "spacing": 12,
+          "children": [
+            {
+              "type": "featureCard",
+              "icon": "antenna.radiowaves.left.and.right",
+              "label": "DATA",
+              "value": "5 GB"
+            },
+            {
+              "type": "featureCard",
+              "icon": "calendar",
+              "label": "DURATION",
+              "value": "7 days"
+            },
+            {
+              "type": "featureCard",
+              "icon": "bolt.fill",
+              "label": "SPEED",
+              "value": "4G/LTE"
+            },
+            {
+              "type": "featureCard",
+              "icon": "globe",
+              "label": "COVERAGE",
+              "value": "UAE"
+            }
+          ]
+        },
+        {
+          "type": "includedSection",
+          "name": "Included",
+          "x": 20,
+          "y": 520,
+          "items": [
+            "Instant activation",
+            "24/7 support",
+            "No roaming fees",
+            "Keep your number"
+          ]
+        },
+        {
+          "type": "bottomCTA",
+          "name": "Buy Button",
+          "y": 780,
+          "price": "$9.99",
+          "buttonText": "BUY NOW",
+          "buttonIcon": "arrow.right"
+        }
+      ]
+    },
+    {
+      "name": "6. My eSIMs",
+      "frame": "iPhone 16 & 17 Pro - My eSIMs",
+      "background": "#18181B",
+      "elements": [
+        {
+          "type": "hstack",
+          "name": "Header",
+          "x": 16,
+          "y": 52,
+          "children": [
+            {
+              "type": "vstack",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "MY ESIMS",
+                  "font": {
+                    "size": 10,
+                    "weight": "bold",
+                    "tracking": 1.2
+                  },
+                  "color": "#71717A"
+                },
+                {
+                  "type": "text",
+                  "text": "Your Plans",
+                  "font": {
+                    "size": 26,
+                    "weight": "bold"
+                  },
+                  "color": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "spacer"
+            },
+            {
+              "type": "button",
+              "width": 40,
+              "height": 40,
+              "radius": 10,
+              "fill": "#CDFF00",
+              "icon": "plus",
+              "iconColor": "#000000"
+            }
+          ]
+        },
+        {
+          "type": "hstack",
+          "name": "Filters",
+          "x": 16,
+          "y": 120,
+          "spacing": 6,
+          "children": [
+            {
+              "type": "chip",
+              "text": "All",
+              "selected": true
+            },
+            {
+              "type": "chip",
+              "text": "Active",
+              "selected": false
+            },
+            {
+              "type": "chip",
+              "text": "Expired",
+              "selected": false
+            }
+          ]
+        },
+        {
+          "type": "vstack",
+          "name": "eSIM List",
+          "x": 16,
+          "y": 170,
+          "spacing": 10,
+          "children": [
+            {
+              "type": "esimListCard",
+              "name": "Dubai 5GB - 7 Days",
+              "iccid": "89012345...",
+              "status": "ACTIVE",
+              "statusColor": "#4ADE80",
+              "usage": 0.65,
+              "data": "5 GB",
+              "daysLeft": "5 days left"
+            },
+            {
+              "type": "esimListCard",
+              "name": "Europe 10GB - 30 Days",
+              "iccid": "89045678...",
+              "status": "IN USE",
+              "statusColor": "#4ADE80",
+              "usage": 0.30,
+              "data": "10 GB",
+              "daysLeft": "22 days left"
+            },
+            {
+              "type": "esimListCard",
+              "name": "USA 3GB - 7 Days",
+              "iccid": "89098765...",
+              "status": "EXPIRED",
+              "statusColor": "#71717A",
+              "usage": 1.0,
+              "data": "3 GB",
+              "daysLeft": "Expired"
+            }
+          ]
+        },
+        {
+          "type": "tabBar",
+          "x": 32,
+          "y": 794,
+          "activeTab": 2
+        }
+      ]
+    },
+    {
+      "name": "7. eSIM Detail",
+      "frame": "iPhone 16 & 17 Pro - eSIM Detail",
+      "background": "#18181B",
+      "elements": [
+        {
+          "type": "navBar",
+          "x": 20,
+          "y": 8,
+          "backButton": true,
+          "title": "ESIM DETAILS"
+        },
+        {
+          "type": "qrSection",
+          "name": "QR Code",
+          "x": "center",
+          "y": 80,
+          "status": "ACTIVE",
+          "statusColor": "#4ADE80",
+          "qrSize": 200,
+          "qrRadius": 20,
+          "qrBg": "#18181B",
+          "hint": "Scan to install eSIM"
+        },
+        {
+          "type": "packageCard",
+          "name": "Package Info",
+          "x": 20,
+          "y": 350,
+          "icon": "simcard.fill",
+          "iconBg": "#CDFF00",
+          "iconColor": "#CDFF00",
+          "title": "Dubai 5GB - 7 Days",
+          "subtitle": "5 GB",
+          "info": [
+            {
+              "label": "EXPIRES",
+              "value": "2024-12-31"
+            },
+            {
+              "label": "ORDER",
+              "value": "#ABC123"
+            }
+          ]
+        },
+        {
+          "type": "techInfoCard",
+          "name": "Technical Info",
+          "x": 20,
+          "y": 500,
+          "rows": [
+            {
+              "label": "ICCID",
+              "value": "8901234567890123456",
+              "copyable": true
+            },
+            {
+              "label": "LPA Code",
+              "value": "LPA:1$example.com$123",
+              "copyable": true
+            },
+            {
+              "label": "Order No",
+              "value": "ORD123456",
+              "copyable": true
+            }
+          ]
+        },
+        {
+          "type": "installGuide",
+          "name": "Installation",
+          "x": 20,
+          "y": 670,
+          "steps": [
+            "Go to Settings → Cellular",
+            "Tap 'Add eSIM' or 'Add Cellular Plan'",
+            "Scan the QR code above",
+            "Follow the on-screen instructions"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. Profile",
+      "frame": "iPhone 16 & 17 Pro - Profile",
+      "background": "#18181B",
+      "elements": [
+        {
+          "type": "profileHeader",
+          "name": "Avatar Section",
+          "x": "center",
+          "y": 70,
+          "avatar": {
+            "size": 64,
+            "fill": "#CDFF00",
+            "initial": "A",
+            "initialColor": "#000000"
+          },
+          "name": "Adrien",
+          "email": "adrien@dxbconnect.com",
+          "badge": "PRO"
+        },
+        {
+          "type": "statsCard",
+          "name": "Stats",
+          "x": 16,
+          "y": 200,
+          "stats": [
+            {
+              "icon": "simcard.fill",
+              "value": "12",
+              "label": "ESIMS"
+            },
+            {
+              "icon": "globe",
+              "value": "5",
+              "label": "COUNTRIES"
+            },
+            {
+              "icon": "dollarsign.circle.fill",
+              "value": "$45",
+              "label": "SAVED"
+            }
+          ]
+        },
+        {
+          "type": "settingsSection",
+          "name": "Account",
+          "x": 16,
+          "y": 300,
+          "title": "ACCOUNT",
+          "rows": [
+            {
+              "icon": "person.fill",
+              "title": "Edit Profile",
+              "chevron": true
+            },
+            {
+              "icon": "creditcard.fill",
+              "title": "Payment Methods",
+              "chevron": true
+            },
+            {
+              "icon": "clock.arrow.circlepath",
+              "title": "Order History",
+              "chevron": true
+            },
+            {
+              "icon": "gift.fill",
+              "title": "Refer a Friend",
+              "badge": "$10",
+              "chevron": true
+            }
+          ]
+        },
+        {
+          "type": "settingsSection",
+          "name": "Preferences",
+          "x": 16,
+          "y": 500,
+          "title": "PREFERENCES",
+          "rows": [
+            {
+              "icon": "bell.fill",
+              "title": "Notifications",
+              "toggle": true,
+              "toggleOn": true
+            },
+            {
+              "icon": "globe",
+              "title": "Language",
+              "value": "English",
+              "chevron": true
+            },
+            {
+              "icon": "moon.fill",
+              "title": "Appearance",
+              "value": "Dark",
+              "chevron": true
+            }
+          ]
+        },
+        {
+          "type": "settingsSection",
+          "name": "Support",
+          "x": 16,
+          "y": 660,
+          "title": "SUPPORT",
+          "rows": [
+            {
+              "icon": "questionmark.circle.fill",
+              "title": "Help Center",
+              "chevron": true
+            },
+            {
+              "icon": "envelope.fill",
+              "title": "Contact Us",
+              "chevron": true
+            },
+            {
+              "icon": "doc.text.fill",
+              "title": "Terms & Privacy",
+              "chevron": true
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "name": "Sign Out",
+          "x": 16,
+          "y": 820,
+          "width": 370,
+          "height": 48,
+          "radius": 14,
+          "fill": "#18181B",
+          "stroke": "#27272A",
+          "icon": "rectangle.portrait.and.arrow.right",
+          "text": "Sign Out",
+          "textColor": "#F87171"
+        },
+        {
+          "type": "vstack",
+          "name": "App Info",
+          "x": "center",
+          "y": 880,
+          "children": [
+            {
+              "type": "text",
+              "text": "DXB CONNECT",
+              "font": {
+                "size": 10,
+                "weight": "bold",
+                "tracking": 1.5
+              },
+              "color": "#71717A"
+            },
+            {
+              "type": "text",
+              "text": "Version 1.0.0",
+              "font": {
+                "size": 10
+              },
+              "color": "#52525B"
+            }
+          ]
+        },
+        {
+          "type": "tabBar",
+          "x": 32,
+          "y": 794,
+          "activeTab": 3
+        }
+      ]
+    }
+  ],
+  "components": {
+    "tabBar": {
+      "width": 338,
+      "height": 60,
+      "radius": 9999,
+      "fill": "#000000",
+      "padding": {
+        "h": 20,
+        "v": 10
+      },
+      "iconSize": 18,
+      "activeColor": "#CDFF00",
+      "inactiveColor": "rgba(250,250,250,0.6)"
+    },
+    "planRow": {
+      "height": 70,
+      "radius": 18,
+      "fill": "#18181B",
+      "stroke": "#27272A",
+      "padding": 12,
+      "flagSize": 48,
+      "flagRadius": 14,
+      "flagBg": "#27272A"
+    },
+    "esimCard": {
+      "width": 160,
+      "height": 100,
+      "radius": 18,
+      "darkFill": "#18181B",
+      "lightFill": "#E4E4E7",
+      "padding": 12
+    },
+    "chip": {
+      "height": 36,
+      "radius": 10,
+      "paddingH": 16,
+      "selectedFill": "#CDFF00",
+      "selectedTextColor": "#000000",
+      "defaultFill": "#18181B",
+      "defaultStroke": "#27272A",
+      "defaultTextColor": "#71717A"
+    },
+    "settingsRow": {
+      "height": 52,
+      "iconSize": 15,
+      "iconColor": "#A1A1AA",
+      "textColor": "#FFFFFF",
+      "valueColor": "#A1A1AA",
+      "chevronColor": "#71717A",
+      "chevronSize": 11
+    }
+  }
+}

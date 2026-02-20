@@ -20,7 +20,7 @@ struct PlanDetailView: View {
 
     var body: some View {
         ZStack {
-            AppTheme.backgroundPrimary
+            AppTheme.backgroundSecondary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -33,7 +33,7 @@ struct PlanDetailView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 40, height: 40)
-                            .background(Circle().fill(AppTheme.surfaceHeavy))
+                            .background(Circle().fill(AppTheme.gray100))
                     }
 
                     Spacer()
@@ -41,7 +41,7 @@ struct PlanDetailView: View {
                     Text("PLAN DETAILS")
                         .font(.system(size: 12, weight: .bold))
                         .tracking(1.5)
-                        .foregroundColor(AppTheme.textTertiary)
+                        .foregroundColor(AppTheme.textSecondary)
 
                     Spacer()
 
@@ -51,114 +51,146 @@ struct PlanDetailView: View {
                 .padding(.top, 8)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        // Hero
-                        VStack(spacing: 18) {
-                            ZStack {
-                                Circle()
-                                    .fill(AppTheme.gray100)
-                                    .frame(width: 80, height: 80)
+                    VStack(spacing: 0) {
+                        // Hero with world map background + connection line
+                        ZStack {
+                            // World map background
+                            WorldMapView(
+                                highlightedCodes: [plan.locationCode],
+                                showConnections: true,
+                                accentDots: false,
+                                connectionCodes: [plan.locationCode],
+                                strokeColor: AppTheme.anthracite,
+                                strokeOpacity: 0.04,
+                                dotColor: AppTheme.accent,
+                                showDubaiPulse: true
+                            )
+                            .frame(height: 200)
 
+                            VStack(spacing: 0) {
                                 Text(flagEmoji)
-                                    .font(.system(size: 40))
+                                    .font(.system(size: 72))
+                                    .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 6)
+                                    .padding(.top, 24)
+                                    .slideIn(delay: 0)
+
+                                VStack(spacing: 8) {
+                                    Text(plan.location)
+                                        .font(.system(size: 30, weight: .bold))
+                                        .tracking(-0.8)
+                                        .foregroundColor(AppTheme.textPrimary)
+
+                                    Text(plan.name)
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundColor(AppTheme.textTertiary)
+                                }
+                                .padding(.top, 16)
+                                .slideIn(delay: 0.05)
+
                             }
-                            .slideIn(delay: 0)
+                        }
+                        .padding(.bottom, 20)
 
-                            VStack(spacing: 6) {
-                                Text(plan.location)
-                                    .font(.system(size: 26, weight: .bold))
-                                    .tracking(-0.5)
-                                    .foregroundColor(AppTheme.textPrimary)
-
-                                Text(plan.name)
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(AppTheme.textTertiary)
+                        HStack(spacing: 0) {
+                            VStack(spacing: 4) {
+                                Text("\(plan.dataGB)")
+                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                Text("GB")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .opacity(0.6)
                             }
-                            .slideIn(delay: 0.05)
-                        }
-                        .padding(.top, 20)
+                            .frame(maxWidth: .infinity)
 
-                        // Price Card
-                        VStack(spacing: 8) {
-                            Text(plan.priceUSD.formattedPrice)
-                                .font(.system(size: 48, weight: .bold, design: .rounded))
-                                .tracking(-2)
-                                .foregroundColor(AppTheme.accent)
+                            Rectangle()
+                                .fill(Color(hex: "0F172A").opacity(0.12))
+                                .frame(width: 1, height: 36)
 
-                            Text("ONE-TIME PAYMENT")
-                                .font(.system(size: 11, weight: .bold))
-                                .tracking(1.5)
-                                .foregroundColor(AppTheme.textTertiary)
+                            VStack(spacing: 4) {
+                                Text("\(plan.durationDays)")
+                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                Text("days")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .opacity(0.6)
+                            }
+                            .frame(maxWidth: .infinity)
+
+                            Rectangle()
+                                .fill(Color(hex: "0F172A").opacity(0.12))
+                                .frame(width: 1, height: 36)
+
+                            VStack(spacing: 4) {
+                                Text(plan.priceUSD.formattedPrice)
+                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                Text("one-time")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .opacity(0.6)
+                            }
+                            .frame(maxWidth: .infinity)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 28)
+                        .foregroundColor(Color(hex: "0F172A"))
+                        .padding(.vertical, 22)
+                        .padding(.horizontal, 16)
                         .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(AppTheme.accentSoft)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(AppTheme.accent.opacity(0.2), lineWidth: 1)
-                                )
+                            RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
+                                .fill(AppTheme.accent)
+                                .shadow(color: AppTheme.accent.opacity(0.3), radius: 16, x: 0, y: 6)
                         )
                         .padding(.horizontal, 20)
                         .slideIn(delay: 0.1)
 
-                        // Features Grid
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                            FeatureTechCard(icon: "antenna.radiowaves.left.and.right", label: "DATA", value: "\(plan.dataGB) GB")
-                            FeatureTechCard(icon: "calendar", label: "DURATION", value: "\(plan.durationDays) days")
-                            FeatureTechCard(icon: "bolt.fill", label: "SPEED", value: plan.speed)
-                            FeatureTechCard(icon: "globe", label: "COVERAGE", value: plan.location)
+                        Spacer().frame(height: 16)
+
+                        HStack(spacing: 10) {
+                            PlanSpecCard(icon: "arrow.down.circle.fill", value: "\(plan.dataGB)", unit: "GB", label: "Data")
+                            PlanSpecCard(icon: "clock.fill", value: "\(plan.durationDays)", unit: "days", label: "Validity")
+                            PlanSpecCard(icon: "bolt.fill", value: plan.speed, unit: "", label: "Speed")
                         }
                         .padding(.horizontal, 20)
                         .slideIn(delay: 0.15)
 
-                        // Included Features
-                        VStack(alignment: .leading, spacing: 14) {
-                            Text("INCLUDED")
-                                .font(.system(size: 11, weight: .bold))
-                                .tracking(1.5)
-                                .foregroundColor(AppTheme.textTertiary)
+                        VStack(alignment: .leading, spacing: 20) {
+                            Text("What's included")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(AppTheme.textPrimary)
 
-                            VStack(spacing: 12) {
-                                IncludedFeatureRow(icon: "checkmark.circle.fill", text: "Instant activation")
-                                IncludedFeatureRow(icon: "checkmark.circle.fill", text: "24/7 support")
-                                IncludedFeatureRow(icon: "checkmark.circle.fill", text: "No roaming fees")
-                                IncludedFeatureRow(icon: "checkmark.circle.fill", text: "Keep your number")
+                            VStack(spacing: 0) {
+                                IncludedFeatureRow(icon: "bolt.fill", text: "Instant activation — ready in seconds")
+                                IncludedDivider()
+                                IncludedFeatureRow(icon: "clock.fill", text: "24/7 priority support")
+                                IncludedDivider()
+                                IncludedFeatureRow(icon: "xmark.circle.fill", text: "No roaming fees, ever")
+                                IncludedDivider()
+                                IncludedFeatureRow(icon: "phone.fill", text: "Keep your existing number")
+                                IncludedDivider()
+                                IncludedFeatureRow(icon: "arrow.counterclockwise", text: "Money-back guarantee within 24h")
                             }
                         }
-                        .padding(20)
+                        .padding(22)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(AppTheme.surfaceLight)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(AppTheme.border, lineWidth: 1)
-                                )
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(AppTheme.backgroundPrimary)
+                                .shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1)
+                                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
                         )
                         .padding(.horizontal, 20)
+                        .padding(.top, 20)
                         .slideIn(delay: 0.2)
 
                         Spacer(minLength: 100)
                     }
                 }
 
-                // Bottom CTA
                 VStack(spacing: 0) {
-                    Rectangle()
-                        .fill(AppTheme.border.opacity(0.5))
-                        .frame(height: 0.5)
-
                     HStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("TOTAL")
                                 .font(.system(size: 10, weight: .bold))
-                                .tracking(1)
+                                .tracking(1.5)
                                 .foregroundColor(AppTheme.textTertiary)
 
                             Text(plan.priceUSD.formattedPrice)
-                                .font(.system(size: 22, weight: .bold, design: .rounded))
+                                .font(.system(size: 26, weight: .bold, design: .rounded))
                                 .foregroundColor(AppTheme.textPrimary)
                         }
 
@@ -168,32 +200,33 @@ struct PlanDetailView: View {
                         } label: {
                             HStack(spacing: 10) {
                                 if viewModel.isLoading {
-                                    ProgressView().tint(.white)
+                                    ProgressView()
+                                        .tint(Color(hex: "0F172A"))
                                 } else {
-                                    Text("BUY NOW")
-                                        .font(.system(size: 14, weight: .bold))
-                                        .tracking(1)
+                                    Text("Continue")
+                                        .font(.system(size: 17, weight: .semibold))
                                     Image(systemName: "arrow.right")
                                         .font(.system(size: 14, weight: .bold))
                                 }
                             }
                             .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .foregroundColor(.white)
+                            .frame(height: 58)
+                            .foregroundColor(Color(hex: "0F172A"))
                             .background(
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: 18)
                                     .fill(AppTheme.accent)
                             )
                         }
+                        .pulse(color: AppTheme.accent, radius: 18)
                         .disabled(viewModel.isLoading)
                         .scaleOnPress()
                     }
                     .padding(.horizontal, 20)
-                    .padding(.top, 16)
-                    .padding(.bottom, 34)
+                    .padding(.top, 18)
+                    .padding(.bottom, 36)
                     .background(
                         AppTheme.backgroundPrimary
-                            .shadow(color: Color.black.opacity(0.04), radius: 8, y: -2)
+                            .shadow(color: Color.black.opacity(0.08), radius: 16, y: -6)
                     )
                 }
             }
@@ -231,6 +264,96 @@ struct PlanDetailView: View {
     }
 }
 
+// MARK: - Plan Spec Items
+
+struct PlanSpecCard: View {
+    let icon: String
+    let value: String
+    let unit: String
+    let label: String
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(AppTheme.accent)
+
+            HStack(spacing: 2) {
+                Text(value)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(AppTheme.textPrimary)
+
+                if !unit.isEmpty {
+                    Text(unit)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(AppTheme.textSecondary)
+                        .padding(.top, 3)
+                }
+            }
+
+            Text(label.uppercased())
+                .font(.system(size: 10, weight: .bold))
+                .tracking(1)
+                .foregroundColor(AppTheme.textTertiary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(AppTheme.backgroundPrimary)
+                .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
+        )
+    }
+}
+
+struct PlanSpecItem: View {
+    let value: String
+    let unit: String
+    let label: String
+
+    var body: some View {
+        VStack(spacing: 6) {
+            HStack(spacing: 2) {
+                Text(value)
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundColor(AppTheme.textPrimary)
+
+                if !unit.isEmpty {
+                    Text(unit)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(AppTheme.textSecondary)
+                        .padding(.top, 4)
+                }
+            }
+
+            Text(label.uppercased())
+                .font(.system(size: 10, weight: .semibold))
+                .tracking(0.8)
+                .foregroundColor(AppTheme.textTertiary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct PlanSpecDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(AppTheme.border.opacity(0.5))
+            .frame(width: 0.5, height: 40)
+    }
+}
+
+struct IncludedDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(AppTheme.border.opacity(0.3))
+            .frame(height: 0.5)
+            .padding(.leading, 50)
+            .padding(.vertical, 2)
+    }
+}
+
 // MARK: - Feature Card
 
 struct FeatureTechCard: View {
@@ -254,7 +377,7 @@ struct FeatureTechCard: View {
                 Text(label)
                     .font(.system(size: 10, weight: .bold))
                     .tracking(1)
-                    .foregroundColor(AppTheme.textTertiary)
+                    .foregroundColor(AppTheme.textSecondary)
 
                 Text(value)
                     .font(.system(size: 16, weight: .bold))
@@ -267,7 +390,8 @@ struct FeatureTechCard: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(AppTheme.surfaceLight)
+                .fill(AppTheme.backgroundPrimary)
+                .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(AppTheme.border, lineWidth: 1)
@@ -283,14 +407,20 @@ struct IncludedFeatureRow: View {
     let text: String
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(AppTheme.success)
+        HStack(spacing: 14) {
+            Circle()
+                .fill(AppTheme.accent.opacity(0.1))
+                .frame(width: 36, height: 36)
+                .overlay(
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(AppTheme.accent)
+                )
 
             Text(text)
                 .font(.system(size: 15, weight: .medium))
                 .foregroundColor(AppTheme.textSecondary)
+                .lineSpacing(2)
 
             Spacer()
         }
@@ -309,7 +439,7 @@ struct FeatureRow: View {
                 .foregroundColor(AppTheme.accent)
 
             Text(title)
-                .foregroundColor(AppTheme.textTertiary)
+                .foregroundColor(AppTheme.textSecondary)
 
             Spacer()
 

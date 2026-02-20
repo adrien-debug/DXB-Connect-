@@ -6,30 +6,27 @@ struct DashboardView: View {
     @State private var showSupport = false
     @State private var showRewards = false
     @State private var showScanner = false
-    @State private var ringAppear = false
-
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundPrimary
+                AppTheme.backgroundSecondary
                     .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
                         heroHeader
-                        
-                        VStack(spacing: 20) {
-                            statsGrid
-                            
-                            promoSection
 
-                            quickActionsGrid
-
-                            activeEsimsSection
+                        VStack(spacing: 0) {
+                            esimCardsSection
+                            recentActivitySection
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
+                        .padding(.top, AppTheme.Spacing.xl)
                         .padding(.bottom, 100)
+                        .background(
+                            AppTheme.backgroundPrimary
+                                .clipShape(RoundedCorner(radius: AppTheme.Radius.xxl, corners: [.topLeft, .topRight]))
+                        )
+                        .offset(y: -20)
                     }
                 }
             }
@@ -52,140 +49,249 @@ struct DashboardView: View {
         return name.components(separatedBy: " ").first ?? name
     }
 
+    private var activeESIMCountryCodes: [String] {
+        coordinator.esimOrders.compactMap { order in
+            let name = order.packageName.lowercased()
+            if name.contains("arab") || name.contains("uae") || name.contains("emirates") { return "AE" }
+            if name.contains("turkey") || name.contains("türkiye") { return "TR" }
+            if name.contains("europe") { return "FR" }
+            if name.contains("usa") || name.contains("united states") { return "US" }
+            if name.contains("japan") { return "JP" }
+            if name.contains("singapore") { return "SG" }
+            if name.contains("uk") || name.contains("kingdom") { return "GB" }
+            if name.contains("australia") { return "AU" }
+            return nil
+        }
+    }
+
     private var heroHeader: some View {
-        ZStack(alignment: .bottom) {
-            LinearGradient(
-                colors: [Color(hex: "0F172A"), Color(hex: "1E293B"), Color(hex: "0C4A6E")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+        VStack(spacing: 0) {
+            ZStack {
+                // Animated mesh gradient background
+                AnimatedMeshGradient()
+                    .opacity(0.6)
 
-            // Decorative blobs
-            Circle()
-                .fill(AppTheme.accent.opacity(0.08))
-                .frame(width: 200, height: 200)
-                .offset(x: 120, y: -60)
-                .blur(radius: 40)
+                // Dark overlay
+                AppTheme.anthracite.opacity(0.85)
 
-            Circle()
-                .fill(Color(hex: "6366F1").opacity(0.06))
-                .frame(width: 150, height: 150)
-                .offset(x: -100, y: 20)
-                .blur(radius: 30)
+                // World map overlay
+                WorldMapDarkView(
+                    highlightedCodes: activeESIMCountryCodes,
+                    showConnections: false,
+                    showDubaiPulse: true
+                )
+                .opacity(0.5)
 
-            VStack(spacing: 0) {
-                // Top bar
-                HStack(alignment: .center) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(greeting)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(Color(hex: "7DD3FC"))
+                // Signal rings centered on Dubai position
+                GeometryReader { geo in
+                    SignalRings(color: AppTheme.accent.opacity(0.4), size: 120)
+                        .position(
+                            x: 0.654 * geo.size.width,
+                            y: 0.365 * geo.size.height
+                        )
+                }
 
-                        Text(firstName.isEmpty ? "Dashboard" : firstName)
-                            .font(.system(size: 26, weight: .bold))
-                            .tracking(-0.5)
-                            .foregroundColor(.white)
-                    }
-
-                    Spacer()
-
-                    HStack(spacing: 10) {
-                        Button {
-                            HapticFeedback.light()
-                            coordinator.showNotifications = true
-                        } label: {
-                            ZStack(alignment: .topTrailing) {
-                                Image(systemName: "bell")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white.opacity(0.9))
-                                    .frame(width: 40, height: 40)
-                                    .background(
-                                        Circle()
-                                            .fill(Color.white.opacity(0.12))
-                                            .overlay(Circle().stroke(Color.white.opacity(0.1), lineWidth: 1))
-                                    )
-
-                                Circle()
-                                    .fill(Color(hex: "38BDF8"))
-                                    .frame(width: 8, height: 8)
-                                    .offset(x: 1, y: 1)
-                            }
-                        }
-                        .accessibilityLabel("Notifications")
-
+                VStack(spacing: 0) {
+                    // Top bar with avatar and notifications
+                    HStack(spacing: 12) {
                         Button {
                             HapticFeedback.light()
                             coordinator.selectedTab = 3
                         } label: {
                             Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color(hex: "0EA5E9"), Color(hex: "6366F1")],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 40, height: 40)
+                                .fill(AppTheme.accent)
+                                .frame(width: 44, height: 44)
                                 .overlay(
                                     Text(String(coordinator.user.name.prefix(1)).uppercased())
-                                        .font(.system(size: 15, weight: .bold))
-                                        .foregroundColor(.white)
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(Color(hex: "0F172A"))
                                 )
-                                .shadow(color: AppTheme.accent.opacity(0.3), radius: 8, x: 0, y: 4)
                         }
                         .accessibilityLabel("Profil")
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(greeting)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.white.opacity(0.6))
+
+                            Text(firstName.isEmpty ? "Dashboard" : firstName)
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+
+                        Spacer()
+
+                        Button {
+                            HapticFeedback.light()
+                            coordinator.showNotifications = true
+                        } label: {
+                            ZStack(alignment: .topTrailing) {
+                                Image(systemName: "bell.fill")
+                                    .font(.system(size: 17, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .frame(width: 44, height: 44)
+                                    .background(
+                                        Circle()
+                                            .fill(Color.white.opacity(0.1))
+                                    )
+
+                                Circle()
+                                    .fill(AppTheme.accent)
+                                    .frame(width: 8, height: 8)
+                                    .offset(x: 0, y: 2)
+                            }
+                        }
+                        .accessibilityLabel("Notifications")
                     }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 60)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                    .padding(.bottom, 20)
 
-                // Data summary bar
-                HStack(spacing: 0) {
-                    DataMetricPill(icon: "simcard.fill", value: "\(coordinator.user.activeESIMs)", label: "Active")
-                    
-                    Capsule()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(width: 1, height: 28)
-
-                    DataMetricPill(icon: "globe", value: "\(coordinator.user.countriesVisited)", label: "Countries")
-                    
-                    Capsule()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(width: 1, height: 28)
-
-                    DataMetricPill(icon: "arrow.down.circle", value: totalDataGB + " GB", label: "Data")
-                }
-                .padding(.vertical, 14)
-                .padding(.horizontal, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white.opacity(0.07))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    // Data usage with RadialGauge + stats
+                    HStack(spacing: 20) {
+                        RadialGauge(
+                            progress: aggregateUsagePercentage,
+                            size: 90,
+                            trackColor: .white.opacity(0.1),
+                            fillColor: AppTheme.accent,
+                            lineWidth: 6,
+                            valueText: totalDataGB,
+                            unitText: "GB"
                         )
-                )
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-                .padding(.bottom, 24)
+                        .foregroundColor(.white)
+
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Data Usage")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.white)
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "simcard.fill")
+                                        .font(.system(size: 12, weight: .semibold))
+                                    Text("\(coordinator.user.activeESIMs) active plans")
+                                        .font(.system(size: 14, weight: .semibold))
+                                }
+                                .foregroundColor(.white.opacity(0.7))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(Color.white.opacity(0.1)))
+
+                                HStack(spacing: 6) {
+                                    Image(systemName: "globe")
+                                        .font(.system(size: 12, weight: .semibold))
+                                    Text("\(coordinator.user.countriesVisited) countries")
+                                        .font(.system(size: 14, weight: .semibold))
+                                }
+                                .foregroundColor(.white.opacity(0.7))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(Color.white.opacity(0.1)))
+                            }
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 12)
+                    .padding(.bottom, 28)
+
+                    // Quick actions
+                    HStack(spacing: 10) {
+                        Button {
+                            HapticFeedback.light()
+                            coordinator.selectedTab = 1
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.system(size: 18, weight: .semibold))
+                                Text("Buy eSIM")
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                            .foregroundColor(Color(hex: "0F172A"))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 54)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(AppTheme.accent)
+                            )
+                        }
+                        .pulse(color: AppTheme.accent, radius: 16)
+                        .scaleOnPress()
+
+                        Button {
+                            HapticFeedback.light()
+                            showScanner = true
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "qrcode.viewfinder")
+                                    .font(.system(size: 16, weight: .semibold))
+                                Text("Scan")
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 54)
+                            .glassmorphism(cornerRadius: 16, opacity: 0.1)
+                        }
+                        .scaleOnPress()
+
+                        Button {
+                            HapticFeedback.light()
+                            showSupport = true
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 54, height: 54)
+                                .glassmorphism(cornerRadius: 16, opacity: 0.1)
+                        }
+                        .scaleOnPress()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 32)
+                }
             }
+            .frame(height: 320)
+            .clipShape(RoundedCorner(radius: 32, corners: [.bottomLeft, .bottomRight]))
+            .shadow(color: AppTheme.anthracite.opacity(0.4), radius: 20, x: 0, y: 10)
+            .slideIn(delay: 0)
         }
-        .clipShape(RoundedCorner(radius: 28, corners: [.bottomLeft, .bottomRight]))
-        .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
-        .slideIn(delay: 0)
+        .sheet(isPresented: $showSupport) { SupportView() }
+        .sheet(isPresented: $showRewards) { RewardsSheet() }
+        .sheet(isPresented: $showScanner) { ScannerSheet() }
     }
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
-        case 5..<12: return "Good morning 👋"
-        case 12..<17: return "Good afternoon ☀️"
-        case 17..<21: return "Good evening 🌆"
-        default: return "Good night 🌙"
+        case 5..<12: return "Good morning"
+        case 12..<17: return "Good afternoon"
+        case 17..<21: return "Good evening"
+        default: return "Good night"
         }
     }
 
     // MARK: - Stats Grid
+
+    private var aggregateUsagePercentage: Double {
+        let activeOrders = coordinator.esimOrders.filter {
+            let s = $0.status.uppercased()
+            return s == "RELEASED" || s == "IN_USE" || s == "ENABLED"
+        }
+        guard !activeOrders.isEmpty else { return 0 }
+
+        var totalUsed: Int64 = 0
+        var totalVolume: Int64 = 0
+        for order in activeOrders {
+            if let usage = coordinator.usageCache[order.iccid] {
+                totalUsed += usage.usedBytes
+                totalVolume += usage.totalBytes
+            }
+        }
+        guard totalVolume > 0 else { return 0 }
+        return Double(totalUsed) / Double(totalVolume)
+    }
 
     private var totalDataGB: String {
         let totalMB = coordinator.esimOrders
@@ -204,166 +310,219 @@ struct DashboardView: View {
         return gb > 0 ? String(format: "%.0f", gb) : "0"
     }
 
-    private var statsGrid: some View {
-        LazyVGrid(columns: [
-            GridItem(.flexible(), spacing: 10),
-            GridItem(.flexible(), spacing: 10),
-            GridItem(.flexible(), spacing: 10)
-        ], spacing: 10) {
-            StatTile(
-                icon: "simcard.fill",
-                value: "\(coordinator.user.activeESIMs)",
-                label: "eSIMs actives",
-                accentColor: Color(hex: "0EA5E9")
-            )
-            StatTile(
-                icon: "globe",
-                value: "\(coordinator.user.countriesVisited)",
-                label: "Pays",
-                accentColor: Color(hex: "8B5CF6")
-            )
-            StatTile(
-                icon: "dollarsign.circle",
-                value: String(format: "$%.0f", coordinator.user.totalSaved),
-                label: "Économisé",
-                accentColor: Color(hex: "10B981")
-            )
+    // MARK: - eSIM Cards (Horizontal Scroll — Pulse "Cards" style)
+
+    private var esimCardsSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            HStack {
+                Text("Your eSIMs")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(AppTheme.textPrimary)
+
+                Spacer()
+
+                if !coordinator.esimOrders.isEmpty {
+                    Button {
+                        coordinator.selectedTab = 2
+                    } label: {
+                        Text("See all")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(AppTheme.textSecondary)
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppTheme.Spacing.md) {
+                    if coordinator.esimOrders.isEmpty {
+                        esimCardWidget(
+                            name: "No eSIM",
+                            data: "—",
+                            iccid: "----",
+                            isDark: true
+                        )
+                    } else {
+                        ForEach(Array(coordinator.esimOrders.prefix(3).enumerated()), id: \.element.id) { index, order in
+                            NavigationLink {
+                                ESIMDetailView(order: order)
+                            } label: {
+                                esimCardWidget(
+                                    name: order.packageName,
+                                    data: order.totalVolume,
+                                    iccid: "*" + String(order.iccid.suffix(4)),
+                                    isDark: index == 0
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+
+                    // Add card button
+                    Button {
+                        HapticFeedback.light()
+                        coordinator.selectedTab = 1
+                    } label: {
+                        VStack {
+                            Spacer()
+                            Image(systemName: "plus")
+                                .font(.system(size: 24, weight: .light))
+                                .foregroundColor(AppTheme.textTertiary)
+                            Spacer()
+                        }
+                        .frame(width: 80, height: 100)
+                        .background(
+                            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
+                                .fill(AppTheme.gray100)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
+                                        .stroke(style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+                                        .foregroundColor(AppTheme.gray500.opacity(0.4))
+                                )
+                        )
+                    }
+                }
+                .padding(.horizontal, AppTheme.Spacing.lg)
+            }
         }
-        .slideIn(delay: 0.1)
+        .padding(.top, AppTheme.Spacing.xs)
+        .slideIn(delay: 0.05)
     }
 
-    // MARK: - Quick Actions
+    private func esimCardWidget(name: String, data: String, iccid: String, isDark: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                ZStack {
+                    Circle()
+                        .fill(isDark ? AppTheme.accent : AppTheme.accent.opacity(0.12))
+                        .frame(width: 36, height: 36)
 
-    private var quickActionsGrid: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("ACTIONS RAPIDES")
-                .font(.system(size: 11, weight: .bold))
-                .tracking(1.2)
-                .foregroundColor(AppTheme.textTertiary)
+                    Image(systemName: "simcard.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(isDark ? Color(hex: "0F172A") : AppTheme.accent)
+                }
+                .floating(duration: 2.5, distance: 3)
 
-            HStack(spacing: 10) {
-                QuickActionTech(icon: "plus", title: "Buy", color: AppTheme.accent, isPrimary: true) {
-                    coordinator.selectedTab = 1
+                Spacer()
+
+                Text(iccid)
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(isDark ? .white.opacity(0.3) : AppTheme.textMuted)
+            }
+
+            Spacer()
+
+            Text(data)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundColor(isDark ? .white : AppTheme.textPrimary)
+
+            Text(name.count > 16 ? String(name.prefix(16)) + "..." : name)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(isDark ? .white.opacity(0.5) : AppTheme.textSecondary)
+                .padding(.top, 3)
+        }
+        .padding(16)
+        .frame(width: 175, height: 130)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(
+                        isDark
+                            ? Color(hex: "0F172A")
+                            : AppTheme.backgroundPrimary
+                    )
+
+                if isDark {
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(
+                            LinearGradient(
+                                colors: [AppTheme.accent.opacity(0.5), AppTheme.accent.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                } else {
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(AppTheme.border.opacity(0.4), lineWidth: 0.5)
                 }
-                QuickActionTech(icon: "qrcode", title: "Scan", color: AppTheme.accent) {
-                    showScanner = true
+            }
+            .shadow(color: isDark ? AppTheme.accent.opacity(0.25) : Color.black.opacity(0.06), radius: isDark ? 20 : 8, x: 0, y: isDark ? 8 : 3)
+        )
+    }
+
+    // MARK: - Data Usage Row (Pulse "Monthly budget" style)
+
+
+
+    // MARK: - Recent Activity (Pulse "Recent transactions" style)
+
+    private var recentActivitySection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.base) {
+            Text("Recent activity")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(AppTheme.textPrimary)
+                .padding(.horizontal, 20)
+
+            if coordinator.esimOrders.isEmpty {
+                VStack(spacing: AppTheme.Spacing.base) {
+                    Image(systemName: "building.columns")
+                        .font(.system(size: 32, weight: .light))
+                        .foregroundColor(AppTheme.textTertiary)
+
+                    VStack(spacing: AppTheme.Spacing.xs) {
+                        Text("No activity yet")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(AppTheme.textPrimary)
+
+                        Text("Get connected in minutes")
+                            .font(AppTheme.Typography.body())
+                            .foregroundColor(AppTheme.gray500)
+                    }
+
+                    Button {
+                        HapticFeedback.light()
+                        coordinator.selectedTab = 1
+                    } label: {
+                        Text("Browse Plans")
+                            .font(AppTheme.Typography.button())
+                            .foregroundColor(Color(hex: "0F172A"))
+                            .padding(.horizontal, 28)
+                            .padding(.vertical, AppTheme.Spacing.md)
+                            .background(
+                                Capsule()
+                                    .fill(AppTheme.accent)
+                            )
+                    }
                 }
-                QuickActionTech(icon: "gift", title: "Rewards", color: Color(hex: "8B5CF6")) {
-                    showRewards = true
-                }
-                QuickActionTech(icon: "headphones", title: "Support", color: Color(hex: "10B981")) {
-                    showSupport = true
+                .padding(.vertical, AppTheme.Spacing.xxl)
+                .frame(maxWidth: .infinity)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(coordinator.esimOrders.prefix(5)) { order in
+                        NavigationLink {
+                            ESIMDetailView(order: order)
+                        } label: {
+                            ActivityRow(order: order)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    if coordinator.esimOrders.count > 5 {
+                        Button {
+                            coordinator.selectedTab = 2
+                        } label: {
+                            Text("View all")
+                                .font(AppTheme.Typography.button())
+                                .foregroundColor(AppTheme.textPrimary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, AppTheme.Spacing.base)
+                        }
+                    }
                 }
             }
         }
         .slideIn(delay: 0.15)
-        .sheet(isPresented: $showSupport) {
-            SupportView()
-        }
-        .sheet(isPresented: $showRewards) {
-            RewardsSheet()
-        }
-        .sheet(isPresented: $showScanner) {
-            ScannerSheet()
-        }
-    }
-
-    // MARK: - Promo Section
-
-    private var promoSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("OFFRES SPÉCIALES")
-                .font(.system(size: 11, weight: .bold))
-                .tracking(1.2)
-                .foregroundColor(AppTheme.textTertiary)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    PromoCard(
-                        flag: "🇦🇪",
-                        title: "UAE",
-                        data: "10 GB • 30 days",
-                        price: "$14.99",
-                        oldPrice: "$24.99",
-                        tag: "-40%",
-                        gradientEnd: Color(hex: "0369A1")
-                    ) {
-                        coordinator.selectedTab = 1
-                    }
-
-                    PromoCard(
-                        flag: "🇪🇺",
-                        title: "Europe",
-                        data: "20 GB • 30 days",
-                        price: "$37.49",
-                        oldPrice: "$49.99",
-                        tag: "-25%",
-                        gradientEnd: Color(hex: "4F46E5")
-                    ) {
-                        coordinator.selectedTab = 1
-                    }
-
-                    PromoCard(
-                        flag: "🇯🇵",
-                        title: "Asia",
-                        data: "10 GB • 15 days",
-                        price: "$27.99",
-                        oldPrice: "$39.99",
-                        tag: "-30%",
-                        gradientEnd: Color(hex: "1D4ED8")
-                    ) {
-                        coordinator.selectedTab = 1
-                    }
-                }
-            }
-        }
-        .slideIn(delay: 0.12)
-    }
-
-    // MARK: - Active eSIMs
-
-    private var activeEsimsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("ACTIVE PLANS")
-                    .font(.system(size: 11, weight: .bold))
-                    .tracking(1.2)
-                    .foregroundColor(AppTheme.textTertiary)
-
-                Spacer()
-
-                NavigationLink {
-                    MyESIMsView()
-                        .environmentObject(coordinator)
-                } label: {
-                    HStack(spacing: 3) {
-                        Text("View all")
-                            .font(.system(size: 12, weight: .semibold))
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 9, weight: .bold))
-                    }
-                    .foregroundColor(AppTheme.accent)
-                }
-            }
-
-            if coordinator.esimOrders.isEmpty {
-                EmptyStateTech {
-                    coordinator.selectedTab = 1
-                }
-            } else {
-                VStack(spacing: 8) {
-                    ForEach(coordinator.esimOrders.prefix(3)) { order in
-                        NavigationLink {
-                            ESIMDetailView(order: order)
-                        } label: {
-                            EsimTechItem(order: order)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
-        }
-        .slideIn(delay: 0.2)
     }
 }
 
@@ -392,59 +551,37 @@ struct DataMetricPill: View {
         VStack(spacing: 3) {
             Image(systemName: icon)
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(Color(hex: "7DD3FC"))
+                .foregroundColor(AppTheme.primary)
 
             Text(value)
                 .font(.system(size: 16, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                .foregroundColor(AppTheme.textPrimary)
 
             Text(label)
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundColor(.white.opacity(0.5))
+                .font(AppTheme.Typography.label())
+                .foregroundColor(AppTheme.textSecondary)
         }
         .frame(maxWidth: .infinity)
     }
 }
 
-struct StatTile: View {
+struct HeaderMetric: View {
     let icon: String
     let value: String
     let label: String
-    var accentColor: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(accentColor.opacity(0.1))
-                    .frame(width: 34, height: 34)
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .foregroundColor(Color(hex: "0F172A"))
 
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(accentColor)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(value)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(AppTheme.textPrimary)
-
-                Text(label)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(AppTheme.textTertiary)
-            }
+            Text(label.uppercased())
+                .font(.system(size: 9, weight: .semibold))
+                .tracking(0.5)
+                .foregroundColor(Color(hex: "0F172A").opacity(0.6))
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(AppTheme.surfaceLight)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(AppTheme.border.opacity(0.6), lineWidth: 1)
-                )
-                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
-        )
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -452,7 +589,7 @@ struct MiniMetric: View {
     let icon: String
     let value: String
     let label: String
-    var color: Color = AppTheme.textPrimary
+    var color: Color = AppTheme.primary
 
     var body: some View {
         VStack(spacing: 3) {
@@ -466,7 +603,7 @@ struct MiniMetric: View {
 
             Text(label)
                 .font(.system(size: 10, weight: .medium))
-                .foregroundColor(AppTheme.textTertiary)
+                .foregroundColor(AppTheme.textSecondary)
         }
     }
 }
@@ -476,116 +613,49 @@ struct PromoCard: View {
     let title: String
     let data: String
     let price: String
-    let oldPrice: String
     let tag: String
-    var gradientEnd: Color = Color(hex: "0C4A6E")
     var action: () -> Void = {}
 
     var body: some View {
         Button {
-            HapticFeedback.medium()
+            HapticFeedback.light()
             action()
         } label: {
-            VStack(spacing: 0) {
-                // Flag header
+            VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text(flag)
-                        .font(.system(size: 22))
-
+                        .font(.system(size: 20))
                     Spacer()
-
                     Text(tag)
-                        .font(.system(size: 9, weight: .heavy, design: .rounded))
-                        .tracking(0.5)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            Capsule()
-                                .fill(Color.white.opacity(0.2))
-                        )
+                        .font(AppTheme.Typography.caption())
+                        .foregroundColor(AppTheme.gray500)
                 }
 
-                Spacer(minLength: 6)
+                Spacer()
 
-                // Title + data
-                VStack(spacing: 3) {
-                    Text(title)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(.white)
-
-                    Text(data)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(.white.opacity(0.7))
-                }
-                .frame(maxWidth: .infinity)
-
-                Spacer(minLength: 6)
-
-                // Price
-                VStack(spacing: 1) {
-                    Text(oldPrice)
-                        .font(.system(size: 10, weight: .medium))
-                        .strikethrough()
-                        .foregroundColor(.white.opacity(0.5))
-
+                VStack(alignment: .leading, spacing: 2) {
                     Text(price)
-                        .font(.system(size: 17, weight: .heavy, design: .rounded))
-                        .foregroundColor(.white)
+                        .font(AppTheme.Typography.cardAmount())
+                        .foregroundColor(AppTheme.textPrimary)
+                    Text(title)
+                        .font(AppTheme.Typography.caption())
+                        .foregroundColor(AppTheme.gray500)
                 }
-                .frame(maxWidth: .infinity)
             }
-            .padding(10)
-            .frame(maxWidth: .infinity)
-            .frame(height: 140)
+            .padding(AppTheme.Spacing.base)
+            .frame(maxWidth: .infinity, minHeight: 110)
             .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(
-                            LinearGradient(
-                                colors: [AppTheme.accent, gradientEnd],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-
-                    // Glass shine
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.12),
-                                    Color.white.opacity(0.03),
-                                    Color.clear
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .center
-                            )
-                        )
-
-                    // Decorative circle
-                    Circle()
-                        .fill(Color.white.opacity(0.06))
-                        .frame(width: 90, height: 90)
-                        .offset(x: 30, y: -50)
-
-                    // Border
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 20))
+                RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
+                    .fill(AppTheme.gray100)
             )
-            .shadow(color: AppTheme.accent.opacity(0.25), radius: 12, x: 0, y: 6)
         }
         .buttonStyle(.plain)
-        .scaleOnPress()
     }
 }
 
 struct QuickActionTech: View {
     let icon: String
     let title: String
-    var color: Color = AppTheme.textPrimary
     var isPrimary: Bool = false
     var action: () -> Void = {}
 
@@ -594,43 +664,131 @@ struct QuickActionTech: View {
             HapticFeedback.light()
             action()
         } label: {
-            VStack(spacing: 8) {
-                ZStack {
-                    if isPrimary {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(
-                                LinearGradient(
-                                    colors: [AppTheme.accent, Color(hex: "0284C7")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 48, height: 48)
-                            .shadow(color: AppTheme.accent.opacity(0.3), radius: 8, x: 0, y: 4)
-                    } else {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(color.opacity(0.08))
-                            .frame(width: 48, height: 48)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .stroke(color.opacity(0.12), lineWidth: 1)
-                            )
-                    }
-
-                    Image(systemName: icon)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(isPrimary ? .white : color)
-                }
+            VStack(spacing: AppTheme.Spacing.sm) {
+                RoundedRectangle(cornerRadius: AppTheme.Radius.md)
+                    .fill(isPrimary ? AppTheme.accent : Color.white)
+                    .frame(width: 48, height: 48)
+                    .overlay(
+                        Image(systemName: icon)
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundColor(isPrimary ? .black : AppTheme.primary)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppTheme.Radius.md)
+                            .stroke(isPrimary ? .clear : AppTheme.border, lineWidth: 1)
+                    )
 
                 Text(title)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(AppTheme.Typography.small())
                     .foregroundColor(AppTheme.textSecondary)
             }
             .frame(maxWidth: .infinity)
         }
         .accessibilityLabel(title)
         .buttonStyle(.plain)
-        .scaleOnPress()
+    }
+}
+
+// MARK: - Activity Row (Pulse "Recent transactions" style)
+
+struct ActivityRow: View {
+    let order: ESIMOrder
+
+    private var statusColor: Color {
+        switch order.status.uppercased() {
+        case "RELEASED", "IN_USE": return AppTheme.success
+        case "EXPIRED": return AppTheme.gray500
+        default: return AppTheme.warning
+        }
+    }
+
+    private var statusText: String {
+        switch order.status.uppercased() {
+        case "RELEASED": return "Active"
+        case "IN_USE": return "In Use"
+        case "EXPIRED": return "Expired"
+        default: return order.status.capitalized
+        }
+    }
+
+    private var flagEmoji: String {
+        let name = order.packageName.lowercased()
+        if name.contains("arab") || name.contains("uae") || name.contains("emirates") { return "🇦🇪" }
+        if name.contains("turkey") || name.contains("türkiye") { return "🇹🇷" }
+        if name.contains("europe") { return "🇪🇺" }
+        if name.contains("usa") || name.contains("united states") { return "🇺🇸" }
+        if name.contains("asia") || name.contains("japan") { return "🇯🇵" }
+        if name.contains("saudi") { return "🇸🇦" }
+        if name.contains("qatar") { return "🇶🇦" }
+        if name.contains("uk") || name.contains("kingdom") { return "🇬🇧" }
+        return "🌍"
+    }
+
+    private var timeAgo: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: order.createdAt, relativeTo: Date())
+    }
+
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(statusColor.opacity(0.1))
+                    .frame(width: 50, height: 50)
+
+                Text(flagEmoji)
+                    .font(.system(size: 24))
+
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 12, height: 12)
+                    .overlay(
+                        Circle()
+                            .stroke(AppTheme.backgroundPrimary, lineWidth: 2)
+                    )
+                    .offset(x: 17, y: 17)
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(order.packageName)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(AppTheme.textPrimary)
+                    .lineLimit(1)
+
+                HStack(spacing: 6) {
+                    Text(order.totalVolume)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(AppTheme.textTertiary)
+
+                    Text("·")
+                        .foregroundColor(AppTheme.textMuted)
+
+                    Text(timeAgo)
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(AppTheme.textMuted)
+                }
+            }
+
+            Spacer()
+
+            Text(statusText)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(statusColor)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(
+                    Capsule()
+                        .fill(statusColor.opacity(0.1))
+                )
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(AppTheme.textMuted)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+        .contentShape(Rectangle())
     }
 }
 
@@ -640,7 +798,7 @@ struct EsimTechItem: View {
     private var statusColor: Color {
         switch order.status.uppercased() {
         case "RELEASED", "IN_USE": return AppTheme.success
-        case "EXPIRED": return AppTheme.gray400
+        case "EXPIRED": return AppTheme.gray500
         default: return AppTheme.warning
         }
     }
@@ -654,85 +812,52 @@ struct EsimTechItem: View {
         }
     }
 
-    private var isActive: Bool {
-        let s = order.status.uppercased()
-        return s == "RELEASED" || s == "IN_USE"
-    }
-
     var body: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(
-                        LinearGradient(
-                            colors: [statusColor.opacity(0.12), statusColor.opacity(0.06)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 40, height: 40)
+        HStack(spacing: AppTheme.Spacing.md) {
+            Circle()
+                .fill(AppTheme.gray100)
+                .frame(width: 40, height: 40)
+                .overlay(
+                    Image(systemName: "simcard.fill")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(AppTheme.accent)
+                )
 
-                Image(systemName: "simcard.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(statusColor)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(order.packageName)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(AppTheme.Typography.body())
                     .foregroundColor(AppTheme.textPrimary)
                     .lineLimit(1)
 
-                HStack(spacing: 6) {
-                    Text(order.totalVolume)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(AppTheme.textTertiary)
-
-                    if isActive {
-                        Circle()
-                            .fill(AppTheme.textMuted)
-                            .frame(width: 2.5, height: 2.5)
-
-                        HStack(spacing: 3) {
-                            Circle()
-                                .fill(statusColor)
-                                .frame(width: 5, height: 5)
-                            Text(statusText)
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(statusColor)
-                        }
-                    }
-                }
+                Text(order.totalVolume)
+                    .font(AppTheme.Typography.caption())
+                    .foregroundColor(AppTheme.textTertiary)
             }
 
             Spacer()
 
-            if !isActive {
-                HStack(spacing: 4) {
+            VStack(alignment: .trailing, spacing: 3) {
+                HStack(spacing: 5) {
                     Circle()
                         .fill(statusColor)
-                        .frame(width: 5, height: 5)
-
+                        .frame(width: 6, height: 6)
                     Text(statusText)
-                        .font(.system(size: 9, weight: .bold))
+                        .font(AppTheme.Typography.label())
                         .foregroundColor(statusColor)
                 }
             }
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(AppTheme.textMuted)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(AppTheme.gray500)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(.horizontal, AppTheme.Spacing.base)
+        .padding(.vertical, AppTheme.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(AppTheme.surfaceLight)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(AppTheme.border.opacity(0.6), lineWidth: 1)
-                )
-                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
+                .fill(AppTheme.backgroundPrimary)
+                .shadow(color: Color.black.opacity(0.03), radius: 4, y: 1)
+                .overlay(RoundedRectangle(cornerRadius: AppTheme.Radius.lg).stroke(AppTheme.border, lineWidth: 0.5))
         )
         .contentShape(Rectangle())
     }
@@ -742,24 +867,18 @@ struct EmptyStateTech: View {
     var action: () -> Void
 
     var body: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(AppTheme.accentSoft)
-                    .frame(width: 56, height: 56)
+        VStack(spacing: AppTheme.Spacing.base) {
+            Image(systemName: "simcard")
+                .font(.system(size: 28, weight: .medium))
+                .foregroundColor(AppTheme.textTertiary)
 
-                Image(systemName: "simcard")
-                    .font(.system(size: 24, weight: .semibold))
-                    .foregroundColor(AppTheme.accent)
-            }
-
-            VStack(spacing: 4) {
+            VStack(spacing: AppTheme.Spacing.xs) {
                 Text("No active plans")
-                    .font(.system(size: 15, weight: .bold))
+                    .font(AppTheme.Typography.body())
                     .foregroundColor(AppTheme.textPrimary)
 
                 Text("Get connected in minutes")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(AppTheme.Typography.caption())
                     .foregroundColor(AppTheme.textTertiary)
             }
 
@@ -767,50 +886,19 @@ struct EmptyStateTech: View {
                 HapticFeedback.light()
                 action()
             } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 12, weight: .bold))
-                    Text("Browse Plans")
-                        .font(.system(size: 13, weight: .bold))
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
-                .background(
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: [AppTheme.accent, AppTheme.accentGradientEnd],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .shadow(color: AppTheme.accent.opacity(0.3), radius: 8, x: 0, y: 4)
-                )
+                Text("Browse Plans")
+                    .font(AppTheme.Typography.caption())
+                    .foregroundColor(Color(hex: "0F172A"))
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, AppTheme.Spacing.md)
+                    .background(
+                        Capsule()
+                            .fill(AppTheme.accent)
+                    )
             }
-            .scaleOnPress()
         }
-        .padding(24)
+        .padding(28)
         .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(AppTheme.surfaceLight)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 1)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 18)
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [AppTheme.accent.opacity(0.2), .clear],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ),
-                                    lineWidth: 1
-                                )
-                        )
-                )
-        )
     }
 }
 
@@ -869,7 +957,7 @@ struct RewardsSheet: View {
 
     var body: some View {
         ZStack {
-            AppTheme.backgroundPrimary
+            AppTheme.backgroundSecondary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -881,20 +969,20 @@ struct RewardsSheet: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 36, height: 36)
-                            .background(Circle().fill(AppTheme.surfaceHeavy))
+                            .background(Circle().fill(AppTheme.gray100))
                     }
 
                     Spacer()
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
+                .padding(.horizontal, AppTheme.Spacing.xl)
+                .padding(.top, AppTheme.Spacing.lg)
 
                 Spacer()
 
-                VStack(spacing: 24) {
+                VStack(spacing: AppTheme.Spacing.xl) {
                     ZStack {
                         Circle()
-                            .fill(AppTheme.accentSoft)
+                            .fill(AppTheme.accent.opacity(0.1))
                             .frame(width: 100, height: 100)
 
                         Image(systemName: "gift.fill")
@@ -902,14 +990,14 @@ struct RewardsSheet: View {
                             .foregroundColor(AppTheme.accent)
                     }
 
-                    VStack(spacing: 10) {
+                    VStack(spacing: AppTheme.Spacing.sm) {
                         Text("Rewards Coming Soon")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppTheme.textPrimary)
 
                         Text("Earn points with every purchase\nand redeem exclusive rewards")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(AppTheme.textTertiary)
+                            .font(AppTheme.Typography.body())
+                            .foregroundColor(AppTheme.textSecondary)
                             .multilineTextAlignment(.center)
                     }
 
@@ -917,13 +1005,13 @@ struct RewardsSheet: View {
                         dismiss()
                     } label: {
                         Text("GOT IT")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(AppTheme.Typography.button())
                             .tracking(1)
-                            .foregroundColor(.white)
+                            .foregroundColor(Color(hex: "0F172A"))
                             .padding(.horizontal, 40)
-                            .padding(.vertical, 16)
+                            .padding(.vertical, AppTheme.Spacing.base)
                             .background(
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                                     .fill(AppTheme.accent)
                             )
                     }
@@ -951,7 +1039,7 @@ struct ScannerSheet: View {
 
     var body: some View {
         ZStack {
-            AppTheme.backgroundPrimary
+            AppTheme.backgroundSecondary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -965,18 +1053,18 @@ struct ScannerSheet: View {
                     } label: {
                         Image(systemName: showManualInput ? "arrow.left" : "xmark")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .foregroundColor(.white)
                             .frame(width: 36, height: 36)
-                            .background(Circle().fill(AppTheme.surfaceHeavy))
+                            .background(Circle().fill(AppTheme.anthracite))
                     }
                     .accessibilityLabel(showManualInput ? "Retour" : "Fermer")
 
                     Spacer()
 
                     Text(showManualInput ? "ENTER LPA" : "SCAN QR")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(AppTheme.Typography.navTitle())
                         .tracking(1.5)
-                        .foregroundColor(AppTheme.textTertiary)
+                        .foregroundColor(AppTheme.textSecondary)
 
                     Spacer()
 
@@ -986,43 +1074,43 @@ struct ScannerSheet: View {
                         } label: {
                             Image(systemName: isTorchOn ? "flashlight.on.fill" : "flashlight.off.fill")
                                 .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(isTorchOn ? .yellow : AppTheme.textPrimary)
+                                .foregroundColor(isTorchOn ? AppTheme.accent : .white)
                                 .frame(width: 36, height: 36)
-                                .background(Circle().fill(AppTheme.surfaceHeavy))
+                                .background(Circle().fill(AppTheme.anthracite))
                         }
                         .accessibilityLabel("Lampe torche")
                     } else {
                         Color.clear.frame(width: 36, height: 36)
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
+                .padding(.horizontal, AppTheme.Spacing.xl)
+                .padding(.top, AppTheme.Spacing.lg)
 
                 if showManualInput {
                     Spacer()
 
-                    VStack(spacing: 24) {
-                        VStack(spacing: 8) {
+                    VStack(spacing: AppTheme.Spacing.xl) {
+                        VStack(spacing: AppTheme.Spacing.sm) {
                             Text("Enter your LPA code")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(AppTheme.textPrimary)
+                                .font(AppTheme.Typography.sectionTitle())
+                                .foregroundColor(.white)
 
                             Text("Paste the activation code from your eSIM provider")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(AppTheme.textTertiary)
+                                .font(AppTheme.Typography.body())
+                                .foregroundColor(AppTheme.textSecondary)
                                 .multilineTextAlignment(.center)
                         }
 
-                        VStack(spacing: 12) {
+                        VStack(spacing: AppTheme.Spacing.md) {
                             TextField("LPA:1$...", text: $lpaCode)
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundColor(AppTheme.textPrimary)
-                                .padding(16)
+                                .font(AppTheme.Typography.body())
+                                .foregroundColor(.white)
+                                .padding(AppTheme.Spacing.base)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(AppTheme.surfaceLight)
+                                    RoundedRectangle(cornerRadius: AppTheme.Radius.md)
+                                        .fill(AppTheme.backgroundTertiary)
                                         .overlay(
-                                            RoundedRectangle(cornerRadius: 14)
+                                            RoundedRectangle(cornerRadius: AppTheme.Radius.md)
                                                 .stroke(lpaCode.isEmpty ? AppTheme.border : AppTheme.accent, lineWidth: lpaCode.isEmpty ? 1 : 2)
                                         )
                                 )
@@ -1034,37 +1122,37 @@ struct ScannerSheet: View {
                                     Image(systemName: "exclamationmark.circle.fill")
                                         .font(.system(size: 14))
                                     Text(errorMessage)
-                                        .font(.system(size: 13, weight: .medium))
+                                        .font(AppTheme.Typography.caption())
                                 }
                                 .foregroundColor(AppTheme.error)
                             }
                         }
-                        .padding(.horizontal, 24)
+                        .padding(.horizontal, AppTheme.Spacing.xl)
 
                         Button {
                             processLPACode()
                         } label: {
-                            HStack(spacing: 8) {
+                            HStack(spacing: AppTheme.Spacing.sm) {
                                 if isProcessing {
                                     ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .black))
                                         .scaleEffect(0.8)
                                 } else {
                                     Text("ACTIVATE eSIM")
-                                        .font(.system(size: 13, weight: .bold))
+                                        .font(AppTheme.Typography.caption())
                                         .tracking(1.2)
                                 }
                             }
-                            .foregroundColor(.white)
+                            .foregroundColor(Color(hex: "0F172A"))
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
                             .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(lpaCode.isEmpty ? AppTheme.gray300 : AppTheme.accent)
+                                RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
+                                    .fill(lpaCode.isEmpty ? AppTheme.border : AppTheme.accent)
                             )
                         }
                         .disabled(lpaCode.isEmpty || isProcessing)
-                        .padding(.horizontal, 24)
+                        .padding(.horizontal, AppTheme.Spacing.xl)
                     }
 
                     Spacer()
@@ -1117,21 +1205,21 @@ struct ScannerSheet: View {
                             showManualInput = true
                         }
                     } label: {
-                        HStack(spacing: 8) {
+                        HStack(spacing: AppTheme.Spacing.sm) {
                             Image(systemName: "keyboard")
                                 .font(.system(size: 14, weight: .semibold))
                             Text("Enter LPA code manually")
-                                .font(.system(size: 14, weight: .semibold))
+                                .font(AppTheme.Typography.button())
                         }
                         .foregroundColor(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                        .padding(.vertical, AppTheme.Spacing.md)
                         .background(
                             Capsule()
-                                .fill(Color.black.opacity(0.6))
+                                .fill(AppTheme.anthracite.opacity(0.85))
                         )
                     }
-                    .padding(.bottom, 48)
+                    .padding(.bottom, AppTheme.Spacing.xxxl)
                 }
             }
         }

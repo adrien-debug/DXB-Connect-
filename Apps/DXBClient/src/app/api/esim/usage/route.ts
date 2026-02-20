@@ -2,6 +2,9 @@ import { requireAuthFlexible } from '@/lib/auth-middleware'
 import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
 import { NextResponse } from 'next/server'
 
+// Cette route dépend des headers/cookies (auth) → doit rester dynamique.
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/esim/usage
  * Vérifier l'utilisation data d'une eSIM.

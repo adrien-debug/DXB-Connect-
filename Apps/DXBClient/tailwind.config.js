@@ -8,17 +8,31 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        sky: {
-          50: '#F0F9FF',
-          100: '#E0F2FE',
-          200: '#BAE6FD',
-          300: '#7DD3FC',
-          400: '#38BDF8',
-          500: '#0EA5E9',
-          600: '#0284C7',
-          700: '#0369A1',
-          800: '#075985',
-          900: '#0C4A6E',
+        lime: {
+          DEFAULT: '#D4F441',
+          50: '#FAFFD6',
+          100: '#F0FFB8',
+          200: '#E8FF8A',
+          300: '#DFFF5C',
+          400: '#D4F441',
+          500: '#B8E600',
+          600: '#9ACA00',
+          700: '#7BAE00',
+          800: '#5C9200',
+          900: '#3A4A00',
+        },
+        zinc: {
+          50: '#FAFAFA',
+          100: '#F4F4F5',
+          200: '#E4E4E7',
+          300: '#D4D4D8',
+          400: '#A1A1AA',
+          500: '#71717A',
+          600: '#52525B',
+          700: '#3F3F46',
+          800: '#27272A',
+          900: '#18181B',
+          950: '#09090B',
         },
       },
       borderRadius: {
@@ -49,8 +63,8 @@ module.exports = {
           '50%': { transform: 'translateY(-20px) rotate(2deg)' },
         },
         'pulse-glow': {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(14, 165, 233, 0.3)' },
-          '50%': { boxShadow: '0 0 40px rgba(14, 165, 233, 0.6)' },
+          '0%, 100%': { boxShadow: '0 0 20px rgba(212, 244, 65, 0.3)' },
+          '50%': { boxShadow: '0 0 40px rgba(212, 244, 65, 0.6)' },
         },
         shimmer: {
           '0%': { backgroundPosition: '-200% 0' },

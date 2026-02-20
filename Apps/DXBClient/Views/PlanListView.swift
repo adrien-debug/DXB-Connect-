@@ -1,6 +1,56 @@
 import SwiftUI
 import DXBCore
 
+// MARK: - Flag Image (CDN)
+
+struct FlagImage: View {
+    let code: String
+    var size: CGFloat = 32
+
+    private var flagURL: URL? {
+        let lowered = code.lowercased()
+        let width = Int(size * 3)
+        return URL(string: "https://flagcdn.com/w\(width)/\(lowered).png")
+    }
+
+    var body: some View {
+        AsyncImage(url: flagURL) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: size, height: size * 0.7)
+                    .clipShape(RoundedRectangle(cornerRadius: size * 0.12))
+            case .failure:
+                fallbackFlag
+            case .empty:
+                RoundedRectangle(cornerRadius: size * 0.12)
+                    .fill(AppTheme.gray100)
+                    .frame(width: size, height: size * 0.7)
+                    .overlay(
+                        ProgressView()
+                            .scaleEffect(0.5)
+                            .tint(AppTheme.textTertiary)
+                    )
+            @unknown default:
+                fallbackFlag
+            }
+        }
+    }
+
+    private var fallbackFlag: some View {
+        RoundedRectangle(cornerRadius: size * 0.12)
+            .fill(AppTheme.gray100)
+            .frame(width: size, height: size * 0.7)
+            .overlay(
+                Image(systemName: "globe")
+                    .font(.system(size: size * 0.35, weight: .medium))
+                    .foregroundColor(AppTheme.textTertiary)
+            )
+    }
+}
+
 struct PlanListView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @State private var searchText = ""
@@ -30,10 +80,28 @@ struct PlanListView: View {
         return result.sorted { $0.priceUSD < $1.priceUSD }
     }
 
+    private var popularDestinations: [DestinationInfo] {
+        let grouped = Dictionary(grouping: coordinator.plans) { $0.locationCode }
+        return grouped.compactMap { (code, plans) -> DestinationInfo? in
+            guard let first = plans.first else { return nil }
+            return DestinationInfo(location: first.location, code: code, count: plans.count, minPrice: plans.map(\.priceUSD).min() ?? 0)
+        }
+        .sorted { $0.count > $1.count }
+        .prefix(8)
+        .map { $0 }
+    }
+
+    private var bestValuePlanId: String? {
+        guard !filteredPlans.isEmpty else { return nil }
+        return filteredPlans.min(by: {
+            ($0.priceUSD / max(Double($0.dataGB), 1)) < ($1.priceUSD / max(Double($1.dataGB), 1))
+        })?.id
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundPrimary
+                AppTheme.backgroundSecondary
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -60,79 +128,192 @@ struct PlanListView: View {
 
     // MARK: - Header
 
+    private var popularDestinationCodes: [String] {
+        Array(Set(coordinator.plans.prefix(10).map { $0.locationCode }))
+    }
+
+    private var uniqueCountriesCount: Int {
+        Set(coordinator.plans.map { $0.locationCode }).count
+    }
+
+    private var cheapestPrice: Double {
+        coordinator.plans.map(\.priceUSD).min() ?? 0
+    }
+
     private var headerSection: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("ESIM PLANS")
-                    .font(.system(size: 12, weight: .bold))
-                    .tracking(1.8)
-                    .foregroundColor(AppTheme.textTertiary)
+        ZStack {
+            // Background anthracite
+            AppTheme.anthracite
 
-                Text("Explore")
-                    .font(.system(size: 34, weight: .bold))
-                    .tracking(-0.5)
-                    .foregroundColor(AppTheme.textPrimary)
+            // World map overlay
+            WorldMapDarkView(
+                highlightedCodes: popularDestinationCodes,
+                showConnections: false,
+                showDubaiPulse: true
+            )
+            .opacity(0.5)
 
-                Text("\(coordinator.plans.count) plans available")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(AppTheme.textSecondary)
+            // Signal rings centered on Dubai
+            GeometryReader { geo in
+                SignalRings(color: AppTheme.accent.opacity(0.35), size: 90)
+                    .position(
+                        x: 0.654 * geo.size.width,
+                        y: 0.42 * geo.size.height
+                    )
             }
 
-            Spacer()
+            // Gradient overlay for better text readability
+            LinearGradient(
+                colors: [
+                    AppTheme.anthracite.opacity(0.8),
+                    AppTheme.anthracite.opacity(0.3),
+                    AppTheme.anthracite.opacity(0.6)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
 
-            if coordinator.isLoadingPlans {
-                ProgressView()
-                    .tint(AppTheme.accent)
-                    .frame(width: 44, height: 44)
+            VStack(spacing: 0) {
+                // Top bar
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Explore")
+                            .font(.system(size: 28, weight: .bold))
+                            .tracking(-0.5)
+                            .foregroundColor(.white)
+
+                        Text("Find your perfect plan")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+
+                    Spacer()
+
+                    // Filter button
+                    Button {
+                        HapticFeedback.light()
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color.white.opacity(0.12)))
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 56)
+
+                Spacer()
+
+                // Stats row with price highlight
+                HStack(spacing: 8) {
+                    // Destinations
+                    HStack(spacing: 5) {
+                        Image(systemName: "globe.americas.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text("\(uniqueCountriesCount > 0 ? uniqueCountriesCount : 190)+")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(Color.white.opacity(0.12)))
+
+                    // Plans count
+                    HStack(spacing: 5) {
+                        Image(systemName: "simcard.2.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text("\(coordinator.plans.count)")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(Color.white.opacity(0.12)))
+
+                    Spacer()
+
+                    // Price highlight
+                    if cheapestPrice > 0 {
+                        HStack(spacing: 4) {
+                            Text("from")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.white.opacity(0.6))
+                            Text(cheapestPrice.formattedPrice)
+                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                                .foregroundColor(AppTheme.accent)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(AppTheme.accent.opacity(0.15))
+                                .overlay(
+                                    Capsule()
+                                        .stroke(AppTheme.accent.opacity(0.3), lineWidth: 1)
+                                )
+                        )
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 60)
-        .padding(.bottom, 16)
+        .frame(height: 180)
+        .clipShape(RoundedCorner(radius: 24, corners: [.bottomLeft, .bottomRight]))
+        .shadow(color: AppTheme.anthracite.opacity(0.5), radius: 20, x: 0, y: 10)
     }
 
     // MARK: - Search
 
     private var searchSection: some View {
         VStack(spacing: 14) {
+            // Search bar elevated
             HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(AppTheme.textTertiary)
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(AppTheme.accent)
 
-                TextField("Search plans...", text: $searchText)
-                    .font(.system(size: 16, weight: .medium))
+                TextField("Search country or region...", text: $searchText)
+                    .font(.system(size: 16, weight: .regular))
                     .foregroundColor(AppTheme.textPrimary)
 
                 if !searchText.isEmpty {
                     Button {
-                        searchText = ""
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            searchText = ""
+                        }
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(AppTheme.textMuted)
+                            .font(.system(size: 18))
+                            .foregroundColor(AppTheme.textTertiary)
                     }
                 }
             }
-            .padding(14)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
             .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(AppTheme.surfaceLight)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(AppTheme.border, lineWidth: 1)
-                    )
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(AppTheme.backgroundPrimary)
+                    .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+                    .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(searchText.isEmpty ? Color.clear : AppTheme.accent.opacity(0.3), lineWidth: 1.5)
             )
 
+            // Filter chips with icons
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(filters, id: \.self) { filter in
-                        TechChip(
+                        FilterChipEnhanced(
                             title: filter,
+                            icon: iconForFilter(filter),
                             isSelected: selectedFilter == filter
                         ) {
                             HapticFeedback.selection()
-                            withAnimation(.spring(response: 0.3)) {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                 selectedFilter = filter
                             }
                         }
@@ -141,7 +322,19 @@ struct PlanListView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 16)
+        .padding(.top, 16)
+        .padding(.bottom, 8)
+    }
+
+    private func iconForFilter(_ filter: String) -> String {
+        switch filter {
+        case "All": return "square.grid.2x2"
+        case "1GB": return "leaf"
+        case "2GB": return "bolt"
+        case "5GB": return "flame"
+        case "10GB": return "star.fill"
+        default: return "circle"
+        }
     }
 
     // MARK: - Content
@@ -159,56 +352,116 @@ struct PlanListView: View {
 
     private var plansList: some View {
         ScrollView(showsIndicators: false) {
-            LazyVStack(spacing: 12) {
-                ForEach(filteredPlans) { plan in
-                    Button {
-                        selectedPlan = plan
-                    } label: {
-                        PlanTechRow(plan: plan)
-                    }
-                    .buttonStyle(.plain)
+            VStack(spacing: 0) {
+                if searchText.isEmpty && selectedFilter == "All" && !coordinator.plans.isEmpty {
+                    destinationsSection
                 }
+
+                HStack {
+                    Text(searchText.isEmpty && selectedFilter == "All" ? "ALL PLANS" : "\(filteredPlans.count) RESULTS")
+                        .font(.system(size: 11, weight: .bold))
+                        .tracking(1.5)
+                        .foregroundColor(AppTheme.textSecondary)
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
+
+                LazyVStack(spacing: 10) {
+                    ForEach(Array(filteredPlans.enumerated()), id: \.element.id) { index, plan in
+                        Button {
+                            selectedPlan = plan
+                        } label: {
+                            PlanTechRow(plan: plan, isBestValue: plan.id == bestValuePlanId)
+                        }
+                        .buttonStyle(.plain)
+                        .slideIn(delay: 0.02 * Double(index))
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 100)
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 120)
+        }
+    }
+
+    private var destinationsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                HStack(spacing: 6) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(AppTheme.accent)
+
+                    Text("TRENDING")
+                        .font(.system(size: 11, weight: .bold))
+                        .tracking(1.5)
+                        .foregroundColor(AppTheme.textSecondary)
+                }
+
+                Spacer()
+
+                Text("\(popularDestinations.count) popular")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(AppTheme.textMuted)
+            }
+            .padding(.horizontal, 16)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(Array(popularDestinations.enumerated()), id: \.element.id) { index, dest in
+                        Button {
+                            HapticFeedback.selection()
+                            withAnimation(.spring(response: 0.3)) {
+                                searchText = dest.location
+                            }
+                        } label: {
+                            DestinationCardEnhanced(
+                                code: dest.code,
+                                name: dest.location,
+                                count: dest.count,
+                                price: dest.minPrice,
+                                rank: index + 1
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
         }
     }
 
     private var loadingView: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            ProgressView()
-                .tint(AppTheme.accent)
-                .scaleEffect(1.2)
-            Text("Loading plans...")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(AppTheme.textTertiary)
-            Spacer()
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: AppTheme.Spacing.base) {
+                ForEach(0..<5, id: \.self) { index in
+                    ShimmerPlaceholder(cornerRadius: 16)
+                        .frame(height: 80)
+                        .padding(.horizontal, 20)
+                        .bounceIn(delay: Double(index) * 0.08)
+                }
+            }
+            .padding(.top, AppTheme.Spacing.md)
         }
     }
 
     private var emptyView: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: AppTheme.Spacing.lg) {
             Spacer()
 
-            ZStack {
-                Circle()
-                    .fill(AppTheme.accentSoft)
-                    .frame(width: 80, height: 80)
+            Image(systemName: "simcard")
+                .font(.system(size: 32, weight: .medium))
+                .foregroundColor(AppTheme.textSecondary)
 
-                Image(systemName: "simcard")
-                    .font(.system(size: 34, weight: .semibold))
-                    .foregroundColor(AppTheme.accent)
-            }
-
-            VStack(spacing: 8) {
+            VStack(spacing: AppTheme.Spacing.xs) {
                 Text("No Plans Available")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(AppTheme.textPrimary)
 
                 Text("Pull to refresh")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(AppTheme.textTertiary)
+                    .font(AppTheme.Typography.caption())
+                    .foregroundColor(AppTheme.textSecondary)
             }
 
             Spacer()
@@ -225,7 +478,7 @@ struct ESIMOrderRow: View {
     private var statusColor: Color {
         switch order.status.uppercased() {
         case "RELEASED", "IN_USE": return AppTheme.success
-        case "EXPIRED": return AppTheme.gray400
+        case "EXPIRED": return AppTheme.textSecondary
         default: return AppTheme.warning
         }
     }
@@ -240,35 +493,35 @@ struct ESIMOrderRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: AppTheme.Spacing.md) {
             ZStack {
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(AppTheme.accent.opacity(0.1))
-                    .frame(width: 52, height: 52)
+                RoundedRectangle(cornerRadius: AppTheme.Radius.sm)
+                    .fill(AppTheme.accent.opacity(0.12))
+                    .frame(width: 48, height: 48)
 
                 Image(systemName: "simcard.fill")
-                    .font(.system(size: 22, weight: .semibold))
+                    .font(.system(size: 20, weight: .semibold))
                     .foregroundColor(AppTheme.accent)
             }
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(order.packageName)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(AppTheme.Typography.body())
                     .foregroundColor(AppTheme.textPrimary)
 
-                HStack(spacing: 12) {
-                    HStack(spacing: 5) {
+                HStack(spacing: AppTheme.Spacing.sm) {
+                    HStack(spacing: 4) {
                         Image(systemName: "antenna.radiowaves.left.and.right")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(AppTheme.Typography.label())
                         Text(order.totalVolume)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(AppTheme.Typography.small())
                     }
 
-                    HStack(spacing: 5) {
+                    HStack(spacing: 4) {
                         Image(systemName: "number")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(AppTheme.Typography.label())
                         Text(String(order.iccid.prefix(8)) + "...")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(AppTheme.Typography.small())
                     }
                 }
                 .foregroundColor(AppTheme.textTertiary)
@@ -276,17 +529,17 @@ struct ESIMOrderRow: View {
 
             Spacer()
 
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Circle()
                     .fill(statusColor)
-                    .frame(width: 6, height: 6)
+                    .frame(width: 5, height: 5)
 
                 Text(statusText)
-                    .font(.system(size: 10, weight: .bold))
-                    .tracking(0.5)
+                    .font(AppTheme.Typography.label())
+                    .tracking(0.4)
                     .foregroundColor(statusColor)
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, AppTheme.Spacing.sm)
             .padding(.vertical, 6)
             .background(
                 Capsule()
@@ -295,17 +548,17 @@ struct ESIMOrderRow: View {
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundColor(AppTheme.textMuted)
+                .foregroundColor(AppTheme.textSecondary)
         }
-        .padding(16)
+        .padding(AppTheme.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(AppTheme.surfaceLight)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
+                .fill(AppTheme.backgroundPrimary)
+                .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 18)
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
         )
         .contentShape(Rectangle())
     }
@@ -319,27 +572,10 @@ struct CountryCard: View {
     let planCount: Int
     let minPrice: Double
 
-    private var flagEmoji: String {
-        let base: UInt32 = 127397
-        var emoji = ""
-        for scalar in code.uppercased().unicodeScalars {
-            if let s = UnicodeScalar(base + scalar.value) {
-                emoji.append(String(s))
-            }
-        }
-        return emoji.isEmpty ? "🌍" : emoji
-    }
-
     var body: some View {
-        VStack(spacing: 14) {
-            ZStack {
-                Circle()
-                    .fill(AppTheme.gray100)
-                    .frame(width: 52, height: 52)
-
-                Text(flagEmoji)
-                    .font(.system(size: 26))
-            }
+        VStack(spacing: AppTheme.Spacing.md) {
+            FlagImage(code: code, size: 44)
+                .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
 
             Text(country)
                 .font(.system(size: 14, weight: .semibold))
@@ -347,30 +583,26 @@ struct CountryCard: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
-            HStack(spacing: 4) {
+            HStack(spacing: 3) {
                 Text("\(planCount) plans")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(AppTheme.textTertiary)
+                    .font(AppTheme.Typography.label())
+                    .foregroundColor(AppTheme.textSecondary)
 
-                Text("•")
-                    .foregroundColor(AppTheme.textMuted)
+                Text("·")
+                    .foregroundColor(AppTheme.textSecondary)
 
                 Text("from \(minPrice.formattedPrice)")
-                    .font(.system(size: 11, weight: .bold))
+                    .font(AppTheme.Typography.label())
                     .foregroundColor(AppTheme.accent)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
-        .padding(.horizontal, 12)
+        .padding(.vertical, AppTheme.Spacing.base)
+        .padding(.horizontal, AppTheme.Spacing.md)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(AppTheme.surfaceLight)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(AppTheme.border, lineWidth: 1)
-                )
-                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+                .fill(AppTheme.backgroundPrimary)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, y: 3)
         )
         .contentShape(Rectangle())
     }
@@ -385,22 +617,13 @@ struct CountryPlansView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @State private var selectedPlan: Plan?
 
-    private var flagEmoji: String {
-        let base: UInt32 = 127397
-        var emoji = ""
-        if let code = plans.first?.locationCode {
-            for scalar in code.uppercased().unicodeScalars {
-                if let s = UnicodeScalar(base + scalar.value) {
-                    emoji.append(String(s))
-                }
-            }
-        }
-        return emoji.isEmpty ? "🌍" : emoji
+    private var countryCode: String {
+        plans.first?.locationCode ?? ""
     }
 
     var body: some View {
         ZStack {
-            AppTheme.backgroundPrimary
+            AppTheme.backgroundSecondary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -409,17 +632,16 @@ struct CountryPlansView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.system(size: 14, weight: .medium))
                             .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 40, height: 40)
-                            .background(Circle().fill(AppTheme.surfaceHeavy))
+                            .background(Circle().fill(AppTheme.gray100))
                     }
 
                     Spacer()
 
                     HStack(spacing: 8) {
-                        Text(flagEmoji)
-                            .font(.system(size: 20))
+                        FlagImage(code: countryCode, size: 28)
                         Text(country)
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(AppTheme.textPrimary)
@@ -430,21 +652,21 @@ struct CountryPlansView: View {
                     Color.clear
                         .frame(width: 40, height: 40)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 16)
+                .padding(.horizontal, AppTheme.Spacing.lg)
+                .padding(.top, AppTheme.Spacing.sm)
+                .padding(.bottom, AppTheme.Spacing.base)
 
                 HStack {
                     Text("\(plans.count) plans available")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(AppTheme.textTertiary)
+                        .font(AppTheme.Typography.caption())
+                        .foregroundColor(AppTheme.textSecondary)
                     Spacer()
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 16)
+                .padding(.horizontal, AppTheme.Spacing.lg)
+                .padding(.bottom, AppTheme.Spacing.base)
 
                 ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 12) {
+                    LazyVStack(spacing: AppTheme.Spacing.md) {
                         ForEach(plans) { plan in
                             Button {
                                 selectedPlan = plan
@@ -454,7 +676,7 @@ struct CountryPlansView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, AppTheme.Spacing.lg)
                     .padding(.bottom, 100)
                 }
             }
@@ -477,19 +699,49 @@ struct TechChip: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(isSelected ? .white : AppTheme.textSecondary)
+                .font(.system(size: 13, weight: isSelected ? .bold : .medium))
+                .foregroundColor(isSelected ? Color(hex: "0F172A") : AppTheme.textSecondary)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 10)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(isSelected ? AppTheme.accent : AppTheme.surfaceLight)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(isSelected ? Color.clear : AppTheme.border, lineWidth: 1)
-                        )
+                    Capsule()
+                        .fill(isSelected ? AppTheme.accent : AppTheme.backgroundPrimary)
+                        .shadow(color: Color.black.opacity(isSelected ? 0 : 0.04), radius: 4, x: 0, y: 2)
                 )
         }
+    }
+}
+
+struct FilterChipEnhanced: View {
+    let title: String
+    let icon: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 11, weight: .semibold))
+
+                Text(title)
+                    .font(.system(size: 13, weight: isSelected ? .bold : .semibold))
+            }
+            .foregroundColor(isSelected ? Color(hex: "0F172A") : AppTheme.textSecondary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(isSelected ? AppTheme.accent : AppTheme.backgroundPrimary)
+                    .shadow(color: Color.black.opacity(isSelected ? 0.08 : 0.04), radius: isSelected ? 8 : 4, x: 0, y: isSelected ? 3 : 2)
+            )
+            .overlay(
+                Capsule()
+                    .stroke(isSelected ? AppTheme.accent : AppTheme.border.opacity(0.5), lineWidth: isSelected ? 0 : 0.5)
+            )
+            .scaleEffect(isSelected ? 1.02 : 1.0)
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -523,7 +775,7 @@ struct StockESIMRow: View {
         switch esim.status.uppercased() {
         case "RELEASED", "GOT_RESOURCE": return AppTheme.success
         case "IN_USE": return AppTheme.warning
-        default: return AppTheme.gray400
+        default: return AppTheme.textSecondary
         }
     }
 
@@ -535,73 +787,66 @@ struct StockESIMRow: View {
         }
     }
 
-    private var flagEmoji: String {
+    private var guessedCode: String {
         let name = esim.packageName.lowercased()
-        if name.contains("arab") || name.contains("uae") || name.contains("emirates") { return "🇦🇪" }
-        if name.contains("turkey") || name.contains("türkiye") { return "🇹🇷" }
-        if name.contains("saudi") { return "🇸🇦" }
-        if name.contains("qatar") { return "🇶🇦" }
-        if name.contains("oman") { return "🇴🇲" }
-        if name.contains("bahrain") { return "🇧🇭" }
-        if name.contains("kuwait") { return "🇰🇼" }
-        return "🌍"
+        if name.contains("arab") || name.contains("uae") || name.contains("emirates") { return "AE" }
+        if name.contains("turkey") || name.contains("türkiye") { return "TR" }
+        if name.contains("saudi") { return "SA" }
+        if name.contains("qatar") { return "QA" }
+        if name.contains("oman") { return "OM" }
+        if name.contains("bahrain") { return "BH" }
+        if name.contains("kuwait") { return "KW" }
+        return ""
     }
 
     var body: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(AppTheme.gray100)
-                    .frame(width: 44, height: 44)
-
-                Text(flagEmoji)
-                    .font(.system(size: 20))
-            }
+        HStack(spacing: AppTheme.Spacing.md) {
+            FlagImage(code: guessedCode, size: 40)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(esim.packageName)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(AppTheme.Typography.button())
                     .foregroundColor(AppTheme.textPrimary)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Text(esim.totalVolume)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(AppTheme.Typography.small())
                     .foregroundColor(AppTheme.textTertiary)
             }
 
             Spacer()
 
-            HStack(spacing: 8) {
+            HStack(spacing: AppTheme.Spacing.sm) {
                 HStack(spacing: 5) {
                     Circle()
                         .fill(statusColor)
                         .frame(width: 6, height: 6)
 
                     Text(statusText)
-                        .font(.system(size: 10, weight: .bold))
+                        .font(AppTheme.Typography.label())
                         .tracking(0.3)
                         .foregroundColor(statusColor)
                 }
-                .padding(.horizontal, 10)
+                .padding(.horizontal, AppTheme.Spacing.sm)
                 .padding(.vertical, 6)
                 .background(Capsule().fill(statusColor.opacity(0.1)))
                 .fixedSize()
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(AppTheme.textMuted)
+                    .foregroundColor(AppTheme.textSecondary)
             }
         }
-        .padding(14)
+        .padding(AppTheme.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(AppTheme.surfaceLight)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
+                .fill(AppTheme.backgroundPrimary)
+                .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
-                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
         )
         .contentShape(Rectangle())
     }
@@ -611,82 +856,221 @@ struct StockESIMRow: View {
 
 struct PlanTechRow: View {
     let plan: Plan
+    var isBestValue: Bool = false
 
     var body: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(AppTheme.gray100)
-                    .frame(width: 52, height: 52)
-
-                Text(flagEmoji)
-                    .font(.system(size: 26))
-            }
-
-            VStack(alignment: .leading, spacing: 5) {
-                Text(plan.location)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(AppTheme.textPrimary)
-
-                HStack(spacing: 10) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                            .font(.system(size: 10, weight: .semibold))
-                        Text("\(plan.dataGB)GB")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-
-                    HStack(spacing: 4) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 10, weight: .semibold))
-                        Text("\(plan.durationDays)d")
-                            .font(.system(size: 12, weight: .medium))
-                    }
+        VStack(spacing: 0) {
+            if isBestValue {
+                HStack(spacing: 5) {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 9))
+                    Text("BEST VALUE")
+                        .font(.system(size: 10, weight: .bold))
+                        .tracking(1.2)
                 }
-                .foregroundColor(AppTheme.textTertiary)
+                .foregroundColor(Color(hex: "0F172A"))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 7)
+                .background(AppTheme.accent)
+                .clipShape(RoundedCorner(radius: 20, corners: [.topLeft, .topRight]))
             }
 
-            Spacer()
+            HStack(spacing: 14) {
+                FlagImage(code: plan.locationCode, size: 48)
+                    .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
 
-            VStack(alignment: .trailing, spacing: 3) {
-                Text(plan.priceUSD.formattedPrice)
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundColor(AppTheme.accent)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(plan.location)
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(AppTheme.textPrimary)
 
-                Text(plan.speed)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(AppTheme.textMuted)
+                    HStack(spacing: 12) {
+                        Label("\(plan.dataGB) GB", systemImage: "arrow.down.circle.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(AppTheme.accent)
+
+                        Label("\(plan.durationDays)d", systemImage: "clock")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(AppTheme.textTertiary)
+
+                        Label(plan.speed, systemImage: "bolt.fill")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(AppTheme.textTertiary)
+                    }
+                    .labelStyle(CompactLabelStyle())
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(plan.priceUSD.formattedPrice)
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundColor(AppTheme.textPrimary)
+
+                    Text("one-time")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(AppTheme.textMuted)
+                }
             }
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(AppTheme.textMuted)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
         }
-        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(AppTheme.surfaceLight)
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.backgroundPrimary)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(AppTheme.border, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(
+                            isBestValue ? AppTheme.accent.opacity(0.4) : AppTheme.border.opacity(0.3),
+                            lineWidth: isBestValue ? 1.5 : 0.5
+                        )
                 )
-                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+                .shadow(color: Color.black.opacity(isBestValue ? 0.08 : 0.04), radius: isBestValue ? 14 : 8, x: 0, y: isBestValue ? 5 : 3)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(plan.location), \(plan.dataGB) gigabytes, \(plan.durationDays) jours, \(plan.priceUSD.formattedPrice)")
         .accessibilityHint("Double-tap pour voir les détails")
         .contentShape(Rectangle())
     }
+}
 
-    private var flagEmoji: String {
-        let base: UInt32 = 127397
-        var emoji = ""
-        for scalar in plan.locationCode.uppercased().unicodeScalars {
-            if let s = UnicodeScalar(base + scalar.value) {
-                emoji.append(String(s))
+struct CompactLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 3) {
+            configuration.icon
+            configuration.title
+        }
+    }
+}
+
+// MARK: - Spec Pill
+
+struct SpecPill: View {
+    let text: String
+    var isHighlighted: Bool = false
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 11, weight: isHighlighted ? .semibold : .medium))
+            .foregroundColor(isHighlighted ? AppTheme.primary : AppTheme.textSecondary)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(
+                Capsule()
+                    .fill(isHighlighted ? AppTheme.accent.opacity(0.15) : AppTheme.gray100)
+            )
+    }
+}
+
+// MARK: - Destination Pill
+
+struct DestinationInfo: Identifiable {
+    var id: String { code }
+    let location: String
+    let code: String
+    let count: Int
+    let minPrice: Double
+}
+
+struct DestinationPill: View {
+    let code: String
+    let name: String
+    let count: Int
+    let price: Double
+
+    var body: some View {
+        VStack(spacing: 10) {
+            FlagImage(code: code, size: 52)
+                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+
+            VStack(spacing: 4) {
+                Text(name)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppTheme.textPrimary)
+                    .lineLimit(1)
+
+                Text("from \(price.formattedPrice)")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundColor(AppTheme.accent)
             }
         }
-        return emoji.isEmpty ? "🌍" : emoji
+        .frame(width: 105)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.backgroundPrimary)
+                .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
+        )
+    }
+}
+
+struct DestinationCardEnhanced: View {
+    let code: String
+    let name: String
+    let count: Int
+    let price: Double
+    var rank: Int = 0
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Flag with rank badge
+            ZStack(alignment: .topTrailing) {
+                FlagImage(code: code, size: 56)
+                    .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
+
+                if rank > 0 && rank <= 3 {
+                    Text("#\(rank)")
+                        .font(.system(size: 9, weight: .bold, design: .rounded))
+                        .foregroundColor(rank == 1 ? Color(hex: "0F172A") : .white)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(
+                            Capsule()
+                                .fill(rank == 1 ? AppTheme.accent : AppTheme.anthracite)
+                        )
+                        .offset(x: 6, y: -4)
+                }
+            }
+            .padding(.top, 14)
+            .padding(.bottom, 10)
+
+            VStack(spacing: 3) {
+                Text(name)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(AppTheme.textPrimary)
+                    .lineLimit(1)
+
+                Text("\(count) plans")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(AppTheme.textMuted)
+            }
+
+            Spacer().frame(height: 8)
+
+            // Price tag
+            Text(price.formattedPrice)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundColor(AppTheme.accent)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(
+                    Capsule()
+                        .fill(AppTheme.accent.opacity(0.1))
+                )
+                .padding(.bottom, 14)
+        }
+        .frame(width: 110)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.backgroundPrimary)
+                .shadow(color: Color.black.opacity(0.02), radius: 1, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.08), radius: 14, x: 0, y: 5)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(AppTheme.border.opacity(0.3), lineWidth: 0.5)
+        )
     }
 }
 
@@ -710,12 +1094,12 @@ struct ErrorStateTech: View {
     let retry: () -> Void
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: AppTheme.Spacing.xl) {
             Spacer()
 
             ZStack {
                 Circle()
-                    .fill(AppTheme.errorLight)
+                    .fill(AppTheme.error.opacity(0.12))
                     .frame(width: 72, height: 72)
 
                 Image(systemName: "wifi.exclamationmark")
@@ -723,27 +1107,27 @@ struct ErrorStateTech: View {
                     .foregroundColor(AppTheme.error)
             }
 
-            VStack(spacing: 8) {
+            VStack(spacing: AppTheme.Spacing.sm) {
                 Text("Connection Error")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(AppTheme.textPrimary)
+                    .font(AppTheme.Typography.cardAmount())
+                    .foregroundColor(.white)
 
                 Text(message)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(AppTheme.textTertiary)
+                    .font(AppTheme.Typography.body())
+                    .foregroundColor(AppTheme.textSecondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, AppTheme.Spacing.xxl)
             }
 
             Button(action: retry) {
                 Text("TRY AGAIN")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(AppTheme.Typography.small())
                     .tracking(1.2)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 32)
-                    .padding(.vertical, 14)
+                    .foregroundColor(Color(hex: "0F172A"))
+                    .padding(.horizontal, AppTheme.Spacing.xxl)
+                    .padding(.vertical, AppTheme.Spacing.md)
                     .background(
-                        RoundedRectangle(cornerRadius: 14)
+                        RoundedRectangle(cornerRadius: AppTheme.Radius.md)
                             .fill(AppTheme.accent)
                     )
             }

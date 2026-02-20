@@ -4,7 +4,7 @@ import './globals.css'
 import { QueryProvider } from '@/providers/QueryProvider'
 import { Toaster } from 'sonner'
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
 })
@@ -28,17 +28,18 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <QueryProvider>
           {children}
-          <Toaster 
-            position="top-right" 
-            richColors 
+          <Toaster
+            position="top-right"
+            richColors
             closeButton
             toastOptions={{
               duration: 3000,
               style: {
-                background: 'rgba(255, 255, 255, 0.95)',
+                background: 'rgba(24, 24, 27, 0.95)',
                 backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.4)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                border: '1px solid rgba(63, 63, 70, 0.5)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                color: '#FAFAFA',
               },
             }}
           />

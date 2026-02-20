@@ -1,23 +1,32 @@
 'use client'
 
-import StatCard from '@/components/StatCard'
 import { useEsimBalance, useEsimStock } from '@/hooks/useEsimAccess'
 import { supabaseAny as supabase } from '@/lib/supabase'
 import {
-  Activity,
+  ArrowDownRight,
+  ArrowRight,
   DollarSign,
   Globe,
   LayoutDashboard,
   Package,
+  RefreshCw,
   ShoppingBag,
-  TrendingDown,
   TrendingUp,
   Users,
-  Wifi
+  Wifi,
+  Zap
 } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from 'recharts'
 
 interface DashboardStats {
   clientsCount: number
@@ -40,10 +49,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const { data: balance } = useEsimBalance()
   const { data: stock } = useEsimStock()
-  
-  // Balance API est en centièmes de cent (basis points) : 2500 = $0.25
-  // Crédit initial = $50 (top-up du 17/02/2026) = 500000 basis points
-  const INITIAL_CREDIT = 500000 // $50 en basis points
+
+  const INITIAL_CREDIT = 500000
   const currentBalance = balance?.balance || 0
   const spent = INITIAL_CREDIT - currentBalance
 
@@ -53,23 +60,19 @@ export default function DashboardPage() {
 
   const fetchStats = async () => {
     try {
-      // Clients (profiles with role='client')
       const { count: clientsCount } = await supabase
         .from('profiles')
         .select('id', { count: 'exact', head: true })
         .eq('role', 'client')
 
-      // eSIM Orders
       const { data: orders, count: esimOrdersCount } = await supabase
         .from('esim_orders')
         .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
         .limit(50)
 
-      // Recent orders (last 5)
       const recentOrders = orders?.slice(0, 5) || []
 
-      // Orders by country (from package_code)
       const countryMap: Record<string, number> = {}
       orders?.forEach((order: any) => {
         const country = order.package_code?.split('_')[0] || 'Autre'
@@ -80,7 +83,6 @@ export default function DashboardPage() {
         .sort((a, b) => b.value - a.value)
         .slice(0, 6)
 
-      // Orders by day (last 7 days)
       const dayMap: Record<string, number> = {}
       const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
       for (let i = 6; i >= 0; i--) {
@@ -101,7 +103,7 @@ export default function DashboardPage() {
       setStats({
         clientsCount: clientsCount || 0,
         esimOrdersCount: esimOrdersCount || 0,
-        totalRevenue: 0, // À calculer si prix disponible
+        totalRevenue: 0,
         recentOrders,
         ordersByCountry,
         ordersByDay
@@ -113,16 +115,7 @@ export default function DashboardPage() {
     }
   }
 
-  const COLORS = ['#0EA5E9', '#38BDF8', '#7DD3FC', '#BAE6FD', '#E0F2FE', '#F0F9FF']
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
+  const COLORS = ['#D4F441', '#B8E600', '#9ACA00', '#7BAE00', '#5C9200', '#3A4A00']
 
   const getGreeting = () => {
     const hour = new Date().getHours()
@@ -131,12 +124,25 @@ export default function DashboardPage() {
     return 'Bonsoir'
   }
 
+  const balanceFormatted = `$${(currentBalance / 10000).toFixed(2)}`
+  const spentFormatted = `$${(spent > 0 ? spent / 10000 : 0).toFixed(2)}`
+  const totalStock = stock?.stats?.total || 0
+  const availableStock = stock?.stats?.available || 0
+  const inUseStock = stock?.stats?.inUse || 0
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="relative">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/25">
-            <LayoutDashboard className="w-7 h-7 text-white animate-pulse" />
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-2xl bg-lime-400/20 blur-xl animate-pulse" />
+            <div className="relative w-16 h-16 rounded-2xl bg-lime-400 flex items-center justify-center">
+              <LayoutDashboard className="w-8 h-8 text-zinc-950" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-zinc-500 text-sm">
+            <RefreshCw size={14} className="animate-spin" />
+            Chargement...
           </div>
         </div>
       </div>
@@ -144,155 +150,181 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-6 sm:p-8 animate-fade-in-up">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-400/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
+    <div className="space-y-6">
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-2xl border border-zinc-800/60">
+        <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-lime-400/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-lime-400/[0.02] rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
 
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <p className="text-sky-400 text-sm font-medium mb-1">{getGreeting()} 👋</p>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-              Votre activité eSIM
-            </h1>
-            <p className="text-gray-400 text-sm mt-2 max-w-md">
-              Suivez vos performances, gérez votre stock et pilotez votre business depuis un seul endroit.
-            </p>
+        <div className="relative z-10 p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-lime-400 uppercase tracking-widest">
+                {getGreeting()}
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                Tableau de bord
+              </h1>
+              <p className="text-sm text-zinc-500 max-w-sm">
+                Pilotez votre activité eSIM en temps réel
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => { setLoading(true); fetchStats() }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 hover:border-zinc-600 text-sm text-zinc-300 hover:text-white transition-all"
+              >
+                <RefreshCw size={14} />
+                Actualiser
+              </button>
+              <Link
+                href="/esim"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-lime-400 hover:bg-lime-300 text-zinc-950 text-sm font-semibold shadow-lg shadow-lime-400/20 hover:shadow-lime-400/30 transition-all hover:-translate-y-0.5"
+              >
+                <Zap size={14} />
+                Acheter eSIM
+              </Link>
+            </div>
           </div>
-          <Link
-            href="/esim"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-sky-500 hover:bg-sky-400 text-white text-sm font-semibold rounded-xl shadow-lg shadow-sky-500/25 transition-all duration-300 hover:-translate-y-0.5 whitespace-nowrap"
-          >
-            <Globe size={16} />
-            Acheter eSIM
-          </Link>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
-        {[
-          { title: 'Balance', value: `$${(currentBalance / 10000).toFixed(2)}`, icon: DollarSign, color: 'green' as const, delay: '0.05s' },
-          { title: 'Dépenses', value: `$${(spent > 0 ? spent / 10000 : 0).toFixed(2)}`, icon: TrendingDown, color: 'orange' as const, delay: '0.08s' },
-          { title: 'Stock eSIM', value: stock?.stats?.total || 0, icon: Package, color: 'blue' as const, delay: '0.1s' },
-          { title: 'Disponibles', value: stock?.stats?.available || 0, icon: Wifi, color: 'green' as const, delay: '0.12s' },
-          { title: 'En usage', value: stock?.stats?.inUse || 0, icon: Activity, color: 'purple' as const, delay: '0.15s' },
-          { title: 'Clients iOS', value: stats.clientsCount, icon: Users, color: 'indigo' as const, delay: '0.18s' },
-        ].map((stat) => (
-          <div key={stat.title} className="animate-fade-in-up" style={{ animationDelay: stat.delay, animationFillMode: 'backwards' }}>
-            <StatCard
-              title={stat.title}
-              value={stat.value}
-              icon={stat.icon}
-              color={stat.color}
-            />
-          </div>
-        ))}
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <KPICard
+          label="Balance"
+          value={balanceFormatted}
+          icon={DollarSign}
+          accent="lime"
+          subtitle="Crédit disponible"
+        />
+        <KPICard
+          label="Dépenses"
+          value={spentFormatted}
+          icon={ArrowDownRight}
+          accent="orange"
+          subtitle="Total consommé"
+        />
+        <KPICard
+          label="Stock eSIM"
+          value={totalStock}
+          icon={Package}
+          accent="blue"
+          subtitle={`${availableStock} dispo · ${inUseStock} en usage`}
+        />
+        <KPICard
+          label="Clients"
+          value={stats.clientsCount}
+          icon={Users}
+          accent="purple"
+          subtitle="Utilisateurs iOS actifs"
+        />
       </div>
 
-      {/* Charts & Stock */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Orders by Day Chart */}
-        <div className="lg:col-span-2 bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-gray-100 animate-fade-in-up" style={{ animationDelay: '0.25s', animationFillMode: 'backwards' }}>
-          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100/80">
+      {/* Chart + Distribution */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        {/* Area Chart */}
+        <div className="xl:col-span-2 bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
+          <div className="flex items-center justify-between p-5 border-b border-zinc-800/60">
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">Commandes cette semaine</h3>
-              <p className="text-xs text-gray-400 mt-0.5">Évolution des ventes eSIM</p>
+              <h3 className="text-sm font-semibold text-white">Commandes</h3>
+              <p className="text-xs text-zinc-500 mt-0.5">7 derniers jours</p>
             </div>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 text-[11px] font-semibold text-sky-600">
-              <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-              7 derniers jours
-            </span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-lime-400/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-lime-400" />
+              <span className="text-[11px] font-medium text-lime-400">Live</span>
+            </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-5 pt-2">
             {stats.ordersByDay.some(d => d.orders > 0) ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={stats.ordersByDay} barGap={8} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={stats.ordersByDay} margin={{ top: 10, right: 5, left: -25, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="ordersGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0EA5E9" stopOpacity={0.9} />
-                      <stop offset="100%" stopColor="#38BDF8" stopOpacity={0.6} />
+                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#D4F441" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#D4F441" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272A" />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 500 }}
+                    tick={{ fontSize: 11, fill: '#52525B', fontWeight: 500 }}
                     axisLine={false}
                     tickLine={false}
+                    dy={8}
                   />
                   <YAxis
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                    tick={{ fontSize: 10, fill: '#52525B' }}
                     width={30}
                     allowDecimals={false}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'white',
+                      backgroundColor: '#18181B',
                       borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
+                      border: '1px solid #3F3F46',
+                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
                       fontSize: '12px',
-                      fontWeight: 500,
+                      fontWeight: 600,
+                      color: '#FAFAFA',
+                      padding: '8px 12px',
                     }}
-                    cursor={{ fill: 'rgba(14, 165, 233, 0.04)', radius: 8 }}
+                    cursor={{ stroke: '#D4F441', strokeWidth: 1, strokeDasharray: '4 4' }}
+                    labelStyle={{ color: '#71717A', fontWeight: 400, fontSize: '11px' }}
                   />
-                  <Bar
+                  <Area
+                    type="monotone"
                     dataKey="orders"
-                    fill="url(#ordersGradient)"
+                    stroke="#D4F441"
+                    strokeWidth={2.5}
+                    fill="url(#areaGradient)"
                     name="Commandes"
-                    radius={[6, 6, 2, 2]}
-                    minPointSize={3}
+                    dot={{ fill: '#D4F441', strokeWidth: 0, r: 3 }}
+                    activeDot={{ fill: '#D4F441', strokeWidth: 2, stroke: '#09090B', r: 5 }}
                   />
-                </BarChart>
+                </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-64 flex items-center justify-center">
+              <div className="h-[280px] flex items-center justify-center">
                 <div className="text-center">
-                  <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                    <TrendingUp className="w-6 h-6 text-gray-300" />
+                  <div className="w-14 h-14 rounded-2xl bg-zinc-800/80 flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="w-6 h-6 text-zinc-600" />
                   </div>
-                  <p className="text-gray-500 font-medium text-sm">Aucune commande récente</p>
-                  <p className="text-xs text-gray-400 mt-1">Les ventes apparaîtront ici</p>
+                  <p className="text-sm font-medium text-zinc-400">Aucune commande</p>
+                  <p className="text-xs text-zinc-600 mt-1">Les données apparaîtront ici</p>
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Stock par Package */}
-        <div className="bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-gray-100 animate-fade-in-up" style={{ animationDelay: '0.3s', animationFillMode: 'backwards' }}>
-          <div className="px-6 py-5 border-b border-gray-100/80">
-            <h3 className="text-sm font-semibold text-gray-900">Stock par package</h3>
-            <p className="text-xs text-gray-400 mt-0.5">eSIMs disponibles</p>
+        {/* Stock Distribution */}
+        <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden flex flex-col">
+          <div className="p-5 border-b border-zinc-800/60">
+            <h3 className="text-sm font-semibold text-white">Répartition stock</h3>
+            <p className="text-xs text-zinc-500 mt-0.5">Par package</p>
           </div>
 
-          <div className="p-6">
+          <div className="p-5 flex-1">
             {stock?.byPackage && stock.byPackage.length > 0 ? (
-              <div className="space-y-4">
-                {stock.byPackage.slice(0, 5).map((pkg, index) => {
+              <div className="space-y-5">
+                {stock.byPackage.slice(0, 5).map((pkg: any, index: number) => {
                   const maxCount = Math.max(...stock.byPackage.slice(0, 5).map((p: any) => p.count))
                   const percentage = maxCount > 0 ? (pkg.count / maxCount) * 100 : 0
 
                   return (
-                    <div key={pkg.name}>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span
-                            className="w-2 h-2 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                          />
-                          <p className="text-xs font-medium text-gray-700 truncate">{pkg.name}</p>
-                        </div>
-                        <span className="text-xs font-bold text-gray-900 ml-2">{pkg.count}</span>
+                    <div key={pkg.name} className="group">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-medium text-zinc-300 truncate pr-4">{pkg.name}</p>
+                        <span className="text-xs font-bold text-white tabular-nums">{pkg.count}</span>
                       </div>
-                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full transition-all duration-700 ease-out"
+                          className="h-full rounded-full transition-all duration-1000 ease-out"
                           style={{
                             width: `${percentage}%`,
                             backgroundColor: COLORS[index % COLORS.length],
@@ -304,12 +336,12 @@ export default function DashboardPage() {
                 })}
               </div>
             ) : (
-              <div className="h-48 flex items-center justify-center">
+              <div className="h-full flex items-center justify-center min-h-[200px]">
                 <div className="text-center">
-                  <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                    <Package className="w-5 h-5 text-gray-300" />
+                  <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center mx-auto mb-3">
+                    <Package className="w-5 h-5 text-zinc-600" />
                   </div>
-                  <p className="text-gray-400 text-xs">Chargement...</p>
+                  <p className="text-xs text-zinc-500">Aucun stock</p>
                 </div>
               </div>
             )}
@@ -317,100 +349,164 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Mon Stock eSIM */}
-        <div className="bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-gray-100 animate-fade-in-up" style={{ animationDelay: '0.35s', animationFillMode: 'backwards' }}>
-          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100/80">
+      {/* Stock eSIM + Quick Actions */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
+        {/* Mon stock */}
+        <div className="xl:col-span-3 bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
+          <div className="flex items-center justify-between p-5 border-b border-zinc-800/60">
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">Mon stock eSIM</h3>
-              <p className="text-xs text-gray-400 mt-0.5">eSIMs achetées chez eSIM Access</p>
+              <h3 className="text-sm font-semibold text-white">Mon stock eSIM</h3>
+              <p className="text-xs text-zinc-500 mt-0.5">{stock?.esimList?.length || 0} eSIM(s) au total</p>
             </div>
             <Link
               href="/esim/orders"
-              className="text-xs text-sky-600 hover:text-sky-700 font-semibold hover:bg-sky-50 px-3 py-1.5 rounded-lg transition-all"
+              className="flex items-center gap-1.5 text-xs font-semibold text-lime-400 hover:text-lime-300 px-3 py-1.5 rounded-lg hover:bg-lime-400/10 transition-all"
             >
-              Voir tout →
+              Voir tout
+              <ArrowRight size={12} />
             </Link>
           </div>
 
-          <div className="p-4">
+          <div className="divide-y divide-zinc-800/50">
             {stock?.esimList && stock.esimList.length > 0 ? (
-              <div className="space-y-2 max-h-80 overflow-y-auto">
-                {stock.esimList.slice(0, 5).map((esim: any) => (
-                  <div key={esim.iccid} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors duration-200 group">
-                    <div className="w-9 h-9 rounded-lg bg-sky-50 ring-1 ring-sky-100 flex items-center justify-center group-hover:scale-105 transition-transform">
-                      <Wifi size={16} className="text-sky-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 text-sm truncate">
-                        {esim.packageList?.[0]?.packageName || esim.orderNo}
-                      </p>
-                      <p className="text-[11px] text-gray-400">
-                        {(esim.totalVolume / (1024 * 1024 * 1024)).toFixed(1)}GB • {esim.totalDuration} {esim.durationUnit === 'DAY' ? 'jours' : esim.durationUnit}
-                      </p>
-                    </div>
-                    <span className={`
-                      inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap
-                      ${esim.esimStatus === 'IN_USE' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60' :
-                        esim.esimStatus === 'GOT_RESOURCE' ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-200/60' :
-                        esim.esimStatus === 'EXPIRED' ? 'bg-red-50 text-red-700 ring-1 ring-red-200/60' :
-                        'bg-gray-50 text-gray-600 ring-1 ring-gray-200/60'}
-                    `}>
-                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                        esim.esimStatus === 'IN_USE' ? 'bg-emerald-500' :
-                        esim.esimStatus === 'GOT_RESOURCE' ? 'bg-sky-500' :
-                        esim.esimStatus === 'EXPIRED' ? 'bg-red-500' :
-                        'bg-gray-500'
-                      }`} />
-                      {esim.esimStatus === 'GOT_RESOURCE' ? 'Disponible' :
-                       esim.esimStatus === 'IN_USE' ? 'En usage' :
-                       esim.esimStatus === 'EXPIRED' ? 'Expiré' :
-                       esim.esimStatus}
-                    </span>
+              stock.esimList.slice(0, 5).map((esim: any, i: number) => (
+                <div
+                  key={esim.iccid}
+                  className="flex items-center gap-4 p-4 hover:bg-zinc-800/30 transition-colors group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-zinc-800 ring-1 ring-zinc-700 flex items-center justify-center group-hover:ring-lime-400/30 transition-all">
+                    <Wifi size={16} className="text-lime-400" />
                   </div>
-                ))}
-              </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">
+                      {esim.packageList?.[0]?.packageName || esim.orderNo}
+                    </p>
+                    <p className="text-xs text-zinc-500 mt-0.5">
+                      {(esim.totalVolume / (1024 * 1024 * 1024)).toFixed(1)} GB · {esim.totalDuration} {esim.durationUnit === 'DAY' ? 'jours' : esim.durationUnit}
+                    </p>
+                  </div>
+                  <StatusBadge status={esim.esimStatus} />
+                </div>
+              ))
             ) : (
-              <div className="text-center py-10">
-                <Package className="w-9 h-9 text-gray-200 mx-auto mb-3" />
-                <p className="text-gray-400 text-xs">Chargement du stock...</p>
+              <div className="p-10 text-center">
+                <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center mx-auto mb-3">
+                  <Package className="w-5 h-5 text-zinc-600" />
+                </div>
+                <p className="text-sm text-zinc-400">Aucune eSIM en stock</p>
+                <Link href="/esim" className="text-xs text-lime-400 hover:text-lime-300 mt-2 inline-block">
+                  Acheter maintenant →
+                </Link>
               </div>
             )}
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-gray-100 animate-fade-in-up" style={{ animationDelay: '0.4s', animationFillMode: 'backwards' }}>
-          <div className="px-6 py-5 border-b border-gray-100/80">
-            <h3 className="text-sm font-semibold text-gray-900">Actions rapides</h3>
-            <p className="text-xs text-gray-400 mt-0.5">Accès direct aux fonctionnalités</p>
-          </div>
+        <div className="xl:col-span-2 space-y-4">
+          <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
+            <div className="p-5 border-b border-zinc-800/60">
+              <h3 className="text-sm font-semibold text-white">Actions rapides</h3>
+            </div>
 
-          <div className="p-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="p-3">
               {[
-                { href: '/esim', icon: Wifi, label: 'Acheter eSIM', desc: 'Catalogue packages', gradient: 'from-sky-500 to-sky-600', bg: 'bg-sky-50 hover:bg-sky-100/80', ring: 'ring-sky-200/50' },
-                { href: '/esim/orders', icon: ShoppingBag, label: 'Mes eSIMs', desc: 'Gérer les commandes', gradient: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50 hover:bg-emerald-100/80', ring: 'ring-emerald-200/50' },
-                { href: '/customers', icon: Users, label: 'Clients', desc: 'Utilisateurs iOS', gradient: 'from-violet-500 to-violet-600', bg: 'bg-violet-50 hover:bg-violet-100/80', ring: 'ring-violet-200/50' },
-                { href: '/settings', icon: Activity, label: 'Paramètres', desc: 'Configuration', gradient: 'from-amber-500 to-orange-500', bg: 'bg-amber-50 hover:bg-amber-100/80', ring: 'ring-amber-200/50' },
+                { href: '/esim', icon: Globe, label: 'Acheter eSIM', desc: 'Parcourir le catalogue', color: 'bg-lime-400/10 text-lime-400 ring-lime-400/20' },
+                { href: '/esim/orders', icon: ShoppingBag, label: 'Mes commandes', desc: 'Historique & QR codes', color: 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20' },
+                { href: '/customers', icon: Users, label: 'Clients', desc: 'Gestion CRM', color: 'bg-violet-500/10 text-violet-400 ring-violet-500/20' },
+                { href: '/esim/pricing', icon: DollarSign, label: 'Prix & Marges', desc: 'Gestion tarifaire', color: 'bg-amber-500/10 text-amber-400 ring-amber-500/20' },
               ].map((action) => (
                 <Link
                   key={action.href}
                   href={action.href}
-                  className={`group relative p-4 ${action.bg} rounded-xl ring-1 ${action.ring} transition-all duration-300 hover:shadow-md hover:-translate-y-0.5`}
+                  className="flex items-center gap-4 p-3.5 rounded-xl hover:bg-zinc-800/50 transition-all group"
                 >
-                  <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${action.gradient} flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 group-hover:shadow-md transition-all duration-300`}>
-                    <action.icon size={16} className="text-white" />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ring-1 ${action.color} group-hover:scale-105 transition-transform`}>
+                    <action.icon size={18} />
                   </div>
-                  <p className="font-semibold text-gray-900 text-sm">{action.label}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{action.desc}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white">{action.label}</p>
+                    <p className="text-xs text-zinc-500">{action.desc}</p>
+                  </div>
+                  <ArrowRight size={14} className="text-zinc-600 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all" />
                 </Link>
               ))}
+            </div>
+          </div>
+
+          {/* Mini balance card */}
+          <div className="relative overflow-hidden rounded-2xl border border-lime-400/20">
+            <div className="absolute inset-0 bg-gradient-to-br from-lime-400/10 via-lime-400/5 to-transparent" />
+            <div className="relative p-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-lime-400 uppercase tracking-wider">Solde</p>
+                <DollarSign size={16} className="text-lime-400/60" />
+              </div>
+              <p className="text-3xl font-bold text-white tracking-tight">{balanceFormatted}</p>
+              <p className="text-xs text-zinc-500 mt-2">
+                {spentFormatted} dépensé sur ${(INITIAL_CREDIT / 10000).toFixed(0)}
+              </p>
+              <div className="mt-3 w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-lime-400 rounded-full transition-all duration-1000"
+                  style={{ width: `${(currentBalance / INITIAL_CREDIT) * 100}%` }}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function KPICard({
+  label,
+  value,
+  icon: Icon,
+  accent,
+  subtitle,
+}: {
+  label: string
+  value: string | number
+  icon: any
+  accent: 'lime' | 'orange' | 'blue' | 'purple'
+  subtitle: string
+}) {
+  const accents = {
+    lime: { bg: 'bg-lime-400/10', text: 'text-lime-400', ring: 'ring-lime-400/20', glow: 'shadow-lime-400/5' },
+    orange: { bg: 'bg-amber-500/10', text: 'text-amber-400', ring: 'ring-amber-500/20', glow: 'shadow-amber-400/5' },
+    blue: { bg: 'bg-blue-500/10', text: 'text-blue-400', ring: 'ring-blue-500/20', glow: 'shadow-blue-400/5' },
+    purple: { bg: 'bg-violet-500/10', text: 'text-violet-400', ring: 'ring-violet-500/20', glow: 'shadow-violet-400/5' },
+  }
+  const a = accents[accent]
+
+  return (
+    <div className={`bg-zinc-900 rounded-2xl border border-zinc-800 p-5 hover:border-zinc-700 transition-all group`}>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{label}</p>
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${a.bg} ring-1 ${a.ring} group-hover:scale-110 transition-transform`}>
+          <Icon size={16} className={a.text} />
+        </div>
+      </div>
+      <p className="text-2xl font-bold text-white tracking-tight">{value}</p>
+      <p className="text-xs text-zinc-500 mt-1.5">{subtitle}</p>
+    </div>
+  )
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const config: Record<string, { bg: string; text: string; dot: string; label: string }> = {
+    IN_USE: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', dot: 'bg-emerald-400', label: 'En usage' },
+    GOT_RESOURCE: { bg: 'bg-lime-400/10', text: 'text-lime-400', dot: 'bg-lime-400', label: 'Disponible' },
+    EXPIRED: { bg: 'bg-red-500/10', text: 'text-red-400', dot: 'bg-red-400', label: 'Expiré' },
+  }
+  const c = config[status] || { bg: 'bg-zinc-800', text: 'text-zinc-400', dot: 'bg-zinc-500', label: status }
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold ${c.bg} ${c.text} ring-1 ring-current/20`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
+      {c.label}
+    </span>
   )
 }

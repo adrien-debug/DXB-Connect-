@@ -1,8 +1,8 @@
 'use client'
 
+import { CountryFlag } from '@/components/CountryFlag'
 import StatCard from '@/components/StatCard'
 import { useEsimPackages } from '@/hooks/useEsimAccess'
-import { getCountryFlag } from '@/lib/country-flags'
 import { formatPrice, formatVolume } from '@/lib/esim-utils'
 import {
   Check,
@@ -223,7 +223,7 @@ export default function EsimPricingPage() {
       customPrices: Object.keys(pricingOverrides).length,
       countries: countries.length
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pkgs, pricingOverrides, countries])
 
   if (isLoading) {
@@ -238,8 +238,8 @@ export default function EsimPricingPage() {
 
   if (error) {
     return (
-      <div className="bg-white rounded-3xl p-6 border-l-4 border-rose-500">
-        <p className="text-rose-600">{error.message}</p>
+      <div className="bg-zinc-900 rounded-3xl p-6 border-l-4 border-rose-500">
+        <p className="text-rose-400">{error.message}</p>
       </div>
     )
   }
@@ -249,14 +249,14 @@ export default function EsimPricingPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Gestion des Prix</h1>
-          <p className="text-gray-400 text-sm mt-1">
+          <h1 className="text-2xl font-semibold text-white">Gestion des Prix</h1>
+          <p className="text-zinc-400 text-sm mt-1">
             Définissez vos prix de vente et visualisez vos marges
           </p>
         </div>
         <button
           onClick={() => refetch()}
-          className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-600 rounded-xl hover:bg-emerald-200 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-xl hover:bg-emerald-500/20 transition-colors"
         >
           <RefreshCw size={16} />
           Actualiser
@@ -292,20 +292,20 @@ export default function EsimPricingPage() {
       </div>
 
       {/* Marge par défaut */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50">
+      <div className="bg-zinc-900 rounded-2xl p-4 border border-zinc-800">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-gray-700">Marge par défaut:</label>
+            <label className="text-sm font-medium text-zinc-200">Marge par défaut:</label>
             <div className="flex items-center gap-2">
               <input
                 type="number"
                 value={defaultMargin}
                 onChange={(e) => setDefaultMargin(Number(e.target.value))}
-                className="w-20 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-center font-semibold"
+                className="w-20 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-center font-semibold"
                 min="0"
                 max="500"
               />
-              <span className="text-gray-500">%</span>
+              <span className="text-zinc-400">%</span>
             </div>
           </div>
 
@@ -325,59 +325,59 @@ export default function EsimPricingPage() {
       </div>
 
       {/* Filtres */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100/50">
+      <div className="bg-zinc-900 rounded-2xl p-4 border border-zinc-800">
         <div className="flex flex-wrap items-center gap-4">
           <div className="relative min-w-[220px]">
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" size={14} />
             <select
               value={countryFilter}
               onChange={(e) => setCountryFilter(e.target.value)}
-              className="w-full pl-4 pr-8 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 appearance-none cursor-pointer text-sm"
+              className="w-full pl-4 pr-8 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 appearance-none cursor-pointer text-sm"
             >
               <option value="">Tous les pays</option>
               {countries.map(c => (
                 <option key={c.code} value={c.code}>
-                  {getCountryFlag(c.code)} {c.name} ({c.count})
+                  {c.name} ({c.count})
                 </option>
               ))}
             </select>
           </div>
 
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
             <input
               type="text"
               placeholder="Rechercher..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm"
             />
           </div>
 
-          <div className="text-sm text-gray-500">
-            <span className="font-semibold text-emerald-600">{filteredPackages.length}</span> package(s)
+          <div className="text-sm text-zinc-400">
+            <span className="font-semibold text-emerald-400">{filteredPackages.length}</span> package(s)
           </div>
         </div>
       </div>
 
       {/* Tableau des prix */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100/50 overflow-hidden">
+      <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Pays</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Package</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Volume</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Durée</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Prix Achat</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Prix Vente</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Marge $</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Marge %</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Action</th>
+              <tr className="bg-zinc-800 border-b border-zinc-800">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-400 uppercase">Pays</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-400 uppercase">Package</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-400 uppercase">Volume</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-400 uppercase">Durée</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-400 uppercase">Prix Achat</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-400 uppercase">Prix Vente</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-400 uppercase">Marge $</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold text-zinc-400 uppercase">Marge %</th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-zinc-400 uppercase">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-zinc-800">
               {filteredPackages.map((pkg) => {
                 const costPrice = pkg.price / 100
                 const sellPrice = getSellPrice(pkg)
@@ -389,7 +389,7 @@ export default function EsimPricingPage() {
                   <tr key={pkg.packageCode} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{getCountryFlag(pkg.locationCode)}</span>
+                        <CountryFlag code={pkg.locationCode} size="sm" />
                         <span className="text-sm text-gray-600">
                           {pkg.locationNetworkList?.[0]?.locationName ?? pkg.location}
                         </span>
@@ -432,11 +432,10 @@ export default function EsimPricingPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${
-                        margin.percent >= 30 ? 'bg-emerald-100 text-emerald-700' :
-                        margin.percent >= 15 ? 'bg-amber-100 text-amber-700' :
-                        'bg-rose-100 text-rose-700'
-                      }`}>
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${margin.percent >= 30 ? 'bg-emerald-100 text-emerald-700' :
+                          margin.percent >= 15 ? 'bg-amber-100 text-amber-700' :
+                            'bg-rose-100 text-rose-700'
+                        }`}>
                         {margin.percent.toFixed(1)}%
                       </span>
                     </td>

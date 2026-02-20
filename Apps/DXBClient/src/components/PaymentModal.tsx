@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { 
-  X, CreditCard, Smartphone, ShoppingBag, Check, Loader2, 
+import {
+  X, CreditCard, Smartphone, ShoppingBag, Check, Loader2,
   Shield, Lock, ChevronRight, AlertCircle
 } from 'lucide-react'
 import { useCreateOrder, useUpdateOrderPayment } from '@/hooks/useOrders'
@@ -51,9 +51,9 @@ interface PaymentModalProps {
 
 type PaymentMethod = 'card' | 'apple_pay' | 'google_pay' | 'paypal'
 
-export default function PaymentModal({ 
-  isOpen, 
-  onClose, 
+export default function PaymentModal({
+  isOpen,
+  onClose,
   items,
   onSuccess,
   type = 'cart'
@@ -190,25 +190,25 @@ export default function PaymentModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-gray-900/30 backdrop-blur-sm animate-fade-in"
         onClick={step !== 'processing' ? handleClose : undefined}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-xl overflow-hidden animate-scale-in border border-gray-100/50">
+      <div className="relative w-full max-w-lg bg-zinc-900 rounded-3xl shadow-xl shadow-black/40 overflow-hidden animate-scale-in border border-zinc-800">
         {/* Header */}
-        <div className="p-6 border-b border-gray-100">
+        <div className="p-6 border-b border-zinc-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-sky-100 flex items-center justify-center">
-                <ShoppingBag className="w-5 h-5 text-sky-600" />
+              <div className="w-10 h-10 rounded-2xl bg-lime-400/10 flex items-center justify-center">
+                <ShoppingBag className="w-5 h-5 text-lime-400" />
               </div>
               <div>
-                <h2 className="text-base font-semibold text-gray-800">
+                <h2 className="text-base font-semibold text-white">
                   {step === 'success' ? 'Commande confirmée' : 'Paiement sécurisé'}
                 </h2>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-zinc-500">
                   {step === 'review' && `${items.length} article(s)`}
                   {step === 'payment' && 'Informations de paiement'}
                   {step === 'processing' && 'Traitement en cours...'}
@@ -219,7 +219,7 @@ export default function PaymentModal({
             {step !== 'processing' && (
               <button
                 onClick={handleClose}
-                className="p-2 rounded-xl text-gray-400 hover:text-sky-600 hover:bg-sky-50 transition-all"
+                className="p-2 rounded-xl text-zinc-500 hover:text-lime-400 hover:bg-lime-400/15 transition-all"
               >
                 <X size={18} />
               </button>
@@ -229,8 +229,8 @@ export default function PaymentModal({
           {/* Steps indicator */}
           {step !== 'success' && step !== 'processing' && (
             <div className="flex items-center gap-2 mt-4">
-              <div className={`flex-1 h-1 rounded-full ${step === 'review' ? 'bg-sky-500' : 'bg-sky-500'}`} />
-              <div className={`flex-1 h-1 rounded-full ${step === 'payment' ? 'bg-sky-500' : 'bg-gray-100'}`} />
+              <div className={`flex-1 h-1 rounded-full ${step === 'review' ? 'bg-lime-400' : 'bg-lime-400'}`} />
+              <div className={`flex-1 h-1 rounded-full ${step === 'payment' ? 'bg-lime-400' : 'bg-zinc-800'}`} />
             </div>
           )}
         </div>
@@ -243,19 +243,19 @@ export default function PaymentModal({
               {/* Items list */}
               <div className="space-y-3">
                 {items.map((item, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl">
-                    <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <div key={index} className="flex items-center gap-3 p-3 bg-zinc-800 rounded-2xl">
+                    <div className="w-11 h-11 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
                       {item.image_url ? (
                         <img src={item.image_url} alt={item.product_name} className="w-full h-full object-cover rounded-xl" />
                       ) : (
-                        <ShoppingBag className="w-5 h-5 text-gray-300" />
+                        <ShoppingBag className="w-5 h-5 text-zinc-600" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-800 text-sm truncate">{item.product_name}</p>
-                      <p className="text-xs text-gray-400">Qté: {item.quantity}</p>
+                      <p className="font-medium text-white text-sm truncate">{item.product_name}</p>
+                      <p className="text-xs text-zinc-500">Qté: {item.quantity}</p>
                     </div>
-                    <span className="font-semibold text-gray-800 text-sm">
+                    <span className="font-semibold text-white text-sm">
                       {formatPrice(item.unit_price * item.quantity)}
                     </span>
                   </div>
@@ -263,25 +263,25 @@ export default function PaymentModal({
               </div>
 
               {/* Totals */}
-              <div className="border-t border-gray-100 pt-4 space-y-2">
-                <div className="flex justify-between text-sm text-gray-500">
+              <div className="border-t border-zinc-800 pt-4 space-y-2">
+                <div className="flex justify-between text-sm text-zinc-400">
                   <span>Sous-total</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-500">
+                <div className="flex justify-between text-sm text-zinc-400">
                   <span>TVA (5%)</span>
                   <span>{formatPrice(tax)}</span>
                 </div>
-                <div className="flex justify-between text-base font-semibold text-gray-800 pt-2 border-t border-gray-100">
+                <div className="flex justify-between text-base font-semibold text-white pt-2 border-t border-zinc-800">
                   <span>Total</span>
-                  <span className="text-sky-600">{formatPrice(total)}</span>
+                  <span className="text-lime-400">{formatPrice(total)}</span>
                 </div>
               </div>
 
               {/* Continue button */}
               <button
                 onClick={() => setStep('payment')}
-                className="w-full py-3.5 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-lime-400 hover:bg-lime-300 text-zinc-950 font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
               >
                 Continuer vers le paiement
                 <ChevronRight size={16} />
@@ -294,7 +294,7 @@ export default function PaymentModal({
             <div className="space-y-5">
               {/* Error message */}
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-sm">
+                <div className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-400 text-sm">
                   <AlertCircle size={16} />
                   {error}
                 </div>
@@ -303,42 +303,42 @@ export default function PaymentModal({
               {/* Customer info */}
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-2">Email *</label>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">Email *</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="votre@email.com"
-                    className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 bg-gray-50 focus:bg-white transition-all"
+                    className="w-full px-4 py-3 border border-zinc-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400/50 bg-zinc-800 focus:bg-zinc-900 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-2">Nom complet *</label>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">Nom complet *</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="John Doe"
-                    className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 bg-gray-50 focus:bg-white transition-all"
+                    className="w-full px-4 py-3 border border-zinc-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400/50 bg-zinc-800 focus:bg-zinc-900 transition-all"
                   />
                 </div>
               </div>
 
               {/* Payment methods */}
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-600">Mode de paiement</label>
+                <label className="block text-sm font-medium text-zinc-300">Mode de paiement</label>
                 <div className="grid grid-cols-2 gap-3">
                   {/* Card */}
                   <button
                     onClick={() => setSelectedMethod('card')}
                     className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${
                       selectedMethod === 'card'
-                        ? 'border-sky-300 bg-sky-50'
-                        : 'border-gray-100 hover:border-gray-200 bg-gray-50'
+                        ? 'border-lime-400/30 bg-lime-400/10'
+                        : 'border-zinc-800 hover:border-zinc-700 bg-zinc-800'
                     }`}
                   >
-                    <CreditCard className={`w-5 h-5 ${selectedMethod === 'card' ? 'text-sky-600' : 'text-gray-400'}`} />
-                    <span className={`text-xs font-medium ${selectedMethod === 'card' ? 'text-sky-600' : 'text-gray-500'}`}>
+                    <CreditCard className={`w-5 h-5 ${selectedMethod === 'card' ? 'text-lime-400' : 'text-zinc-500'}`} />
+                    <span className={`text-xs font-medium ${selectedMethod === 'card' ? 'text-lime-400' : 'text-zinc-400'}`}>
                       Carte bancaire
                     </span>
                   </button>
@@ -348,12 +348,12 @@ export default function PaymentModal({
                     onClick={() => setSelectedMethod('apple_pay')}
                     className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${
                       selectedMethod === 'apple_pay'
-                        ? 'border-sky-300 bg-sky-50'
-                        : 'border-gray-100 hover:border-gray-200 bg-gray-50'
+                        ? 'border-lime-400/30 bg-lime-400/10'
+                        : 'border-zinc-800 hover:border-zinc-700 bg-zinc-800'
                     }`}
                   >
                     <ApplePayIcon />
-                    <span className={`text-xs font-medium ${selectedMethod === 'apple_pay' ? 'text-sky-600' : 'text-gray-500'}`}>
+                    <span className={`text-xs font-medium ${selectedMethod === 'apple_pay' ? 'text-lime-400' : 'text-zinc-400'}`}>
                       Apple Pay
                     </span>
                   </button>
@@ -363,12 +363,12 @@ export default function PaymentModal({
                     onClick={() => setSelectedMethod('google_pay')}
                     className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${
                       selectedMethod === 'google_pay'
-                        ? 'border-sky-300 bg-sky-50'
-                        : 'border-gray-100 hover:border-gray-200 bg-gray-50'
+                        ? 'border-lime-400/30 bg-lime-400/10'
+                        : 'border-zinc-800 hover:border-zinc-700 bg-zinc-800'
                     }`}
                   >
                     <GooglePayIcon />
-                    <span className={`text-xs font-medium ${selectedMethod === 'google_pay' ? 'text-sky-600' : 'text-gray-500'}`}>
+                    <span className={`text-xs font-medium ${selectedMethod === 'google_pay' ? 'text-lime-400' : 'text-zinc-400'}`}>
                       Google Pay
                     </span>
                   </button>
@@ -378,12 +378,12 @@ export default function PaymentModal({
                     onClick={() => setSelectedMethod('paypal')}
                     className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${
                       selectedMethod === 'paypal'
-                        ? 'border-sky-300 bg-sky-50'
-                        : 'border-gray-100 hover:border-gray-200 bg-gray-50'
+                        ? 'border-lime-400/30 bg-lime-400/10'
+                        : 'border-zinc-800 hover:border-zinc-700 bg-zinc-800'
                     }`}
                   >
                     <PayPalIcon />
-                    <span className={`text-xs font-medium ${selectedMethod === 'paypal' ? 'text-sky-600' : 'text-gray-500'}`}>
+                    <span className={`text-xs font-medium ${selectedMethod === 'paypal' ? 'text-lime-400' : 'text-zinc-400'}`}>
                       PayPal
                     </span>
                   </button>
@@ -392,39 +392,39 @@ export default function PaymentModal({
 
               {/* Card details (only shown for card payment) */}
               {selectedMethod === 'card' && (
-                <div className="space-y-3 p-4 bg-gray-50 rounded-2xl">
+                <div className="space-y-3 p-4 bg-zinc-800 rounded-2xl">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Numéro de carte</label>
+                    <label className="block text-sm font-medium text-zinc-300 mb-2">Numéro de carte</label>
                     <input
                       type="text"
                       value={cardNumber}
                       onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                       placeholder="1234 5678 9012 3456"
                       maxLength={19}
-                      className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 bg-white"
+                      className="w-full px-4 py-3 border border-zinc-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400/50 bg-zinc-900"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">Expiration</label>
+                      <label className="block text-sm font-medium text-zinc-300 mb-2">Expiration</label>
                       <input
                         type="text"
                         value={cardExpiry}
                         onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
                         placeholder="MM/YY"
                         maxLength={5}
-                        className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 bg-white"
+                        className="w-full px-4 py-3 border border-zinc-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400/50 bg-zinc-900"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">CVC</label>
+                      <label className="block text-sm font-medium text-zinc-300 mb-2">CVC</label>
                       <input
                         type="text"
                         value={cardCvc}
                         onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
                         placeholder="123"
                         maxLength={4}
-                        className="w-full px-4 py-3 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 bg-white"
+                        className="w-full px-4 py-3 border border-zinc-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400/50 bg-zinc-900"
                       />
                     </div>
                   </div>
@@ -433,9 +433,9 @@ export default function PaymentModal({
 
               {/* Apple Pay / Google Pay message */}
               {(selectedMethod === 'apple_pay' || selectedMethod === 'google_pay') && (
-                <div className="p-4 bg-gray-50 rounded-2xl text-center">
-                  <Smartphone className="w-7 h-7 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">
+                <div className="p-4 bg-zinc-800 rounded-2xl text-center">
+                  <Smartphone className="w-7 h-7 text-zinc-600 mx-auto mb-2" />
+                  <p className="text-sm text-zinc-400">
                     Vous serez redirigé vers {selectedMethod === 'apple_pay' ? 'Apple Pay' : 'Google Pay'} pour finaliser le paiement.
                   </p>
                 </div>
@@ -443,31 +443,31 @@ export default function PaymentModal({
 
               {/* PayPal message */}
               {selectedMethod === 'paypal' && (
-                <div className="p-4 bg-gray-50 rounded-2xl text-center">
+                <div className="p-4 bg-zinc-800 rounded-2xl text-center">
                   <PayPalIcon />
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-sm text-zinc-400 mt-2">
                     Vous serez redirigé vers PayPal pour vous connecter et finaliser le paiement.
                   </p>
                 </div>
               )}
 
               {/* Total and pay button */}
-              <div className="border-t border-gray-100 pt-4">
+              <div className="border-t border-zinc-800 pt-4">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-gray-500">Total à payer</span>
-                  <span className="text-xl font-semibold text-sky-600">{formatPrice(total)}</span>
+                  <span className="text-zinc-400">Total à payer</span>
+                  <span className="text-xl font-semibold text-lime-400">{formatPrice(total)}</span>
                 </div>
 
                 <button
                   onClick={handlePayment}
-                  className="w-full py-3.5 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-lime-400 hover:bg-lime-300 text-zinc-950 font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   <Lock size={16} />
                   Payer maintenant
                 </button>
 
                 {/* Security badge */}
-                <div className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-400">
+                <div className="flex items-center justify-center gap-2 mt-4 text-xs text-zinc-500">
                   <Shield size={12} />
                   Paiement 100% sécurisé par cryptage SSL
                 </div>
@@ -479,29 +479,29 @@ export default function PaymentModal({
           {step === 'processing' && (
             <div className="py-12 text-center">
               <div className="relative w-16 h-16 mx-auto mb-6">
-                <div className="absolute inset-0 rounded-full bg-sky-500 animate-ping opacity-20" />
-                <div className="relative w-16 h-16 rounded-full bg-green-500 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-lime-400 animate-ping opacity-20" />
+                <div className="relative w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center">
                   <Loader2 className="w-8 h-8 text-white animate-spin" />
                 </div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Traitement du paiement</h3>
-              <p className="text-gray-400 text-sm">Veuillez patienter, ne fermez pas cette fenêtre...</p>
+              <h3 className="text-lg font-semibold text-white mb-2">Traitement du paiement</h3>
+              <p className="text-zinc-500 text-sm">Veuillez patienter, ne fermez pas cette fenêtre...</p>
             </div>
           )}
 
           {/* Success */}
           {step === 'success' && (
             <div className="py-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-emerald-100 flex items-center justify-center">
-                <Check className="w-8 h-8 text-emerald-600" />
+              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                <Check className="w-8 h-8 text-emerald-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Paiement réussi!</h3>
-              <p className="text-gray-400 text-sm mb-6">
+              <h3 className="text-lg font-semibold text-white mb-2">Paiement réussi!</h3>
+              <p className="text-zinc-500 text-sm mb-6">
                 Votre commande a été confirmée. Un email de confirmation vous a été envoyé.
               </p>
               <button
                 onClick={handleClose}
-                className="px-8 py-3 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                className="px-8 py-3 bg-lime-400 hover:bg-lime-300 text-zinc-950 font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
               >
                 Fermer
               </button>

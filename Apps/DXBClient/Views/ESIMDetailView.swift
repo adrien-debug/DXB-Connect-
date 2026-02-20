@@ -4,14 +4,20 @@ import DXBCore
 struct ESIMDetailView: View {
     let order: ESIMOrder
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var coordinator: AppCoordinator
     @State private var showCopiedToast = false
     @State private var copiedText = ""
+    @State private var showTopUp = false
+    @State private var showCancelConfirm = false
+    @State private var showSuspendConfirm = false
+    @State private var actionInProgress = false
+    @State private var actionResult: String?
 
     private var statusColor: Color {
         switch order.status.uppercased() {
         case "RELEASED", "IN_USE": return AppTheme.success
-        case "EXPIRED": return AppTheme.gray400
-        default: return AppTheme.warning
+        case "EXPIRED": return AppTheme.textSecondary
+        default: return Color.orange
         }
     }
 
@@ -32,7 +38,7 @@ struct ESIMDetailView: View {
 
     var body: some View {
         ZStack {
-            AppTheme.backgroundPrimary
+            AppTheme.backgroundSecondary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -44,7 +50,7 @@ struct ESIMDetailView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 40, height: 40)
-                            .background(Circle().fill(AppTheme.surfaceHeavy))
+                            .background(Circle().fill(AppTheme.gray100))
                     }
 
                     Spacer()
@@ -70,15 +76,20 @@ struct ESIMDetailView: View {
                         }
 
                         packageInfoSection
+                        usageSection
                         technicalInfoSection
 
                         if isPaymentConfirmed {
+                            manageSection
                             installationGuideSection
                         }
 
                         Spacer(minLength: 40)
                     }
                 }
+            }
+            .task {
+                await coordinator.loadUsage(for: order)
             }
 
             if showCopiedToast {
@@ -91,7 +102,7 @@ struct ESIMDetailView: View {
                         Text("\(copiedText) copied")
                             .font(.system(size: 14, weight: .semibold))
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(hex: "0F172A"))
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
                     .background(
@@ -104,6 +115,163 @@ struct ESIMDetailView: View {
             }
         }
         .navigationBarHidden(true)
+        .sheet(isPresented: $showTopUp) {
+            TopUpSheet(order: order)
+                .environmentObject(coordinator)
+        }
+        .alert("Cancel Order", isPresented: $showCancelConfirm) {
+            Button("Keep Order", role: .cancel) {}
+            Button("Cancel Order", role: .destructive) {
+                Task {
+                    actionInProgress = true
+                    let success = await coordinator.cancelOrder(order)
+                    actionInProgress = false
+                    if success { dismiss() }
+                }
+            }
+        } message: {
+            Text("This order will be cancelled. This action cannot be undone.")
+        }
+        .alert(isSuspended ? "Resume eSIM" : "Suspend eSIM", isPresented: $showSuspendConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button(isSuspended ? "Resume" : "Suspend") {
+                Task {
+                    actionInProgress = true
+                    if isSuspended {
+                        _ = await coordinator.resumeESIM(order)
+                    } else {
+                        _ = await coordinator.suspendESIM(order)
+                    }
+                    actionInProgress = false
+                }
+            }
+        } message: {
+            Text(isSuspended
+                 ? "Your eSIM will be reactivated."
+                 : "Your eSIM will be temporarily suspended. You can resume it later.")
+        }
+    }
+
+    private var isActive: Bool {
+        let s = order.status.uppercased()
+        return s == "RELEASED" || s == "IN_USE" || s == "ENABLED"
+    }
+
+    private var isSuspended: Bool {
+        order.status.uppercased() == "SUSPENDED"
+    }
+
+    // MARK: - Manage Section
+
+    private var manageSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Manage")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(AppTheme.textPrimary)
+
+            VStack(spacing: 10) {
+                if isActive {
+                    Button {
+                        showTopUp = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 18))
+                            Text("Top Up Data")
+                                .font(.system(size: 15, weight: .semibold))
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(Color(hex: "0F172A"))
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(AppTheme.accent)
+                        )
+                    }
+                    .scaleOnPress()
+
+                    Button {
+                        showSuspendConfirm = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "pause.circle")
+                                .font(.system(size: 18))
+                            Text("Suspend eSIM")
+                                .font(.system(size: 15, weight: .semibold))
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(AppTheme.textPrimary)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(AppTheme.backgroundTertiary)
+                        )
+                    }
+                }
+
+                if isSuspended {
+                    Button {
+                        showSuspendConfirm = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 18))
+                            Text("Resume eSIM")
+                                .font(.system(size: 15, weight: .semibold))
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(Color(hex: "0F172A"))
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(AppTheme.accent)
+                        )
+                    }
+                    .scaleOnPress()
+                }
+
+                Button {
+                    showCancelConfirm = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "xmark.circle")
+                            .font(.system(size: 18))
+                        Text("Cancel Order")
+                            .font(.system(size: 15, weight: .semibold))
+                        Spacer()
+                    }
+                    .foregroundColor(AppTheme.error)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(AppTheme.error.opacity(0.08))
+                    )
+                }
+            }
+        }
+        .padding(22)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.backgroundPrimary)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
+                )
+                .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
+        )
+        .padding(.horizontal, 20)
+        .slideIn(delay: 0.18)
     }
 
     // MARK: - Pending Payment
@@ -112,21 +280,21 @@ struct ESIMDetailView: View {
         VStack(spacing: 20) {
             HStack(spacing: 6) {
                 Circle()
-                    .fill(AppTheme.warning)
+                    .fill(Color.orange)
                     .frame(width: 8, height: 8)
 
                 Text("PROCESSING")
                     .font(.system(size: 11, weight: .bold))
                     .tracking(1)
-                    .foregroundColor(AppTheme.warning)
+                    .foregroundColor(.orange)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
-            .background(Capsule().fill(AppTheme.warningLight))
+            .background(Capsule().fill(Color.orange.opacity(0.15)))
 
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(AppTheme.surfaceLight)
+                    .fill(AppTheme.gray100)
                     .frame(width: 200, height: 200)
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
@@ -136,7 +304,7 @@ struct ESIMDetailView: View {
                 VStack(spacing: 14) {
                     Image(systemName: "clock.fill")
                         .font(.system(size: 44, weight: .semibold))
-                        .foregroundColor(AppTheme.warning)
+                        .foregroundColor(.orange)
 
                     Text("Payment Processing")
                         .font(.system(size: 14, weight: .semibold))
@@ -157,7 +325,9 @@ struct ESIMDetailView: View {
         .padding(.vertical, 24)
         .background(
             RoundedRectangle(cornerRadius: 24)
-                .fill(AppTheme.backgroundSecondary)
+                .fill(AppTheme.backgroundPrimary)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, y: 2)
+                .overlay(RoundedRectangle(cornerRadius: 24).stroke(AppTheme.border, lineWidth: 1))
         )
         .padding(.horizontal, 20)
         .padding(.top, 16)
@@ -167,7 +337,7 @@ struct ESIMDetailView: View {
     // MARK: - QR Code
 
     private var qrCodeSection: some View {
-        VStack(spacing: 18) {
+        VStack(spacing: 24) {
             HStack(spacing: 6) {
                 Circle()
                     .fill(statusColor)
@@ -178,26 +348,33 @@ struct ESIMDetailView: View {
                     .tracking(1)
                     .foregroundColor(statusColor)
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .background(Capsule().fill(statusColor.opacity(0.1)))
 
+            // QR code with decorative frame + animated scan line
             ZStack {
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(AppTheme.surfaceLight)
-                    .frame(width: 200, height: 200)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(AppTheme.border, lineWidth: 1)
-                    )
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(Color.white)
+                    .frame(width: 250, height: 250)
+                    .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                    .shadow(color: Color.black.opacity(0.08), radius: 20, x: 0, y: 8)
 
                 AsyncImage(url: URL(string: order.qrCodeUrl)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 180, height: 180)
+                    ZStack {
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 200, height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                        // Animated scan line overlay
+                        AnimatedScanLine(color: AppTheme.accent, height: 2)
+                            .frame(width: 200, height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
                 } placeholder: {
-                    VStack(spacing: 10) {
+                    VStack(spacing: 12) {
                         ProgressView()
                             .tint(AppTheme.accent)
                         Text("Loading QR...")
@@ -205,17 +382,38 @@ struct ESIMDetailView: View {
                             .foregroundColor(AppTheme.textTertiary)
                     }
                 }
+
+                // Corner accents
+                ForEach(0..<4, id: \.self) { corner in
+                    CornerShape(corner: corner, length: 24)
+                        .stroke(AppTheme.accent, lineWidth: 3)
+                        .frame(width: 30, height: 30)
+                        .offset(
+                            x: (corner == 0 || corner == 2) ? -110 : 110,
+                            y: (corner == 0 || corner == 1) ? -110 : 110
+                        )
+                }
             }
 
-            Text("Scan to install eSIM")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(AppTheme.textTertiary)
+            VStack(spacing: 8) {
+                Text("Scan to install")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(AppTheme.textPrimary)
+
+                Text("Open your Camera app and\npoint at the QR code")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(AppTheme.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
+        .padding(.vertical, 32)
         .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(AppTheme.backgroundSecondary)
+            RoundedRectangle(cornerRadius: 26)
+                .fill(AppTheme.backgroundPrimary)
+                .shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
         )
         .padding(.horizontal, 20)
         .padding(.top, 16)
@@ -225,22 +423,20 @@ struct ESIMDetailView: View {
     // MARK: - Package Info
 
     private var packageInfoSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("PACKAGE")
-                .font(.system(size: 11, weight: .bold))
-                .tracking(1.5)
-                .foregroundColor(AppTheme.textTertiary)
+        VStack(alignment: .leading, spacing: 18) {
+            Text("Package details")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(AppTheme.textPrimary)
 
             HStack(spacing: 14) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(AppTheme.accent.opacity(0.1))
-                        .frame(width: 48, height: 48)
-
-                    Image(systemName: "simcard.fill")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(AppTheme.accent)
-                }
+                Circle()
+                    .fill(AppTheme.accent.opacity(0.1))
+                    .frame(width: 50, height: 50)
+                    .overlay(
+                        Image(systemName: "simcard.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(AppTheme.accent)
+                    )
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(order.packageName)
@@ -249,69 +445,151 @@ struct ESIMDetailView: View {
 
                     Text(order.totalVolume)
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(AppTheme.textTertiary)
+                        .foregroundColor(AppTheme.textSecondary)
                 }
 
                 Spacer()
             }
 
             HStack(spacing: 10) {
-                InfoMiniCard(label: "EXPIRES", value: formatDate(order.expiredTime))
-                InfoMiniCard(label: "ORDER", value: "#\(String(order.orderNo.suffix(6)))")
+                InfoMiniCard(label: "Expires", value: formatDate(order.expiredTime))
+                InfoMiniCard(label: "Order", value: "#\(String(order.orderNo.suffix(6)))")
             }
         }
-        .padding(18)
+        .padding(22)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.surfaceLight)
+                .fill(AppTheme.backgroundPrimary)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
-                        .stroke(AppTheme.border, lineWidth: 1)
+                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
                 )
+                .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
         )
         .padding(.horizontal, 20)
         .slideIn(delay: 0.1)
     }
 
+    // MARK: - Usage
+
+    private var currentUsage: (percentage: Double, used: String, total: String, remaining: String) {
+        if let display = coordinator.usageDisplay(for: order) {
+            let pct = coordinator.usagePercentage(for: order)
+            return (pct, display.used, display.total, display.remaining)
+        }
+        return (0, "—", order.totalVolume, order.totalVolume)
+    }
+
+    private var usageSection: some View {
+        let usage = currentUsage
+
+        return VStack(alignment: .leading, spacing: 16) {
+            Text("Data usage")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(AppTheme.textPrimary)
+
+            HStack(spacing: 24) {
+                RadialGauge(
+                    progress: usage.percentage,
+                    size: 80,
+                    trackColor: AppTheme.backgroundTertiary,
+                    fillColor: AppTheme.accent,
+                    lineWidth: 6,
+                    valueText: "\(Int(usage.percentage * 100))",
+                    unitText: "%"
+                )
+
+                VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Used")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(AppTheme.textTertiary)
+                        Text(usage.used)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(AppTheme.textPrimary)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Remaining")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(AppTheme.textTertiary)
+                        Text(usage.remaining)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(AppTheme.accent)
+                    }
+                }
+
+                Spacer()
+            }
+        }
+        .padding(22)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(AppTheme.backgroundPrimary)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
+                )
+                .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
+        )
+        .padding(.horizontal, 20)
+        .slideIn(delay: 0.12)
+    }
+
     // MARK: - Technical Info
 
     private var technicalInfoSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("TECHNICAL INFO")
-                .font(.system(size: 11, weight: .bold))
-                .tracking(1.5)
-                .foregroundColor(AppTheme.textTertiary)
+        VStack(alignment: .leading, spacing: 18) {
+            Text("Technical info")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(AppTheme.textPrimary)
 
             VStack(spacing: 0) {
                 TechInfoRow(label: "ICCID", value: order.iccid) {
                     copyToClipboard(order.iccid, label: "ICCID")
                 }
 
-                Divider().padding(.leading, 16)
+                Rectangle()
+                    .fill(AppTheme.border.opacity(0.5))
+                    .frame(height: 0.5)
+                    .padding(.leading, 16)
 
                 TechInfoRow(label: "LPA Code", value: order.lpaCode) {
                     copyToClipboard(order.lpaCode, label: "LPA Code")
                 }
 
-                Divider().padding(.leading, 16)
+                Rectangle()
+                    .fill(AppTheme.border.opacity(0.5))
+                    .frame(height: 0.5)
+                    .padding(.leading, 16)
 
                 TechInfoRow(label: "Order No", value: order.orderNo) {
                     copyToClipboard(order.orderNo, label: "Order No")
                 }
             }
             .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(AppTheme.backgroundSecondary)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(AppTheme.backgroundTertiary)
+
+                    // Tech grid pattern background
+                    TechGridPattern(dotSize: 2, spacing: 16, color: AppTheme.anthracite, opacity: 0.03)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
             )
         }
-        .padding(18)
+        .padding(22)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.surfaceLight)
+                .fill(AppTheme.backgroundPrimary)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
-                        .stroke(AppTheme.border, lineWidth: 1)
+                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
                 )
+                .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
         )
         .padding(.horizontal, 20)
         .slideIn(delay: 0.15)
@@ -320,11 +598,10 @@ struct ESIMDetailView: View {
     // MARK: - Installation Guide
 
     private var installationGuideSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("INSTALLATION")
-                .font(.system(size: 11, weight: .bold))
-                .tracking(1.5)
-                .foregroundColor(AppTheme.textTertiary)
+        VStack(alignment: .leading, spacing: 18) {
+            Text("How to install")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(AppTheme.textPrimary)
 
             VStack(spacing: 16) {
                 InstallStepTech(number: 1, text: "Go to Settings → Cellular")
@@ -333,14 +610,16 @@ struct ESIMDetailView: View {
                 InstallStepTech(number: 4, text: "Follow the on-screen instructions")
             }
         }
-        .padding(18)
+        .padding(22)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.surfaceLight)
+                .fill(AppTheme.backgroundPrimary)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
-                        .stroke(AppTheme.border, lineWidth: 1)
+                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
                 )
+                .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
         )
         .padding(.horizontal, 20)
         .slideIn(delay: 0.2)
@@ -369,6 +648,189 @@ struct ESIMDetailView: View {
     }
 }
 
+// MARK: - Top-Up Sheet
+
+struct TopUpSheet: View {
+    let order: ESIMOrder
+    @EnvironmentObject private var coordinator: AppCoordinator
+    @Environment(\.dismiss) private var dismiss
+    @State private var packages: [TopUpPackage] = []
+    @State private var isLoading = true
+    @State private var selectedPackage: TopUpPackage?
+    @State private var isPurchasing = false
+    @State private var purchaseSuccess = false
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                AppTheme.backgroundSecondary.ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    HStack {
+                        Button { dismiss() } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(AppTheme.textPrimary)
+                                .frame(width: 36, height: 36)
+                                .background(Circle().fill(AppTheme.gray100))
+                        }
+                        Spacer()
+                        Text("TOP UP")
+                            .font(.system(size: 12, weight: .bold))
+                            .tracking(1.5)
+                            .foregroundColor(AppTheme.textSecondary)
+                        Spacer()
+                        Color.clear.frame(width: 36, height: 36)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+
+                    if isLoading {
+                        Spacer()
+                        ProgressView()
+                            .tint(AppTheme.accent)
+                        Spacer()
+                    } else if packages.isEmpty {
+                        Spacer()
+                        VStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.system(size: 36, weight: .medium))
+                                .foregroundColor(AppTheme.textTertiary)
+                            Text("No top-up packages available")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(AppTheme.textPrimary)
+                            Text("Try again later")
+                                .font(.system(size: 14))
+                                .foregroundColor(AppTheme.textSecondary)
+                        }
+                        Spacer()
+                    } else if purchaseSuccess {
+                        Spacer()
+                        VStack(spacing: 16) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 56, weight: .medium))
+                                .foregroundColor(AppTheme.success)
+                            Text("Top-Up Successful!")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(AppTheme.textPrimary)
+                            Text("Your data has been added")
+                                .font(.system(size: 15))
+                                .foregroundColor(AppTheme.textSecondary)
+                            Button {
+                                dismiss()
+                            } label: {
+                                Text("Done")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(Color(hex: "0F172A"))
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 50)
+                                    .background(RoundedRectangle(cornerRadius: 14).fill(AppTheme.accent))
+                            }
+                            .padding(.horizontal, 40)
+                            .padding(.top, 8)
+                        }
+                        Spacer()
+                    } else {
+                        ScrollView(showsIndicators: false) {
+                            VStack(spacing: 12) {
+                                ForEach(packages) { pkg in
+                                    Button {
+                                        HapticFeedback.selection()
+                                        selectedPackage = pkg
+                                    } label: {
+                                        HStack(spacing: 14) {
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text(pkg.name)
+                                                    .font(.system(size: 16, weight: .semibold))
+                                                    .foregroundColor(AppTheme.textPrimary)
+                                                Text("\(pkg.dataGB) GB · \(pkg.durationDays) days")
+                                                    .font(.system(size: 13, weight: .medium))
+                                                    .foregroundColor(AppTheme.textSecondary)
+                                            }
+                                            Spacer()
+                                            Text(pkg.priceUSD.formattedPrice)
+                                                .font(.system(size: 17, weight: .bold))
+                                                .foregroundColor(AppTheme.accent)
+                                        }
+                                        .padding(18)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(AppTheme.backgroundPrimary)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 16)
+                                                        .stroke(
+                                                            selectedPackage?.id == pkg.id
+                                                                ? AppTheme.accent
+                                                                : AppTheme.border.opacity(0.4),
+                                                            lineWidth: selectedPackage?.id == pkg.id ? 2 : 0.5
+                                                        )
+                                                )
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 24)
+                            .padding(.bottom, 100)
+                        }
+
+                        if let selected = selectedPackage {
+                            VStack(spacing: 0) {
+                                Button {
+                                    Task {
+                                        isPurchasing = true
+                                        let success = await coordinator.performTopUp(
+                                            for: order,
+                                            packageCode: selected.packageCode
+                                        )
+                                        isPurchasing = false
+                                        if success {
+                                            HapticFeedback.success()
+                                            withAnimation { purchaseSuccess = true }
+                                        }
+                                    }
+                                } label: {
+                                    HStack {
+                                        if isPurchasing {
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "0F172A")))
+                                                .scaleEffect(0.8)
+                                        } else {
+                                            Text("Top Up for \(selected.priceUSD.formattedPrice)")
+                                                .font(.system(size: 16, weight: .bold))
+                                        }
+                                    }
+                                    .foregroundColor(Color(hex: "0F172A"))
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 56)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(AppTheme.accent)
+                                    )
+                                }
+                                .disabled(isPurchasing)
+                                .scaleOnPress()
+                                .padding(.horizontal, 20)
+                                .padding(.bottom, 34)
+                            }
+                            .background(
+                                AppTheme.backgroundPrimary
+                                    .shadow(color: Color.black.opacity(0.08), radius: 10, y: -4)
+                            )
+                        }
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+        }
+        .task {
+            packages = await coordinator.fetchTopUpPackages(for: order)
+            isLoading = false
+        }
+    }
+}
+
 // MARK: - Info Mini Card
 
 struct InfoMiniCard: View {
@@ -376,22 +838,21 @@ struct InfoMiniCard: View {
     let value: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(label)
-                .font(.system(size: 10, weight: .bold))
-                .tracking(1)
+                .font(.system(size: 12, weight: .medium))
                 .foregroundColor(AppTheme.textTertiary)
 
             Text(value)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(AppTheme.textPrimary)
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
+        .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(AppTheme.backgroundSecondary)
+                .fill(AppTheme.backgroundTertiary)
         )
     }
 }
@@ -426,7 +887,7 @@ struct TechInfoRow: View {
                     .frame(width: 32, height: 32)
                     .background(
                         Circle()
-                            .fill(AppTheme.accentSoft)
+                            .fill(AppTheme.accent.opacity(0.1))
                     )
             }
         }
@@ -441,20 +902,21 @@ struct InstallStepTech: View {
     let text: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .center, spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(AppTheme.accent)
-                    .frame(width: 26, height: 26)
+                    .fill(AppTheme.accent.opacity(0.12))
+                    .frame(width: 36, height: 36)
 
                 Text("\(number)")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.white)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundColor(AppTheme.accent)
             }
 
             Text(text)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 15, weight: .medium))
                 .foregroundColor(AppTheme.textSecondary)
+                .lineSpacing(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -505,5 +967,6 @@ struct InstallStep: View {
             expiredTime: "2024-12-31",
             createdAt: Date()
         ))
+        .environmentObject(AppCoordinator())
     }
 }

@@ -132,12 +132,12 @@ export default function AdsPage() {
       label: 'Campagne',
       render: (campaign: AdCampaign) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center text-white ">
+          <div className="w-9 h-9 rounded-xl bg-lime-400 flex items-center justify-center text-zinc-950 ">
             <Megaphone size={16} />
           </div>
           <div>
-            <p className="font-medium text-slate-800">{campaign.name}</p>
-            <p className="text-xs text-slate-400">{campaign.campaign_type}</p>
+            <p className="font-medium text-white">{campaign.name}</p>
+            <p className="text-xs text-zinc-500">{campaign.campaign_type}</p>
           </div>
         </div>
       )
@@ -155,7 +155,7 @@ export default function AdsPage() {
       key: 'budget',
       label: 'Budget',
       render: (campaign: AdCampaign) => (
-        <span className="font-semibold text-slate-700">{campaign.budget?.toLocaleString() || 0} €</span>
+        <span className="font-semibold text-zinc-200">{campaign.budget?.toLocaleString() || 0} €</span>
       )
     },
     {
@@ -165,8 +165,8 @@ export default function AdsPage() {
         const percentage = campaign.budget ? (campaign.spent || 0) / campaign.budget * 100 : 0
         return (
           <div className="space-y-1">
-            <span className="text-sm text-slate-600">{campaign.spent?.toLocaleString() || 0} €</span>
-            <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <span className="text-sm text-zinc-300">{campaign.spent?.toLocaleString() || 0} €</span>
+            <div className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full ${percentage > 90 ? 'bg-rose-500' : percentage > 70 ? 'bg-amber-500' : 'bg-emerald-500'}`}
                 style={{ width: `${Math.min(percentage, 100)}%` }}
@@ -180,7 +180,7 @@ export default function AdsPage() {
       key: 'clicks',
       label: 'Clics',
       render: (campaign: AdCampaign) => (
-        <span className="font-medium text-slate-700">{campaign.clicks?.toLocaleString() || 0}</span>
+        <span className="font-medium text-zinc-200">{campaign.clicks?.toLocaleString() || 0}</span>
       )
     },
     {
@@ -188,8 +188,8 @@ export default function AdsPage() {
       label: 'Conv.',
       render: (campaign: AdCampaign) => (
         <div className="flex items-center gap-1.5">
-          <Target size={14} className="text-indigo-500" />
-          <span className="font-semibold text-indigo-600">{campaign.conversions || 0}</span>
+          <Target size={14} className="text-lime-400" />
+          <span className="font-semibold text-lime-400">{campaign.conversions || 0}</span>
         </div>
       )
     },
@@ -197,7 +197,7 @@ export default function AdsPage() {
       key: 'ctr',
       label: 'CTR',
       render: (campaign: AdCampaign) => (
-        <span className={`font-medium ${(campaign.ctr || 0) > 2 ? 'text-emerald-600' : 'text-slate-600'}`}>
+        <span className={`font-medium ${(campaign.ctr || 0) > 2 ? 'text-emerald-400' : 'text-zinc-300'}`}>
           {(campaign.ctr || 0).toFixed(2)}%
         </span>
       )
@@ -224,10 +224,10 @@ export default function AdsPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center animate-pulse">
-            <Megaphone className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-2xl bg-lime-400 flex items-center justify-center animate-pulse">
+            <Megaphone className="w-8 h-8 text-zinc-950" />
           </div>
-          <div className="absolute inset-0 rounded-2xl bg-sky-500 blur-xl opacity-50 animate-pulse" />
+          <div className="absolute inset-0 rounded-2xl bg-lime-400 blur-xl opacity-50 animate-pulse" />
         </div>
       </div>
     )
@@ -238,12 +238,12 @@ export default function AdsPage() {
       {/* Header */}
       <div className="animate-fade-in-up">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center ">
-            <Megaphone className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-lime-400 flex items-center justify-center ">
+            <Megaphone className="w-5 h-5 text-zinc-950" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">Campagnes Publicitaires</h1>
-            <p className="text-slate-500">Gérez vos campagnes AdWords, Facebook Ads et plus</p>
+            <h1 className="text-3xl font-bold text-white">Campagnes Publicitaires</h1>
+            <p className="text-zinc-400">Gérez vos campagnes AdWords, Facebook Ads et plus</p>
           </div>
         </div>
       </div>
@@ -268,7 +268,7 @@ export default function AdsPage() {
         <form onSubmit={handleSave} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-2">Nom de la campagne *</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Nom de la campagne *</label>
               <input
                 type="text"
                 required
@@ -278,7 +278,7 @@ export default function AdsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Statut</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Statut</label>
               <select
                 value={editingCampaign.status || 'draft'}
                 onChange={e => setEditingCampaign(prev => ({ ...prev, status: e.target.value }))}
@@ -291,7 +291,7 @@ export default function AdsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Plateforme *</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Plateforme *</label>
               <select
                 required
                 value={editingCampaign.platform || 'google_ads'}
@@ -307,7 +307,7 @@ export default function AdsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Type de campagne</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Type de campagne</label>
               <select
                 value={editingCampaign.campaign_type || 'search'}
                 onChange={e => setEditingCampaign(prev => ({ ...prev, campaign_type: e.target.value }))}
@@ -322,7 +322,7 @@ export default function AdsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Budget (€)</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Budget (€)</label>
               <input
                 type="number"
                 step="0.01"
@@ -332,7 +332,7 @@ export default function AdsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Date de début</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Date de début</label>
               <input
                 type="date"
                 value={editingCampaign.start_date || ''}
@@ -341,7 +341,7 @@ export default function AdsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Date de fin</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Date de fin</label>
               <input
                 type="date"
                 value={editingCampaign.end_date || ''}
@@ -353,12 +353,12 @@ export default function AdsPage() {
 
           <div className="glass-card rounded-xl p-5 space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp size={18} className="text-indigo-500" />
-              <h4 className="font-semibold text-slate-800">Métriques</h4>
+              <TrendingUp size={18} className="text-lime-400" />
+              <h4 className="font-semibold text-white">Métriques</h4>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Dépensé (€)</label>
+                <label className="block text-sm font-medium text-zinc-200 mb-2">Dépensé (€)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -368,7 +368,7 @@ export default function AdsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Impressions</label>
+                <label className="block text-sm font-medium text-zinc-200 mb-2">Impressions</label>
                 <input
                   type="number"
                   value={editingCampaign.impressions || 0}
@@ -377,7 +377,7 @@ export default function AdsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Clics</label>
+                <label className="block text-sm font-medium text-zinc-200 mb-2">Clics</label>
                 <input
                   type="number"
                   value={editingCampaign.clicks || 0}
@@ -386,7 +386,7 @@ export default function AdsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Conversions</label>
+                <label className="block text-sm font-medium text-zinc-200 mb-2">Conversions</label>
                 <input
                   type="number"
                   value={editingCampaign.conversions || 0}
@@ -398,7 +398,7 @@ export default function AdsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Audience cible</label>
+            <label className="block text-sm font-medium text-zinc-200 mb-2">Audience cible</label>
             <textarea
               value={editingCampaign.target_audience || ''}
               onChange={e => setEditingCampaign(prev => ({ ...prev, target_audience: e.target.value }))}
@@ -408,7 +408,7 @@ export default function AdsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Mots-clés</label>
+            <label className="block text-sm font-medium text-zinc-200 mb-2">Mots-clés</label>
             <textarea
               value={editingCampaign.keywords || ''}
               onChange={e => setEditingCampaign(prev => ({ ...prev, keywords: e.target.value }))}
@@ -418,7 +418,7 @@ export default function AdsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Notes</label>
+            <label className="block text-sm font-medium text-zinc-200 mb-2">Notes</label>
             <textarea
               value={editingCampaign.notes || ''}
               onChange={e => setEditingCampaign(prev => ({ ...prev, notes: e.target.value }))}
@@ -427,11 +427,11 @@ export default function AdsPage() {
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-5 border-t border-slate-200/60">
+          <div className="flex justify-end gap-3 pt-5 border-t border-zinc-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl transition-all duration-200 font-medium"
+              className="px-5 py-2.5 text-zinc-400 hover:bg-zinc-800 rounded-xl transition-all duration-200 font-medium"
             >
               Annuler
             </button>
@@ -440,9 +440,8 @@ export default function AdsPage() {
               disabled={saving}
               className="
                 px-6 py-2.5
-                bg-sky-500 hover:bg-sky-600
-                text-white font-semibold rounded-xl
-                shadow-md hover:shadow-lg
+                bg-lime-400 hover:bg-lime-300
+                text-zinc-950 font-semibold rounded-xl
                 transition-all duration-200
                 disabled:opacity-50 disabled:cursor-not-allowed
               "

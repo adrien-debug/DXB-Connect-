@@ -1,0 +1,251 @@
+# Figma Integration - Design System Sync
+
+## 🎨 Figma MCP Configuration
+
+### Serveur MCP Actif
+
+```json
+{
+  "figma-flysim": {
+    "url": "https://mcp.figma.com/mcp",
+    "designUrl": "https://www.figma.com/design/nhn7vx1XRE4r4dOUXEBDkM/Flysim"
+  }
+}
+```
+
+**Status** : Configuré dans `~/.cursor/mcp.json`
+
+## 🔄 Workflow Design → Code
+
+### 1. Accès au Design Figma
+
+Le design Flysim est accessible via MCP Figma :
+- **File Key** : `nhn7vx1XRE4r4dOUXEBDkM`
+- **URL** : https://www.figma.com/design/nhn7vx1XRE4r4dOUXEBDkM/Flysim
+
+### 2. Extraction des Tokens
+
+**Commande** :
+```bash
+node scripts/sync-figma-tokens.js
+```
+
+**Génère** :
+- `Apps/DXBClient/Views/Theme.generated.swift` (iOS)
+- `Apps/DXBClient/src/styles/tokens.generated.css` (Web)
+
+### 3. Tokens de Design Actuels
+
+#### Couleurs (Pulse Theme)
+
+| Token | Light | Dark | Usage |
+|-------|-------|------|-------|
+| `accent` | `#CDFF00` | `#CDFF00` | Lime principal |
+| `primary` | `#09090B` | `#FAFAFA` | Texte/fond principal |
+| `gray50-900` | Zinc scale | Inversé | Grayscale |
+| `success` | `#16A34A` | `#4ADE80` | États positifs |
+| `error` | `#DC2626` | `#F87171` | États erreur |
+
+#### Spacing
+
+```
+xs: 4px, sm: 8px, md: 12px, base: 16px
+lg: 20px, xl: 24px, xxl: 32px, xxxl: 48px
+```
+
+#### Radius
+
+```
+xs: 6px, sm: 10px, md: 14px, lg: 18px
+xl: 22px, xxl: 28px, full: 9999px
+```
+
+## 📋 Règles d'Utilisation
+
+### ✅ OBLIGATOIRE
+
+1. **Toujours utiliser les tokens** :
+   ```swift
+   // ✅ iOS
+   .foregroundColor(AppTheme.accent)
+   .padding(AppTheme.Spacing.base)
+   .cornerRadius(AppTheme.Radius.md)
+   ```
+
+   ```css
+   /* ✅ Web */
+   color: var(--accent);
+   padding: var(--spacing-base);
+   border-radius: var(--radius-md);
+   ```
+
+2. **Ne JAMAIS hardcoder** :
+   ```swift
+   // ❌ INTERDIT
+   .foregroundColor(Color(hex: "CDFF00"))
+   .padding(16)
+   .cornerRadius(14)
+   ```
+
+3. **Synchroniser régulièrement** :
+   - Avant chaque feature UI
+   - Après modifications Figma
+   - Avant chaque release
+
+### 🎯 Composants Figma → Code
+
+#### Boutons
+
+**Figma** : `Button/Primary`, `Button/Secondary`
+
+**iOS** :
+```swift
+Button("Action") { }
+  .buttonStyle(.primary) // Utilise AppTheme.accent
+```
+
+**Web** :
+```tsx
+<button className="btn-premium">Action</button>
+```
+
+#### Cards
+
+**Figma** : `Card/Tech`, `Card/Glass`, `Card/Premium`
+
+**iOS** :
+```swift
+VStack { }
+  .techCard() // Modifier depuis Theme.swift
+```
+
+**Web** :
+```tsx
+<div className="glass-card">Content</div>
+```
+
+## 🔧 Commandes MCP Figma
+
+### Via Cursor Chat
+
+```
+"Récupère les variables de couleur depuis Figma"
+"Montre-moi les composants Button dans Figma"
+"Génère le code SwiftUI pour ce composant Figma"
+"Compare les couleurs Figma vs Theme.swift"
+```
+
+### Outils Disponibles
+
+- `get_design_context` : Contexte complet du design
+- `get_variable_defs` : Variables (couleurs, typo, spacing)
+- `get_code_connect_map` : Mapping composants Figma ↔ Code
+- `get_screenshot` : Captures d'écran des frames
+
+## 🚨 Règles Strictes
+
+### ❌ INTERDIT
+
+1. Modifier `Theme.generated.swift` ou `tokens.generated.css` manuellement
+2. Créer de nouvelles couleurs sans les ajouter à Figma
+3. Utiliser des valeurs hardcodées au lieu des tokens
+4. Ignorer les warnings de tokens manquants
+
+### ✅ OBLIGATOIRE
+
+1. Passer par Figma pour tout changement de design
+2. Lancer `sync-figma-tokens.js` après modifications Figma
+3. Vérifier que les tokens existent avant utilisation
+4. Documenter les nouveaux tokens dans Figma
+
+## 📝 Checklist Feature UI
+
+Avant de coder une nouvelle feature UI :
+
+- [ ] Design validé dans Figma ?
+- [ ] Composants Figma utilisent les tokens ?
+- [ ] Tokens synchronisés (`sync-figma-tokens.js`) ?
+- [ ] Fichiers `.generated.*` à jour ?
+- [ ] Code utilise les tokens (pas hardcodé) ?
+- [ ] Tests iOS + Web OK ?
+
+## 🔗 Liens Utiles
+
+- **Figma File** : https://www.figma.com/design/nhn7vx1XRE4r4dOUXEBDkM/Flysim
+- **Figma API Docs** : https://www.figma.com/developers/api
+- **MCP Figma Docs** : https://developers.figma.com/docs/figma-mcp-server/
+- **Script Sync** : `scripts/sync-figma-tokens.js`
+
+## 🎯 Exemples Complets
+
+### Créer un Nouveau Composant
+
+1. **Designer dans Figma** avec tokens existants
+2. **Exporter** via MCP ou screenshot
+3. **Coder** en utilisant les tokens :
+
+```swift
+// iOS
+struct NewComponent: View {
+    var body: some View {
+        VStack(spacing: AppTheme.Spacing.md) {
+            Text("Title")
+                .font(AppTheme.Typography.sectionTitle())
+                .foregroundColor(AppTheme.textPrimary)
+        }
+        .techCard()
+    }
+}
+```
+
+```tsx
+// Web
+export function NewComponent() {
+  return (
+    <div className="glass-card space-y-3">
+      <h2 className="text-xl font-semibold text-zinc-100">
+        Title
+      </h2>
+    </div>
+  );
+}
+```
+
+### Ajouter une Nouvelle Couleur
+
+1. **Ajouter dans Figma** → Variables → Couleurs
+2. **Mettre à jour** `scripts/sync-figma-tokens.js` → `DESIGN_TOKENS.colors`
+3. **Lancer** `node scripts/sync-figma-tokens.js`
+4. **Vérifier** génération dans `.generated.*`
+5. **Utiliser** dans le code
+
+## 🔄 Maintenance
+
+### Mise à Jour des Tokens
+
+```bash
+# 1. Modifier dans Figma
+# 2. Synchroniser
+node scripts/sync-figma-tokens.js
+
+# 3. Vérifier les fichiers générés
+git diff Apps/DXBClient/Views/Theme.generated.swift
+git diff Apps/DXBClient/src/styles/tokens.generated.css
+
+# 4. Tester
+# iOS : Build + Run
+# Web : npm run dev
+
+# 5. Commit
+git add .
+git commit -m "chore: sync Figma design tokens"
+```
+
+### Résolution de Conflits
+
+Si les tokens Figma ≠ Code :
+
+1. **Source de vérité** : Figma
+2. **Résoudre** : Mettre à jour le code
+3. **Synchroniser** : Lancer le script
+4. **Valider** : Tests visuels iOS + Web

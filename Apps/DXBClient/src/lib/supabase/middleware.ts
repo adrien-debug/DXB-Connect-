@@ -8,6 +8,8 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
+  const pathname = request.nextUrl.pathname
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -35,23 +37,45 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Routes API - pas de redirect, juste passer
-  if (request.nextUrl.pathname.startsWith('/api')) {
+  if (pathname.startsWith('/api')) {
     return supabaseResponse
   }
 
   // Routes publiques (pas besoin d'auth)
-  const publicRoutes = ['/login', '/register', '/forgot-password']
-  const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route))
+  // NOTE: '/' ne doit matcher QUE la homepage, pas toutes les routes.
+  const publicRoutePrefixes = [
+    '/',
+    '/features',
+    '/pricing',
+    '/coverage',
+    '/how-it-works',
+    '/faq',
+    '/contact',
+    '/partners',
+    '/legal',
+    '/blog',
+    '/sitemap.xml',
+    '/robots.txt',
+    '/unauthorized',
+    '/login',
+    '/register',
+    '/forgot-password',
+  ]
+
+  const isPublicRoute = publicRoutePrefixes.some((prefix) => {
+    if (prefix === '/') return pathname === '/'
+    return pathname === prefix || pathname.startsWith(prefix + '/')
+  })
 
   // Si pas connecté et route protégée -> redirect login
-  if (!user && !isPublicRoute && request.nextUrl.pathname !== '/') {
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
   // Si connecté et sur login -> redirect dashboard
-  if (user && isPublicRoute) {
+  if (user && (pathname === '/login' || pathname.startsWith('/login/'))) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
@@ -59,20 +83,30 @@ export async function updateSession(request: NextRequest) {
 
   // Routes admin - vérifier le rôle
   const adminRoutes = ['/dashboard', '/customers', '/suppliers', '/orders', '/products', '/ads', '/esim']
-  const isAdminRoute = adminRoutes.some(route => request.nextUrl.pathname.startsWith(route))
+  const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
 
   // Route client-redirect - ne pas vérifier le rôle (accessible aux clients)
-  const isClientRedirect = request.nextUrl.pathname === '/client-redirect'
+  const isClientRedirect = pathname === '/client-redirect'
 
   if (user && isAdminRoute && !isClientRedirect) {
     // Vérifier si l'utilisateur est admin via RPC (bypass RLS avec SECURITY DEFINER)
     const { data: role, error } = await supabase.rpc('get_user_role', { user_id: user.id })
 
-    console.log('[Middleware] User:', user.email, 'Role:', role, 'Error:', error?.message)
+    const userIdShort = user.id?.slice(0, 8) || 'unknown'
+    console.info('[Middleware] Admin check', {
+      path: pathname,
+      user: userIdShort,
+      role: role ?? null,
+      error: error?.message ?? null,
+    })
 
     // Rediriger si pas admin
     if (error || role !== 'admin') {
-      console.log('[Middleware] Non-admin user:', user.email, 'Role:', role, '- redirecting to /client-redirect')
+      console.warn('[Middleware] Non-admin access blocked', {
+        path: pathname,
+        user: userIdShort,
+        role: role ?? null,
+      })
       const url = request.nextUrl.clone()
       url.pathname = '/client-redirect'
       return NextResponse.redirect(url)

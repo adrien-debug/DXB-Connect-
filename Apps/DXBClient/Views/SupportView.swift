@@ -7,7 +7,7 @@ struct SupportView: View {
 
     var body: some View {
         ZStack {
-            AppTheme.backgroundPrimary
+            AppTheme.backgroundSecondary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -19,7 +19,7 @@ struct SupportView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 36, height: 36)
-                            .background(Circle().fill(AppTheme.surfaceHeavy))
+                            .background(Circle().fill(AppTheme.gray100))
                     }
                     .accessibilityLabel("Fermer")
 
@@ -28,7 +28,7 @@ struct SupportView: View {
                     Text("SUPPORT")
                         .font(.system(size: 12, weight: .bold))
                         .tracking(1.5)
-                        .foregroundColor(AppTheme.textTertiary)
+                        .foregroundColor(AppTheme.textSecondary)
 
                     Spacer()
 
@@ -38,27 +38,26 @@ struct SupportView: View {
                 .padding(.top, 8)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
-                        VStack(spacing: 14) {
+                    VStack(spacing: 28) {
+                        VStack(spacing: 16) {
                             ZStack {
                                 Circle()
-                                    .fill(AppTheme.accentSoft)
-                                    .frame(width: 72, height: 72)
+                                    .fill(AppTheme.accent.opacity(0.08))
+                                    .frame(width: 80, height: 80)
 
                                 Image(systemName: "headphones")
-                                    .font(.system(size: 30, weight: .semibold))
+                                    .font(.system(size: 32, weight: .medium))
                                     .foregroundColor(AppTheme.accent)
                             }
 
-                            VStack(spacing: 6) {
-                                Text("How can we help?")
-                                    .font(.system(size: 22, weight: .bold))
-                                    .foregroundColor(AppTheme.textPrimary)
+                            Text("How can we help?")
+                                .font(.system(size: 30, weight: .bold))
+                                .tracking(-0.5)
+                                .foregroundColor(AppTheme.textPrimary)
 
-                                Text("Find answers or contact us")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(AppTheme.textTertiary)
-                            }
+                            Text("We're here for you 24/7")
+                                .font(.system(size: 15, weight: .regular))
+                                .foregroundColor(AppTheme.textTertiary)
                         }
                         .padding(.top, 20)
                         .slideIn(delay: 0)
@@ -66,7 +65,7 @@ struct SupportView: View {
                         HStack(spacing: 12) {
                             ContactOptionCard(
                                 icon: "envelope.fill",
-                                title: "EMAIL",
+                                title: "Email",
                                 subtitle: "support@dxbconnect.com"
                             ) {
                                 if let url = URL(string: "mailto:support@dxbconnect.com") {
@@ -76,7 +75,7 @@ struct SupportView: View {
 
                             ContactOptionCard(
                                 icon: "message.fill",
-                                title: "WHATSAPP",
+                                title: "WhatsApp",
                                 subtitle: "Chat with us"
                             ) {
                                 if let url = URL(string: "https://wa.me/971501234567") {
@@ -87,14 +86,14 @@ struct SupportView: View {
                         .padding(.horizontal, 20)
                         .slideIn(delay: 0.1)
 
+                        // FAQ
                         VStack(alignment: .leading, spacing: 14) {
-                            Text("FREQUENTLY ASKED")
-                                .font(.system(size: 11, weight: .bold))
-                                .tracking(1.5)
-                                .foregroundColor(AppTheme.textTertiary)
+                            Text("Frequently asked")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(AppTheme.textPrimary)
                                 .padding(.horizontal, 20)
 
-                            VStack(spacing: 10) {
+                            VStack(spacing: 8) {
                                 ForEach(Array(FAQItem.allItems.enumerated()), id: \.element.id) { index, item in
                                     FAQCardTech(
                                         item: item,
@@ -133,40 +132,39 @@ struct ContactOptionCard: View {
             HapticFeedback.light()
             action()
         } label: {
-            VStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(AppTheme.accent)
-                        .frame(width: 44, height: 44)
+            VStack(spacing: 16) {
+                Circle()
+                    .fill(AppTheme.accent)
+                    .frame(width: 52, height: 52)
+                    .overlay(
+                        Image(systemName: icon)
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(Color(hex: "0F172A"))
+                    )
 
-                    Image(systemName: icon)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-
-                VStack(spacing: 3) {
+                VStack(spacing: 5) {
                     Text(title)
-                        .font(.system(size: 10, weight: .bold))
-                        .tracking(1)
-                        .foregroundColor(AppTheme.textTertiary)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(AppTheme.textPrimary)
 
                     Text(subtitle)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(AppTheme.textPrimary)
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundColor(AppTheme.textTertiary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
+            .padding(.vertical, 24)
             .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(AppTheme.surfaceLight)
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(AppTheme.backgroundPrimary)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(AppTheme.border, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
                     )
-                    .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+                    .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+                    .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
             )
         }
         .accessibilityLabel("\(title): \(subtitle)")
@@ -198,27 +196,30 @@ struct FAQCardTech: View {
                         .foregroundColor(isExpanded ? AppTheme.accent : AppTheme.textTertiary)
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 }
-                .padding(16)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 16)
             }
             .buttonStyle(.plain)
 
             if isExpanded {
                 Text(item.answer)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 14, weight: .regular))
                     .foregroundColor(AppTheme.textSecondary)
-                    .lineSpacing(4)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
+                    .lineSpacing(5)
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 18)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(isExpanded ? AppTheme.accentSoft : AppTheme.surfaceLight)
+                .fill(AppTheme.backgroundPrimary)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(isExpanded ? AppTheme.accent.opacity(0.3) : AppTheme.border, lineWidth: 1)
+                        .stroke(isExpanded ? AppTheme.accent.opacity(0.25) : AppTheme.border.opacity(0.5), lineWidth: isExpanded ? 1.5 : 0.5)
                 )
+                .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
         )
     }
 }

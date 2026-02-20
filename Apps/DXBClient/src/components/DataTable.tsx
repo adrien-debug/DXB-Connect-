@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
+import { Search, Plus, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Column<T> {
   key: keyof T | string
@@ -56,19 +56,18 @@ export default function DataTable<T extends { id: string }>({
   }
 
   return (
-    <div className="bg-white rounded-3xl overflow-hidden animate-fade-in-up shadow-sm border border-gray-100/50">
+    <div className="bg-zinc-900 rounded-3xl overflow-hidden animate-fade-in-up border border-zinc-800">
       {/* Header */}
-      <div className="p-5 border-b border-gray-100">
+      <div className="p-5 border-b border-zinc-800">
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
           <div>
-            <h2 className="text-base font-semibold text-gray-800">{title}</h2>
-            <p className="text-sm text-gray-400 mt-0.5">{filteredData.length} résultat(s)</p>
+            <h2 className="text-base font-semibold text-white">{title}</h2>
+            <p className="text-sm text-zinc-500 mt-0.5">{filteredData.length} résultat(s)</p>
           </div>
-          
+
           <div className="flex gap-3 w-full sm:w-auto">
-            {/* Search */}
             <div className="relative flex-1 sm:flex-initial group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-sky-500 transition-colors" size={18} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-lime-400 transition-colors" size={18} />
               <input
                 type="text"
                 placeholder={searchPlaceholder}
@@ -78,26 +77,25 @@ export default function DataTable<T extends { id: string }>({
                   setCurrentPage(1)
                 }}
                 className="
-                  pl-11 pr-4 py-2.5 
-                  bg-gray-50 border border-gray-100 rounded-2xl 
-                  w-full sm:w-72 
-                  focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 focus:bg-white
+                  pl-11 pr-4 py-2.5
+                  bg-zinc-800 border border-zinc-700 rounded-2xl
+                  w-full sm:w-72
+                  focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400/50 focus:bg-zinc-800
                   transition-all duration-300
-                  placeholder:text-gray-300
+                  placeholder:text-zinc-600 text-zinc-200
                 "
               />
             </div>
-            
-            {/* Add button */}
+
             {onAdd && (
               <button
                 onClick={onAdd}
                 className="
-                  flex items-center gap-2 px-5 py-2.5 
-                  bg-sky-500 hover:bg-sky-600
-                  text-white font-medium rounded-xl 
-                  shadow-md hover:shadow-lg
-                  transition-all duration-200 
+                  flex items-center gap-2 px-5 py-2.5
+                  bg-lime-400 hover:bg-lime-300
+                  text-zinc-950 font-semibold rounded-xl
+                  shadow-md shadow-lime-400/20 hover:shadow-lg hover:shadow-lime-400/30
+                  transition-all duration-200
                   whitespace-nowrap
                 "
               >
@@ -113,50 +111,50 @@ export default function DataTable<T extends { id: string }>({
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50/50">
+            <tr className="bg-zinc-800/50">
               {columns.map((col) => (
-                <th 
-                  key={String(col.key)} 
-                  className="px-5 py-3.5 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                <th
+                  key={String(col.key)}
+                  className="px-5 py-3.5 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider"
                 >
                   {col.label}
                 </th>
               ))}
               {(onEdit || onDelete) && (
-                <th className="px-5 py-3.5 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3.5 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-zinc-800/50">
             {paginatedData.length === 0 ? (
               <tr>
                 <td colSpan={columns.length + 1} className="px-5 py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center">
-                      <Search className="w-7 h-7 text-gray-300" />
+                    <div className="w-14 h-14 rounded-2xl bg-zinc-800 flex items-center justify-center">
+                      <Search className="w-7 h-7 text-zinc-600" />
                     </div>
-                    <p className="text-gray-500 font-medium text-sm">Aucune donnée trouvée</p>
-                    <p className="text-xs text-gray-400">Essayez une autre recherche</p>
+                    <p className="text-zinc-400 font-medium text-sm">Aucune donnée trouvée</p>
+                    <p className="text-xs text-zinc-600">Essayez une autre recherche</p>
                   </div>
                 </td>
               </tr>
             ) : (
               paginatedData.map((item, index) => (
-                <tr 
-                  key={item.id} 
+                <tr
+                  key={item.id}
                   className="
-                    group hover:bg-sky-50/30 
+                    group hover:bg-zinc-800/30
                     transition-colors duration-200
                     animate-fade-in-up
                   "
                   style={{ animationDelay: `${index * 0.02}s`, animationFillMode: 'backwards' }}
                 >
                   {columns.map((col) => (
-                    <td 
-                      key={String(col.key)} 
-                      className="px-5 py-4 text-sm text-gray-600"
+                    <td
+                      key={String(col.key)}
+                      className="px-5 py-4 text-sm text-zinc-300"
                     >
                       {col.render ? col.render(item) : String(getValue(item, String(col.key)) ?? '-')}
                     </td>
@@ -169,8 +167,8 @@ export default function DataTable<T extends { id: string }>({
                             onClick={() => onEdit(item)}
                             className="
                               p-2 rounded-xl
-                              text-gray-400 hover:text-sky-600 
-                              hover:bg-sky-50
+                              text-zinc-500 hover:text-lime-400
+                              hover:bg-lime-400/10
                               transition-all duration-200
                             "
                             aria-label="Modifier"
@@ -183,8 +181,8 @@ export default function DataTable<T extends { id: string }>({
                             onClick={() => onDelete(item)}
                             className="
                               p-2 rounded-xl
-                              text-gray-400 hover:text-rose-500 
-                              hover:bg-rose-50
+                              text-zinc-500 hover:text-rose-400
+                              hover:bg-rose-500/10
                               transition-all duration-200
                             "
                             aria-label="Supprimer"
@@ -204,29 +202,28 @@ export default function DataTable<T extends { id: string }>({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="p-4 sm:p-5 border-t border-gray-50">
+        <div className="p-4 sm:p-5 border-t border-zinc-800">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <span className="text-xs sm:text-sm text-gray-400 order-2 sm:order-1">
-              Page <span className="font-medium text-gray-600">{currentPage}</span> sur <span className="font-medium text-gray-600">{totalPages}</span>
+            <span className="text-xs sm:text-sm text-zinc-500 order-2 sm:order-1">
+              Page <span className="font-medium text-zinc-300">{currentPage}</span> sur <span className="font-medium text-zinc-300">{totalPages}</span>
             </span>
-            
+
             <div className="flex items-center gap-1.5 order-1 sm:order-2">
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
                 className="
-                  p-2 rounded-xl 
-                  bg-gray-50 border border-gray-100
-                  hover:bg-gray-100 hover:border-gray-200
-                  disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-50
+                  p-2 rounded-xl
+                  bg-zinc-800 border border-zinc-700
+                  hover:bg-zinc-700 hover:border-zinc-600
+                  disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-zinc-800
                   transition-all duration-200
                 "
                 aria-label="Page précédente"
               >
-                <ChevronLeft size={16} className="text-gray-500" />
+                <ChevronLeft size={16} className="text-zinc-400" />
               </button>
-              
-              {/* Page numbers */}
+
               <div className="hidden sm:flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum: number
@@ -239,7 +236,7 @@ export default function DataTable<T extends { id: string }>({
                   } else {
                     pageNum = currentPage - 2 + i
                   }
-                  
+
                   return (
                     <button
                       key={pageNum}
@@ -248,8 +245,8 @@ export default function DataTable<T extends { id: string }>({
                         w-9 h-9 rounded-xl font-medium text-sm
                         transition-all duration-200
                         ${currentPage === pageNum
-                          ? 'bg-sky-600 text-white '
-                          : 'bg-gray-50 border border-gray-100 text-gray-500 hover:bg-gray-100 hover:border-gray-200'
+                          ? 'bg-lime-400 text-zinc-950 font-bold'
+                          : 'bg-zinc-800 border border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:border-zinc-600'
                         }
                       `}
                       aria-label={`Page ${pageNum}`}
@@ -259,20 +256,20 @@ export default function DataTable<T extends { id: string }>({
                   )
                 })}
               </div>
-              
+
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
                 className="
-                  p-2 rounded-xl 
-                  bg-gray-50 border border-gray-100
-                  hover:bg-gray-100 hover:border-gray-200
-                  disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-50
+                  p-2 rounded-xl
+                  bg-zinc-800 border border-zinc-700
+                  hover:bg-zinc-700 hover:border-zinc-600
+                  disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-zinc-800
                   transition-all duration-200
                 "
                 aria-label="Page suivante"
               >
-                <ChevronRight size={16} className="text-gray-500" />
+                <ChevronRight size={16} className="text-zinc-400" />
               </button>
             </div>
           </div>

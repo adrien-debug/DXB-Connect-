@@ -77,16 +77,16 @@ export default function CustomersPage() {
       label: 'Client',
       render: (client: ClientProfile) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-lime-400 flex items-center justify-center text-zinc-950 text-xs font-bold flex-shrink-0">
             {client.full_name?.charAt(0).toUpperCase() ||
               client.email?.charAt(0).toUpperCase() ||
               'U'}
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-gray-800 truncate">
+            <p className="font-semibold text-white truncate">
               {client.full_name || 'Utilisateur'}
             </p>
-            <p className="text-xs text-gray-400 truncate">{client.email}</p>
+            <p className="text-xs text-zinc-500 truncate">{client.email}</p>
           </div>
         </div>
       ),
@@ -95,7 +95,7 @@ export default function CustomersPage() {
       key: 'esim_count',
       label: 'eSIMs',
       render: (client: ClientProfile) => (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-600">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-lime-400/10 text-lime-400">
           <Wifi size={11} />
           {client.esim_count || 0}
         </span>
@@ -105,7 +105,7 @@ export default function CustomersPage() {
       key: 'created_at',
       label: 'Inscrit le',
       render: (client: ClientProfile) => (
-        <span className="text-sm text-gray-500">{formatDate(client.created_at)}</span>
+        <span className="text-sm text-zinc-400">{formatDate(client.created_at)}</span>
       ),
     },
   ]
@@ -113,8 +113,8 @@ export default function CustomersPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center animate-pulse">
-          <Users className="w-8 h-8 text-white" />
+        <div className="w-16 h-16 rounded-2xl bg-lime-400 flex items-center justify-center animate-pulse">
+          <Users className="w-8 h-8 text-zinc-950" />
         </div>
       </div>
     )
@@ -124,8 +124,8 @@ export default function CustomersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="animate-fade-in-up">
-        <h1 className="text-2xl font-semibold text-gray-800">Clients</h1>
-        <p className="text-gray-400 text-sm mt-1">Utilisateurs inscrits via l&apos;app iOS</p>
+        <h1 className="text-2xl font-semibold text-white">Clients</h1>
+        <p className="text-zinc-500 text-sm mt-1">Utilisateurs inscrits via l&apos;app iOS</p>
       </div>
 
       {/* Stats */}
@@ -208,23 +208,23 @@ function ClientDetailModal({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl animate-fade-in-up"
+        className="bg-zinc-900 rounded-3xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl shadow-black/40 animate-fade-in-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-100">
+        <div className="p-6 border-b border-zinc-800">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-white text-2xl font-bold">
+              <div className="w-16 h-16 rounded-2xl bg-lime-400 flex items-center justify-center text-zinc-950 text-2xl font-bold">
                 {client.full_name?.charAt(0).toUpperCase() ||
                   client.email?.charAt(0).toUpperCase() ||
                   'U'}
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-800">
+                <h2 className="text-xl font-semibold text-white">
                   {client.full_name || 'Utilisateur'}
                 </h2>
-                <p className="text-gray-400 flex items-center gap-2">
+                <p className="text-zinc-500 flex items-center gap-2">
                   <Mail size={14} />
                   {client.email}
                 </p>
@@ -232,7 +232,7 @@ function ClientDetailModal({
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+              className="p-2 rounded-xl hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0"
             >
               <X size={20} />
             </button>
@@ -243,13 +243,13 @@ function ClientDetailModal({
         <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
           {/* Stats */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-sky-50 rounded-2xl p-4">
-              <p className="text-sm text-sky-600 mb-1">eSIMs achetées</p>
-              <p className="text-2xl font-bold text-sky-700">{client.esim_count || 0}</p>
+            <div className="bg-lime-400/10 rounded-2xl p-4">
+              <p className="text-sm text-lime-400 mb-1">eSIMs achetées</p>
+              <p className="text-2xl font-bold text-lime-300">{client.esim_count || 0}</p>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-4">
-              <p className="text-sm text-gray-500 mb-1">Membre depuis</p>
-              <p className="text-lg font-semibold text-gray-700">
+            <div className="bg-zinc-800 rounded-2xl p-4">
+              <p className="text-sm text-zinc-400 mb-1">Membre depuis</p>
+              <p className="text-lg font-semibold text-zinc-200">
                 {new Date(client.created_at).toLocaleDateString('fr-FR', {
                   day: 'numeric',
                   month: 'short',
@@ -261,32 +261,32 @@ function ClientDetailModal({
 
           {/* Orders */}
           <div>
-            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
               <ShoppingBag size={18} />
               Historique des commandes
             </h3>
 
             {loadingOrders ? (
-              <div className="text-center py-8 text-gray-400">Chargement...</div>
+              <div className="text-center py-8 text-zinc-500">Chargement...</div>
             ) : orders.length === 0 ? (
-              <div className="text-center py-8 bg-gray-50 rounded-2xl">
-                <Wifi className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-gray-400">Aucune commande</p>
+              <div className="text-center py-8 bg-zinc-800 rounded-2xl">
+                <Wifi className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+                <p className="text-zinc-500">Aucune commande</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {orders.map((order) => (
-                  <div key={order.id} className="bg-gray-50 rounded-2xl p-4">
+                  <div key={order.id} className="bg-zinc-800 rounded-2xl p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-800">{order.package_code}</span>
+                      <span className="font-medium text-white">{order.package_code}</span>
                       <span
                         className={`
                           inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
                           ${order.status === 'IN_USE'
-                            ? 'bg-green-100 text-green-600'
+                            ? 'bg-emerald-500/10 text-emerald-400'
                             : order.status === 'GOT_RESOURCE'
-                            ? 'bg-blue-100 text-blue-600'
-                            : 'bg-gray-100 text-gray-600'}
+                            ? 'bg-blue-500/10 text-blue-400'
+                            : 'bg-zinc-800 text-zinc-300'}
                         `}
                       >
                         <span
@@ -301,7 +301,7 @@ function ClientDetailModal({
                         {order.status}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-zinc-500">
                       Commandé le {formatDate(order.created_at)}
                     </p>
                   </div>

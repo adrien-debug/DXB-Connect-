@@ -50,10 +50,10 @@ export default function RegisterPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F3F4FA]">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
         <div className="relative">
-          <div className="w-16 h-16 rounded-3xl bg-sky-500 flex items-center justify-center animate-pulse">
-            <Wifi className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-3xl bg-lime-400 flex items-center justify-center animate-pulse">
+            <Wifi className="w-8 h-8 text-zinc-950" />
           </div>
         </div>
       </div>
@@ -62,22 +62,22 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-800">
         {/* Success card */}
         <div className="w-full max-w-md px-4 sm:px-6 animate-fade-in-up">
-          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-200 text-center">
+          <div className="bg-zinc-900 rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/40 border border-zinc-700 text-center">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-xl bg-green-500 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-xl bg-emerald-500 flex items-center justify-center">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
             </div>
 
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-xl font-semibold text-white mb-2">
               Compte créé avec succès !
             </h2>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-zinc-400 mb-6">
               Un email de confirmation a été envoyé à <strong>{form.email}</strong>.
               Vérifiez votre boîte de réception pour activer votre compte.
             </p>
@@ -87,8 +87,8 @@ export default function RegisterPage() {
               className="
                 inline-flex items-center justify-center gap-2
                 w-full h-12 rounded-full
-                bg-sky-500 hover:bg-sky-600
-                text-white font-medium text-sm
+                bg-lime-400 hover:bg-lime-300
+                text-zinc-950 font-medium text-sm
                 shadow-md hover:shadow-lg
                 transition-all duration-200
               "
@@ -103,41 +103,41 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-800">
       {/* Register card */}
       <div className="w-full max-w-md px-4 sm:px-6 animate-fade-in-up">
-        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-200">
+        <div className="bg-zinc-900 rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/40 border border-zinc-700">
           {/* Logo */}
           <div className="flex justify-center mb-6 sm:mb-8">
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-sky-500 flex items-center justify-center flex-shrink-0">
-                <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-lime-400 flex items-center justify-center flex-shrink-0">
+                <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-950" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-lg sm:text-xl font-semibold text-gray-800 truncate">DXB Connect</h1>
-                <p className="text-xs text-gray-400 truncate">Premium Dashboard</p>
+                <h1 className="text-lg sm:text-xl font-semibold text-white truncate">DXB Connect</h1>
+                <p className="text-xs text-zinc-500 truncate">Premium Dashboard</p>
               </div>
             </div>
           </div>
 
-          <h2 className="text-base sm:text-lg font-semibold text-center text-gray-800 mb-1">
+          <h2 className="text-base sm:text-lg font-semibold text-center text-white mb-1">
             Créer un compte
           </h2>
-          <p className="text-sm text-gray-400 text-center mb-6 sm:mb-8">
+          <p className="text-sm text-zinc-500 text-center mb-6 sm:mb-8">
             Rejoignez DXB Connect dès maintenant
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">
+              <label className="block text-sm font-medium text-zinc-300">
                 Email
               </label>
               <div className="relative">
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'email' ? 'text-sky-500' : 'text-gray-300'}
+                  ${focused === 'email' ? 'text-lime-400' : 'text-zinc-600'}
                 `}>
                   <Mail size={18} />
                 </div>
@@ -150,21 +150,21 @@ export default function RegisterPage() {
                   placeholder="votre@email.com"
                   className={`
                     w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-white border rounded-xl
-                    focus:outline-none focus:bg-white
+                    bg-zinc-900 border rounded-xl
+                    focus:outline-none focus:bg-zinc-900
                     transition-all ease-hearst duration-300
                     ${errors.email
-                      ? 'border-red-300 bg-red-50/50'
+                      ? 'border-rose-400 bg-rose-500/10'
                       : focused === 'email'
-                        ? 'border-sky-400 ring-[3px] ring-sky-500/10'
-                        : 'border-gray-200/60 hover:border-gray-300'
+                        ? 'border-lime-400/50 ring-[3px] ring-lime-400/10'
+                        : 'border-zinc-800 hover:border-zinc-700'
                     }
                   `}
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-red-500 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-red-500" />
+                <p className="text-sm text-rose-400 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-rose-400" />
                   {errors.email}
                 </p>
               )}
@@ -172,14 +172,14 @@ export default function RegisterPage() {
 
             {/* Password */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">
+              <label className="block text-sm font-medium text-zinc-300">
                 Mot de passe
               </label>
               <div className="relative">
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'password' ? 'text-sky-500' : 'text-gray-300'}
+                  ${focused === 'password' ? 'text-lime-400' : 'text-zinc-600'}
                 `}>
                   <Lock size={18} />
                 </div>
@@ -192,21 +192,21 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   className={`
                     w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-white border rounded-xl
-                    focus:outline-none focus:bg-white
+                    bg-zinc-900 border rounded-xl
+                    focus:outline-none focus:bg-zinc-900
                     transition-all ease-hearst duration-300
                     ${errors.password
-                      ? 'border-red-300 bg-red-50/50'
+                      ? 'border-rose-400 bg-rose-500/10'
                       : focused === 'password'
-                        ? 'border-sky-400 ring-[3px] ring-sky-500/10'
-                        : 'border-gray-200/60 hover:border-gray-300'
+                        ? 'border-lime-400/50 ring-[3px] ring-lime-400/10'
+                        : 'border-zinc-800 hover:border-zinc-700'
                     }
                   `}
                 />
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-red-500" />
+                <p className="text-sm text-rose-400 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-rose-400" />
                   {errors.password}
                 </p>
               )}
@@ -214,14 +214,14 @@ export default function RegisterPage() {
 
             {/* Confirm Password */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">
+              <label className="block text-sm font-medium text-zinc-300">
                 Confirmer le mot de passe
               </label>
               <div className="relative">
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'confirmPassword' ? 'text-sky-500' : 'text-gray-300'}
+                  ${focused === 'confirmPassword' ? 'text-lime-400' : 'text-zinc-600'}
                 `}>
                   <Lock size={18} />
                 </div>
@@ -234,21 +234,21 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   className={`
                     w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-white border rounded-xl
-                    focus:outline-none focus:bg-white
+                    bg-zinc-900 border rounded-xl
+                    focus:outline-none focus:bg-zinc-900
                     transition-all ease-hearst duration-300
                     ${errors.confirmPassword
-                      ? 'border-red-300 bg-red-50/50'
+                      ? 'border-rose-400 bg-rose-500/10'
                       : focused === 'confirmPassword'
-                        ? 'border-sky-400 ring-[3px] ring-sky-500/10'
-                        : 'border-gray-200/60 hover:border-gray-300'
+                        ? 'border-lime-400/50 ring-[3px] ring-lime-400/10'
+                        : 'border-zinc-800 hover:border-zinc-700'
                     }
                   `}
                 />
               </div>
               {errors.confirmPassword && (
-                <p className="text-sm text-red-500 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-red-500" />
+                <p className="text-sm text-rose-400 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-rose-400" />
                   {errors.confirmPassword}
                 </p>
               )}
@@ -261,8 +261,8 @@ export default function RegisterPage() {
                 disabled={submitting}
                 className="
                   w-full h-12 rounded-full
-                  bg-sky-500 hover:bg-sky-600
-                  text-white font-medium text-sm
+                  bg-lime-400 hover:bg-lime-300
+                  text-zinc-950 font-medium text-sm
                   shadow-md hover:shadow-lg
                   transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
@@ -289,23 +289,23 @@ export default function RegisterPage() {
           <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100" />
+                <div className="w-full border-t border-zinc-800" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-gray-300 font-medium">ou</span>
+                <span className="bg-zinc-900 px-3 text-zinc-600 font-medium">ou</span>
               </div>
             </div>
 
-            <p className="mt-6 text-center text-sm text-gray-500">
+            <p className="mt-6 text-center text-sm text-zinc-400">
               Vous avez déjà un compte ?{' '}
-              <Link href="/login" className="font-medium text-sky-600 hover:text-sky-700 transition-colors">
+              <Link href="/login" className="font-medium text-lime-400 hover:text-lime-300 transition-colors">
                 Se connecter
               </Link>
             </p>
           </div>
         </div>
 
-        <p className="mt-8 text-center text-xs text-gray-400">
+        <p className="mt-8 text-center text-xs text-zinc-500">
           © 2026 DXB Connect. Tous droits réservés.
         </p>
       </div>

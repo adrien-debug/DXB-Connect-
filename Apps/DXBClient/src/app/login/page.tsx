@@ -5,7 +5,6 @@ import { loginSchema, type LoginInput } from '@/lib/validations/schemas'
 import { ArrowRight, Loader2, Lock, Mail, Shield, User, Wifi } from 'lucide-react'
 import { useState } from 'react'
 
-// Comptes dev pour tests rapides
 const DEV_ACCOUNTS = {
   client: { email: 'client@test.com', password: 'test1234' },
   admin: { email: 'admin@test.com', password: 'admin1234' },
@@ -45,10 +44,10 @@ export default function LoginPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F3F4FA]">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
         <div className="relative">
-          <div className="w-16 h-16 rounded-3xl bg-sky-500 flex items-center justify-center animate-pulse">
-            <Wifi className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-3xl bg-lime-400 flex items-center justify-center animate-pulse">
+            <Wifi className="w-8 h-8 text-zinc-950" />
           </div>
         </div>
       </div>
@@ -56,41 +55,40 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      {/* Login card */}
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950">
       <div className="w-full max-w-md px-4 sm:px-6 animate-fade-in-up">
-        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-gray-200">
+        <div className="bg-zinc-900 rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/40 border border-zinc-800">
           {/* Logo */}
           <div className="flex justify-center mb-6 sm:mb-8">
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-sky-500 flex items-center justify-center flex-shrink-0">
-                <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-lime-400 flex items-center justify-center flex-shrink-0">
+                <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-950" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-lg sm:text-xl font-semibold text-gray-800 truncate">DXB Connect</h1>
-                <p className="text-xs text-gray-400 truncate">Premium Dashboard</p>
+                <h1 className="text-lg sm:text-xl font-semibold text-white truncate">DXB Connect</h1>
+                <p className="text-xs text-zinc-500 truncate">Premium Dashboard</p>
               </div>
             </div>
           </div>
 
-          <h2 className="text-base sm:text-lg font-semibold text-center text-gray-800 mb-1">
+          <h2 className="text-base sm:text-lg font-semibold text-center text-white mb-1">
             Bon retour
           </h2>
-          <p className="text-sm text-gray-400 text-center mb-6 sm:mb-8">
+          <p className="text-sm text-zinc-500 text-center mb-6 sm:mb-8">
             Connectez-vous pour accéder à votre espace
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">
+              <label className="block text-sm font-medium text-zinc-400">
                 Email
               </label>
               <div className="relative">
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'email' ? 'text-sky-500' : 'text-gray-300'}
+                  ${focused === 'email' ? 'text-lime-400' : 'text-zinc-600'}
                 `}>
                   <Mail size={18} />
                 </div>
@@ -103,21 +101,22 @@ export default function LoginPage() {
                   placeholder="votre@email.com"
                   className={`
                     w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-white border rounded-xl
-                    focus:outline-none focus:bg-white
+                    bg-zinc-800 border rounded-xl text-zinc-100
+                    focus:outline-none
                     transition-all ease-hearst duration-300
+                    placeholder:text-zinc-600
                     ${errors.email
-                      ? 'border-red-300 bg-red-50/50'
+                      ? 'border-red-500/50 bg-red-500/5'
                       : focused === 'email'
-                        ? 'border-sky-400 ring-[3px] ring-sky-500/10'
-                        : 'border-gray-200/60 hover:border-gray-300'
+                        ? 'border-lime-400/50 ring-[3px] ring-lime-400/10'
+                        : 'border-zinc-700 hover:border-zinc-600'
                     }
                   `}
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-red-500 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-red-500" />
+                <p className="text-sm text-red-400 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-red-400" />
                   {errors.email}
                 </p>
               )}
@@ -125,14 +124,14 @@ export default function LoginPage() {
 
             {/* Password */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-600">
+              <label className="block text-sm font-medium text-zinc-400">
                 Mot de passe
               </label>
               <div className="relative">
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'password' ? 'text-sky-500' : 'text-gray-300'}
+                  ${focused === 'password' ? 'text-lime-400' : 'text-zinc-600'}
                 `}>
                   <Lock size={18} />
                 </div>
@@ -145,21 +144,22 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   className={`
                     w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-white border rounded-xl
-                    focus:outline-none focus:bg-white
+                    bg-zinc-800 border rounded-xl text-zinc-100
+                    focus:outline-none
                     transition-all ease-hearst duration-300
+                    placeholder:text-zinc-600
                     ${errors.password
-                      ? 'border-red-300 bg-red-50/50'
+                      ? 'border-red-500/50 bg-red-500/5'
                       : focused === 'password'
-                        ? 'border-sky-400 ring-[3px] ring-sky-500/10'
-                        : 'border-gray-200/60 hover:border-gray-300'
+                        ? 'border-lime-400/50 ring-[3px] ring-lime-400/10'
+                        : 'border-zinc-700 hover:border-zinc-600'
                     }
                   `}
                 />
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-red-500" />
+                <p className="text-sm text-red-400 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-red-400" />
                   {errors.password}
                 </p>
               )}
@@ -172,9 +172,9 @@ export default function LoginPage() {
                 disabled={submitting}
                 className="
                   w-full h-12 rounded-full
-                  bg-sky-500 hover:bg-sky-600
-                  text-white font-medium text-sm
-                  shadow-md hover:shadow-lg
+                  bg-lime-400 hover:bg-lime-300
+                  text-zinc-950 font-semibold text-sm
+                  shadow-md shadow-lime-400/20 hover:shadow-lg hover:shadow-lime-400/30
                   transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
                   flex items-center justify-center gap-2
@@ -200,17 +200,16 @@ export default function LoginPage() {
           <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100" />
+                <div className="w-full border-t border-zinc-800" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-gray-300 font-medium">ou</span>
+                <span className="bg-zinc-900 px-3 text-zinc-600 font-medium">ou</span>
               </div>
             </div>
 
-            {/* Dev Quick Access - uniquement en dev */}
             {process.env.NODE_ENV === 'development' && (
               <div className="mt-6 space-y-3">
-                <p className="text-center text-xs text-gray-400 mb-3">Accès rapide (dev)</p>
+                <p className="text-center text-xs text-zinc-600 mb-3">Accès rapide (dev)</p>
                 <div className="flex gap-3">
                   <button
                     type="button"
@@ -223,7 +222,7 @@ export default function LoginPage() {
                       }
                       setForm(DEV_ACCOUNTS.client)
                     }}
-                    className="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-all flex items-center justify-center gap-2 text-sm text-gray-600"
+                    className="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 transition-all flex items-center justify-center gap-2 text-sm text-zinc-300"
                   >
                     <User size={16} />
                     Client
@@ -239,7 +238,7 @@ export default function LoginPage() {
                       }
                       setForm(DEV_ACCOUNTS.admin)
                     }}
-                    className="flex-1 py-2.5 px-4 rounded-xl border border-sky-200 bg-sky-50 hover:bg-sky-100 transition-all flex items-center justify-center gap-2 text-sm text-sky-600"
+                    className="flex-1 py-2.5 px-4 rounded-xl border border-lime-400/30 bg-lime-400/10 hover:bg-lime-400/15 transition-all flex items-center justify-center gap-2 text-sm text-lime-400"
                   >
                     <Shield size={16} />
                     Admin
@@ -248,16 +247,16 @@ export default function LoginPage() {
               </div>
             )}
 
-            <p className="mt-6 text-center text-sm text-gray-500">
+            <p className="mt-6 text-center text-sm text-zinc-500">
               Pas encore de compte ?{' '}
-              <a href="/register" className="font-medium text-sky-600 hover:text-sky-700 transition-colors">
+              <a href="/register" className="font-medium text-lime-400 hover:text-lime-300 transition-colors">
                 Créer un compte
               </a>
             </p>
           </div>
         </div>
 
-        <p className="mt-8 text-center text-xs text-gray-400">
+        <p className="mt-8 text-center text-xs text-zinc-600">
           © 2026 DXB Connect. Tous droits réservés.
         </p>
       </div>

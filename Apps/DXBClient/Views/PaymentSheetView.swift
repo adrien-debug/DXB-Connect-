@@ -15,21 +15,26 @@ struct PaymentSheetView: View {
 
     var body: some View {
         ZStack {
-            AppTheme.backgroundPrimary
+            AppTheme.backgroundSecondary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 RoundedRectangle(cornerRadius: 2.5)
                     .fill(AppTheme.gray300)
-                    .frame(width: 36, height: 5)
-                    .padding(.top, 12)
+                    .frame(width: 40, height: 5)
+                    .padding(.top, 10)
 
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("CHECKOUT")
-                            .font(.system(size: 11, weight: .bold))
-                            .tracking(1.5)
-                            .foregroundColor(AppTheme.textTertiary)
+                        HStack(spacing: 6) {
+                            Image(systemName: "lock.shield.fill")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(AppTheme.accent)
+                            Text("SECURE CHECKOUT")
+                                .font(.system(size: 11, weight: .bold))
+                                .tracking(1.5)
+                                .foregroundColor(AppTheme.textSecondary)
+                        }
 
                         Text(plan.location)
                             .font(.system(size: 20, weight: .bold))
@@ -43,9 +48,9 @@ struct PaymentSheetView: View {
                     } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(AppTheme.textSecondary)
+                            .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 32, height: 32)
-                            .background(Circle().fill(AppTheme.surfaceHeavy))
+                            .background(Circle().fill(AppTheme.gray100))
                     }
                 }
                 .padding(.horizontal, 24)
@@ -53,24 +58,23 @@ struct PaymentSheetView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
-                        // Order Summary
                         VStack(spacing: 14) {
                             HStack {
                                 Text("ORDER SUMMARY")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .tracking(1.5)
+                                    .font(.system(size: 10, weight: .bold))
+                                    .tracking(2)
                                     .foregroundColor(AppTheme.textTertiary)
                                 Spacer()
                             }
 
-                            VStack(spacing: 12) {
+                            VStack(spacing: 14) {
                                 HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
+                                    VStack(alignment: .leading, spacing: 5) {
                                         Text(plan.name)
                                             .font(.system(size: 16, weight: .semibold))
                                             .foregroundColor(AppTheme.textPrimary)
 
-                                        Text("\(plan.dataGB) GB • \(plan.durationDays) days")
+                                        Text("\(plan.dataGB) GB · \(plan.durationDays) days")
                                             .font(.system(size: 14, weight: .medium))
                                             .foregroundColor(AppTheme.textTertiary)
                                     }
@@ -83,8 +87,8 @@ struct PaymentSheetView: View {
                                 }
 
                                 Rectangle()
-                                    .fill(AppTheme.border)
-                                    .frame(height: 1)
+                                    .fill(AppTheme.border.opacity(0.4))
+                                    .frame(height: 0.5)
 
                                 HStack {
                                     Text("Total")
@@ -94,18 +98,20 @@ struct PaymentSheetView: View {
                                     Spacer()
 
                                     Text(plan.priceUSD.formattedPrice)
-                                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                                        .font(.system(size: 22, weight: .bold, design: .rounded))
                                         .foregroundColor(AppTheme.accent)
                                 }
                             }
-                            .padding(18)
+                            .padding(20)
                             .background(
                                 RoundedRectangle(cornerRadius: 18)
-                                    .fill(AppTheme.surfaceLight)
+                                    .fill(AppTheme.backgroundPrimary)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 18)
-                                            .stroke(AppTheme.border, lineWidth: 1)
+                                            .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
                                     )
+                                    .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+                                    .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
                             )
                         }
 
@@ -115,7 +121,7 @@ struct PaymentSheetView: View {
                                 Text("PAYMENT METHOD")
                                     .font(.system(size: 11, weight: .bold))
                                     .tracking(1.5)
-                                    .foregroundColor(AppTheme.textTertiary)
+                                    .foregroundColor(AppTheme.textSecondary)
                                 Spacer()
                             }
 
@@ -136,15 +142,16 @@ struct PaymentSheetView: View {
 
                                 if ApplePayService.isAvailable {
                                     HStack(spacing: 16) {
-                                        Rectangle().fill(AppTheme.border).frame(height: 1)
+                                        Rectangle().fill(AppTheme.gray200).frame(height: 1)
                                         Text("or")
                                             .font(.system(size: 13, weight: .medium))
-                                            .foregroundColor(AppTheme.textTertiary)
-                                        Rectangle().fill(AppTheme.border).frame(height: 1)
+                                            .foregroundColor(AppTheme.textSecondary)
+                                        Rectangle().fill(AppTheme.gray200).frame(height: 1)
                                     }
                                 }
 
                                 Button {
+                                    HapticFeedback.medium()
                                     Task {
                                         await viewModel.payWithCard(
                                             plan: plan,
@@ -161,15 +168,9 @@ struct PaymentSheetView: View {
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 56)
                                     .foregroundColor(AppTheme.textPrimary)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .fill(AppTheme.surfaceLight)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 14)
-                                                    .stroke(AppTheme.border, lineWidth: 1.5)
-                                            )
-                                    )
+                                    .glassmorphism(cornerRadius: 14, opacity: 0.05)
                                 }
+                                .scaleOnPress()
                                 .disabled(viewModel.isProcessing)
                             }
                         }
@@ -177,18 +178,18 @@ struct PaymentSheetView: View {
                         HStack(spacing: 8) {
                             Image(systemName: "lock.shield.fill")
                                 .font(.system(size: 14))
-                                .foregroundColor(AppTheme.success)
+                                .foregroundColor(AppTheme.accent)
 
                             Text("Secured by Stripe. Your payment details are encrypted.")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(AppTheme.textTertiary)
+                                .foregroundColor(AppTheme.textSecondary)
 
                             Spacer()
                         }
                         .padding(14)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(AppTheme.successLight)
+                                .fill(AppTheme.gray100)
                         )
                     }
                     .padding(.horizontal, 24)
@@ -197,7 +198,7 @@ struct PaymentSheetView: View {
                 }
 
                 if viewModel.isProcessing {
-                    Color.black.opacity(0.3)
+                    AppTheme.anthracite.opacity(0.4)
                         .ignoresSafeArea()
                         .overlay(
                             VStack(spacing: 16) {
@@ -207,12 +208,12 @@ struct PaymentSheetView: View {
 
                                 Text("Processing payment...")
                                     .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(AppTheme.textPrimary)
                             }
                             .padding(32)
                             .background(
                                 RoundedRectangle(cornerRadius: 24)
-                                    .fill(Color.black.opacity(0.85))
+                                    .fill(AppTheme.anthracite.opacity(0.9))
                             )
                         )
                 }

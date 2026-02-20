@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DXB Connect iOS - Figma Preview</title>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --accent: #CDFF00;
+            --bg-dark: #09090B;
+            --bg-secondary: #18181B;
+            --surface: #27272A;
+            --surface-light: #3F3F46;
+            --text-primary: #FAFAFA;
+            --text-secondary: #A1A1AA;
+            --text-tertiary: #71717A;
+            --text-muted: #52525B;
+            --success: #4ADE80;
+            --warning: #FBBF24;
+            --error: #F87171;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: #000;
+            padding: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+        }
+
+        .screen-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .screen-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .phone-frame {
+            width: 402px;
+            height: 874px;
+            border-radius: 50px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Screen 1: Splash */
+        .splash {
+            background: #0A0A0A;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .splash .glow {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(205, 255, 0, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .splash .logo-box {
+            width: 80px;
+            height: 80px;
+            background: var(--accent);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            z-index: 1;
+        }
+
+        .splash .spinner {
+            margin-top: 40px;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--surface);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Screen 2: Auth */
+        .auth {
+            background: var(--bg-secondary);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 24px;
+            position: relative;
+        }
+
+        .auth .bg-glow {
+            position: absolute;
+            top: 100px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(205, 255, 0, 0.08) 0%, transparent 60%);
+            border-radius: 50%;
+        }
+
+        .auth .logo-section {
+            margin-top: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .auth .logo-glow {
+            width: 140px;
+            height: 140px;
+            background: rgba(205, 255, 0, 0.12);
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .auth .logo-box {
+            width: 100px;
+            height: 100px;
+            background: var(--accent);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 44px;
+            box-shadow: 0 12px 24px rgba(205, 255, 0, 0.3);
+            z-index: 1;
+        }
+
+        .auth .title {
+            margin-top: 28px;
+            font-size: 30px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 2px;
+        }
+
+        .auth .subtitle {
+            margin-top: 8px;
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        .auth .buttons {
+            position: absolute;
+            bottom: 120px;
+            width: calc(100% - 48px);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .auth .btn {
+            height: 56px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .auth .btn-primary {
+            background: var(--accent);
+            color: black;
+        }
+
+        .auth .btn-secondary {
+            background: var(--bg-secondary);
+            border: 1.5px solid var(--surface);
+            color: white;
+        }
+
+        .auth .terms {
+            position: absolute;
+            bottom: 48px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .auth .terms a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Screen 3: Dashboard */
+        .dashboard {
+            background: var(--bg-secondary);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard .top-bar {
+            padding: 50px 20px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dashboard .avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--surface);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .dashboard .greeting {
+            flex: 1;
+        }
+
+        .dashboard .greeting small {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            display: block;
+        }
+
+        .dashboard .greeting strong {
+            font-size: 16px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .dashboard .icon-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--surface);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 15px;
+            position: relative;
+        }
+
+        .dashboard .icon-btn .dot {
+            position: absolute;
+            top: 2px;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .dashboard .hero {
+            background: var(--accent);
+            padding: 16px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .dashboard .hero-label {
+            font-size: 13px;
+            color: rgba(0, 0, 0, 0.6);
+        }
+
+        .dashboard .hero-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: black;
+            letter-spacing: -2px;
+        }
+
+        .dashboard .hero-actions {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .dashboard .hero-btn {
+            flex: 1;
+            height: 48px;
+            background: black;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .dashboard .hero-btn.grid {
+            flex: none;
+            width: 48px;
+            background: rgba(255, 255, 255, 0.5);
+            color: black;
+        }
+
+        .dashboard .content {
+            flex: 1;
+            background: white;
+            border-radius: 28px 28px 0 0;
+            margin-top: -20px;
+            padding: 24px 0;
+            overflow: hidden;
+        }
+
+        .dashboard .section-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #09090B;
+            padding: 0 20px;
+            margin-bottom: 16px;
+        }
+
+        .dashboard .cards-scroll {
+            display: flex;
+            gap: 12px;
+            padding: 0 20px;
+            overflow-x: auto;
+        }
+
+        .dashboard .esim-card {
+            min-width: 160px;
+            height: 100px;
+            border-radius: 18px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard .esim-card.dark {
+            background: #18181B;
+        }
+
+        .dashboard .esim-card.light {
+            background: #E4E4E7;
+        }
+
+        .dashboard .esim-card .top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .dashboard .esim-card.dark .top {
+            color: var(--accent);
+        }
+
+        .dashboard .esim-card.light .top {
+            color: #09090B;
+        }
+
+        .dashboard .esim-card .bottom {
+            margin-top: auto;
+        }
+
+        .dashboard .esim-card .amount {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .dashboard .esim-card.dark .amount {
+            color: white;
+        }
+
+        .dashboard .esim-card.light .amount {
+            color: #09090B;
+        }
+
+        .dashboard .esim-card .meta {
+            font-size: 11px;
+            opacity: 0.5;
+        }
+
+        .dashboard .esim-card.dark .meta {
+            color: white;
+        }
+
+        .dashboard .esim-card.light .meta {
+            color: var(--text-tertiary);
+        }
+
+        .dashboard .add-card {
+            min-width: 80px;
+            height: 100px;
+            background: #F4F4F5;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--text-tertiary);
+        }
+
+        .dashboard .usage-row {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            gap: 12px;
+        }
+
+        .dashboard .usage-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 4px solid #E4E4E7;
+            position: relative;
+        }
+
+        .dashboard .usage-circle::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 4px solid var(--accent);
+            border-bottom-color: transparent;
+            border-left-color: transparent;
+            transform: rotate(-45deg);
+        }
+
+        .dashboard .usage-info {
+            flex: 1;
+        }
+
+        .dashboard .usage-label {
+            font-size: 15px;
+            color: #09090B;
+        }
+
+        .dashboard .usage-value {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .dashboard .activity-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            gap: 12px;
+        }
+
+        .dashboard .activity-flag {
+            width: 44px;
+            height: 44px;
+            background: #F4F4F5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .dashboard .activity-info {
+            flex: 1;
+        }
+
+        .dashboard .activity-name {
+            font-size: 15px;
+            color: #09090B;
+        }
+
+        .dashboard .activity-data {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .dashboard .activity-status {
+            text-align: right;
+        }
+
+        .dashboard .activity-status .status {
+            font-size: 15px;
+        }
+
+        .dashboard .activity-status .status.active {
+            color: var(--success);
+        }
+
+        .dashboard .activity-status .status.expired {
+            color: var(--text-tertiary);
+        }
+
+        .dashboard .activity-status .time {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        /* Tab Bar */
+        .tab-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 32px;
+            right: 32px;
+            height: 60px;
+            background: black;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 20px;
+        }
+
+        .tab-bar .tab {
+            font-size: 18px;
+            color: rgba(250, 250, 250, 0.6);
+        }
+
+        .tab-bar .tab.active {
+            color: var(--accent);
+        }
+
+        /* Screen 4: Plan List */
+        .plan-list {
+            background: var(--bg-secondary);
+            height: 100%;
+            padding: 52px 16px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .plan-list .header-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            color: var(--text-tertiary);
+        }
+
+        .plan-list .header-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .plan-list .header-count {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .plan-list .search {
+            margin-top: 16px;
+            height: 44px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--surface);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+
+        .plan-list .filters {
+            margin-top: 12px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .plan-list .chip {
+            height: 36px;
+            padding: 0 16px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .plan-list .chip.selected {
+            background: var(--accent);
+            color: black;
+        }
+
+        .plan-list .chip:not(.selected) {
+            background: var(--bg-secondary);
+            border: 1px solid var(--surface);
+            color: var(--text-tertiary);
+        }
+
+        .plan-list .plans {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .plan-list .plan-row {
+            background: var(--bg-secondary);
+            border: 1px solid var(--surface);
+            border-radius: 18px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .plan-list .plan-flag {
+            width: 48px;
+            height: 48px;
+            background: var(--surface);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .plan-list .plan-info {
+            flex: 1;
+        }
+
+        .plan-list .plan-location {
+            font-size: 15px;
+            color: white;
+        }
+
+        .plan-list .plan-meta {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .plan-list .plan-price {
+            font-size: 17px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .plan-list .plan-chevron {
+            color: var(--text-tertiary);
+            font-size: 11px;
+        }
+
+        /* Screen 5: Plan Detail */
+        .plan-detail {
+            background: var(--bg-secondary);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .plan-detail .nav {
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .plan-detail .back-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .plan-detail .nav-title {
+            flex: 1;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+        }
+
+        .plan-detail .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .plan-detail .hero-flag {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .plan-detail .hero-location {
+            margin-top: 16px;
+            font-size: 26px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+
+        .plan-detail .hero-name {
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        .plan-detail .price-card {
+            margin: 20px;
+            background: var(--accent);
+            border-radius: 20px;
+            padding: 28px;
+            text-align: center;
+        }
+
+        .plan-detail .price-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: black;
+            letter-spacing: -2px;
+        }
+
+        .plan-detail .price-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: rgba(0, 0, 0, 0.6);
+        }
+
+        .plan-detail .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 20px;
+        }
+
+        .plan-detail .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--surface);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .plan-detail .feature-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(205, 255, 0, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        .plan-detail .feature-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        .plan-detail .feature-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .plan-detail .included {
+            margin: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--surface);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .plan-detail .included-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .plan-detail .included-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 0;
+            color: var(--text-tertiary);
+            font-size: 15px;
+        }
+
+        .plan-detail .included-item::before {
+            content: '✓';
+            color: var(--accent);
+            font-size: 16px;
+        }
+
+        .plan-detail .bottom-cta {
+            margin-top: auto;
+            padding: 16px 20px 34px;
+            background: var(--bg-secondary);
+            border-top: 0.5px solid var(--surface);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .plan-detail .cta-price {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .plan-detail .cta-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        .plan-detail .cta-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .plan-detail .cta-btn {
+            flex: 1;
+            height: 56px;
+            background: var(--accent);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            color: black;
+            letter-spacing: 1px;
+        }
+
+        /* Screen 6: My eSIMs */
+        .my-esims {
+            background: var(--bg-secondary);
+            height: 100%;
+            padding: 52px 16px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .my-esims .header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .my-esims .add-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: black;
+        }
+
+        .my-esims .esim-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--surface);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .my-esims .esim-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .my-esims .esim-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--surface);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+        }
+
+        .my-esims .esim-info {
+            flex: 1;
+        }
+
+        .my-esims .esim-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .my-esims .esim-iccid {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+        }
+
+        .my-esims .esim-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .my-esims .esim-status.active {
+            color: var(--success);
+        }
+
+        .my-esims .esim-status.expired {
+            color: var(--text-tertiary);
+        }
+
+        .my-esims .esim-status .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+        }
+
+        .my-esims .esim-status.active .dot {
+            background: var(--success);
+        }
+
+        .my-esims .esim-status.expired .dot {
+            background: var(--text-tertiary);
+        }
+
+        .my-esims .progress-bar {
+            margin-top: 12px;
+            height: 3px;
+            background: var(--surface);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .my-esims .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .my-esims .esim-meta {
+            margin-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+        }
+
+        /* Screen 7: eSIM Detail */
+        .esim-detail {
+            background: var(--bg-secondary);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .esim-detail .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 20px 24px;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            margin: 16px 20px;
+        }
+
+        .esim-detail .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: rgba(74, 222, 128, 0.1);
+            border-radius: 9999px;
+            margin-bottom: 18px;
+        }
+
+        .esim-detail .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .esim-detail .status-text {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--success);
+        }
+
+        .esim-detail .qr-container {
+            width: 200px;
+            height: 200px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--surface);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .esim-detail .qr-placeholder {
+            width: 160px;
+            height: 160px;
+            background: repeating-linear-gradient(0deg,
+                    var(--surface) 0px,
+                    var(--surface) 8px,
+                    var(--bg-secondary) 8px,
+                    var(--bg-secondary) 16px);
+            border-radius: 8px;
+        }
+
+        .esim-detail .qr-hint {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .esim-detail .info-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--surface);
+            border-radius: 20px;
+            padding: 18px;
+            margin: 0 20px 12px;
+        }
+
+        .esim-detail .info-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--text-tertiary);
+            margin-bottom: 14px;
+        }
+
+        .esim-detail .tech-row {
+            background: var(--surface);
+            border-radius: 14px;
+            margin-bottom: 1px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .esim-detail .tech-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-tertiary);
+        }
+
+        .esim-detail .tech-value {
+            font-size: 13px;
+            color: white;
+        }
+
+        .esim-detail .copy-btn {
+            width: 32px;
+            height: 32px;
+            background: rgba(205, 255, 0, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        .esim-detail .install-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .esim-detail .step-number {
+            width: 26px;
+            height: 26px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: black;
+            flex-shrink: 0;
+        }
+
+        .esim-detail .step-text {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            padding-top: 4px;
+        }
+
+        /* Screen 8: Profile */
+        .profile {
+            background: var(--bg-secondary);
+            height: 100%;
+            padding: 52px 16px 0;
+            overflow-y: auto;
+        }
+
+        .profile .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .profile .avatar {
+            width: 64px;
+            height: 64px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: black;
+        }
+
+        .profile .name {
+            margin-top: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .profile .email {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .profile .badge {
+            margin-top: 8px;
+            padding: 3px 8px;
+            background: rgba(205, 255, 0, 0.1);
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            color: var(--accent);
+        }
+
+        .profile .stats-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--surface);
+            border-radius: 10px;
+            display: flex;
+            padding: 12px 0;
+            margin-bottom: 16px;
+        }
+
+        .profile .stat {
+            flex: 1;
+            text-align: center;
+            border-right: 1px solid var(--surface);
+        }
+
+        .profile .stat:last-child {
+            border-right: none;
+        }
+
+        .profile .stat-icon {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .profile .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .profile .stat-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        .profile .section-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .profile .settings-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--surface);
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+
+        .profile .settings-row {
+            display: flex;
+            align-items: center;
+            padding: 13px 12px;
+            border-bottom: 1px solid var(--surface);
+        }
+
+        .profile .settings-row:last-child {
+            border-bottom: none;
+        }
+
+        .profile .settings-icon {
+            width: 24px;
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        .profile .settings-title {
+            flex: 1;
+            font-size: 15px;
+            color: white;
+            margin-left: 12px;
+        }
+
+        .profile .settings-value {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-right: 8px;
+        }
+
+        .profile .settings-badge {
+            padding: 3px 8px;
+            background: rgba(205, 255, 0, 0.12);
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-right: 8px;
+        }
+
+        .profile .settings-chevron {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .profile .toggle {
+            width: 44px;
+            height: 26px;
+            background: var(--accent);
+            border-radius: 13px;
+            position: relative;
+        }
+
+        .profile .toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .profile .signout-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--surface);
+            border-radius: 14px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--error);
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .profile .app-info {
+            text-align: center;
+            margin-bottom: 100px;
+        }
+
+        .profile .app-name {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--text-tertiary);
+        }
+
+        .profile .app-version {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Screen 1: Splash -->
+    <div class="screen-container">
+        <div class="screen-label">1. SPLASH</div>
+        <div class="phone-frame">
+            <div class="splash">
+                <div class="glow"></div>
+                <div class="logo-box">📡</div>
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 2: Auth -->
+    <div class="screen-container">
+        <div class="screen-label">2. AUTH</div>
+        <div class="phone-frame">
+            <div class="auth">
+                <div class="bg-glow"></div>
+                <div class="logo-section">
+                    <div class="logo-glow"></div>
+                    <div class="logo-box">📡</div>
+                </div>
+                <div class="title">DXB CONNECT</div>
+                <div class="subtitle">Connected the moment you land</div>
+                <div class="buttons">
+                    <div class="btn btn-primary">→ LOGIN</div>
+                    <div class="btn btn-secondary">+ CREATE ACCOUNT</div>
+                </div>
+                <div class="terms">
+                    By continuing, you agree to our<br>
+                    <a href="#">Terms of Service</a> & <a href="#">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 3: Dashboard -->
+    <div class="screen-container">
+        <div class="screen-label">3. DASHBOARD</div>
+        <div class="phone-frame">
+            <div class="dashboard">
+                <div class="top-bar">
+                    <div class="avatar">A</div>
+                    <div class="greeting">
+                        <small>Good morning</small>
+                        <strong>Adrien</strong>
+                    </div>
+                    <div class="icon-btn">⋯</div>
+                    <div class="icon-btn">
+                        🔔
+                        <div class="dot"></div>
+                    </div>
+                </div>
+                <div class="hero">
+                    <div class="hero-label">Active eSIMs</div>
+                    <div class="hero-value">3</div>
+                    <div class="hero-actions">
+                        <div class="hero-btn">Buy eSIM ↗</div>
+                        <div class="hero-btn">Scan QR □</div>
+                        <div class="hero-btn grid">▦</div>
+                    </div>
+                </div>
+                <div class="content">
+                    <div class="section-title">Cards</div>
+                    <div class="cards-scroll">
+                        <div class="esim-card dark">
+                            <div class="top">📶 ⋯</div>
+                            <div class="bottom">
+                                <div class="amount">5 GB</div>
+                                <div class="meta">Dubai *1234</div>
+                            </div>
+                        </div>
+                        <div class="esim-card light">
+                            <div class="top">📶 ⋯</div>
+                            <div class="bottom">
+                                <div class="amount">10 GB</div>
+                                <div class="meta">Europe *5678</div>
+                            </div>
+                        </div>
+                        <div class="add-card">+</div>
+                    </div>
+                    <div class="usage-row">
+                        <div class="usage-circle"></div>
+                        <div class="usage-info">
+                            <div class="usage-label">Data usage</div>
+                            <div class="usage-value">15 GB total</div>
+                        </div>
+                        <div class="usage-info" style="text-align: right;">
+                            <div class="usage-label">3 active</div>
+                            <div class="usage-value">5 countries</div>
+                        </div>
+                    </div>
+                    <div class="section-title">Recent activity</div>
+                    <div class="activity-row">
+                        <div class="activity-flag">🇦🇪</div>
+                        <div class="activity-info">
+                            <div class="activity-name">Dubai 5GB</div>
+                            <div class="activity-data">5 GB</div>
+                        </div>
+                        <div class="activity-status">
+                            <div class="status active">Active</div>
+                            <div class="time">2h ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-row">
+                        <div class="activity-flag">🇪🇺</div>
+                        <div class="activity-info">
+                            <div class="activity-name">Europe 10GB</div>
+                            <div class="activity-data">10 GB</div>
+                        </div>
+                        <div class="activity-status">
+                            <div class="status active">Active</div>
+                            <div class="time">1d ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-row">
+                        <div class="activity-flag">🇺🇸</div>
+                        <div class="activity-info">
+                            <div class="activity-name">USA 3GB</div>
+                            <div class="activity-data">3 GB</div>
+                        </div>
+                        <div class="activity-status">
+                            <div class="status expired">Expired</div>
+                            <div class="time">5d ago</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-bar">
+                    <span class="tab active">🏠</span>
+                    <span class="tab">🧭</span>
+                    <span class="tab">📶</span>
+                    <span class="tab">👤</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 4: Plan List -->
+    <div class="screen-container">
+        <div class="screen-label">4. EXPLORE</div>
+        <div class="phone-frame">
+            <div class="plan-list">
+                <div class="header-label">ESIM PLANS</div>
+                <div class="header-title">Explore</div>
+                <div class="header-count">124 plans available</div>
+                <div class="search">🔍 Search plans...</div>
+                <div class="filters">
+                    <div class="chip selected">All</div>
+                    <div class="chip">1GB</div>
+                    <div class="chip">2GB</div>
+                    <div class="chip">5GB</div>
+                    <div class="chip">10GB</div>
+                </div>
+                <div class="plans">
+                    <div class="plan-row">
+                        <div class="plan-flag">🇦🇪</div>
+                        <div class="plan-info">
+                            <div class="plan-location">UAE</div>
+                            <div class="plan-meta">5GB · 7d · 4G/LTE</div>
+                        </div>
+                        <div class="plan-price">$9.99</div>
+                        <div class="plan-chevron">›</div>
+                    </div>
+                    <div class="plan-row">
+                        <div class="plan-flag">🇪🇺</div>
+                        <div class="plan-info">
+                            <div class="plan-location">Europe</div>
+                            <div class="plan-meta">10GB · 30d · 5G</div>
+                        </div>
+                        <div class="plan-price">$24.99</div>
+                        <div class="plan-chevron">›</div>
+                    </div>
+                    <div class="plan-row">
+                        <div class="plan-flag">🇺🇸</div>
+                        <div class="plan-info">
+                            <div class="plan-location">USA</div>
+                            <div class="plan-meta">3GB · 7d · 4G/LTE</div>
+                        </div>
+                        <div class="plan-price">$7.99</div>
+                        <div class="plan-chevron">›</div>
+                    </div>
+                    <div class="plan-row">
+                        <div class="plan-flag">🇹🇷</div>
+                        <div class="plan-info">
+                            <div class="plan-location">Turkey</div>
+                            <div class="plan-meta">5GB · 14d · 4G/LTE</div>
+                        </div>
+                        <div class="plan-price">$11.99</div>
+                        <div class="plan-chevron">›</div>
+                    </div>
+                    <div class="plan-row">
+                        <div class="plan-flag">🇯🇵</div>
+                        <div class="plan-info">
+                            <div class="plan-location">Japan</div>
+                            <div class="plan-meta">10GB · 30d · 5G</div>
+                        </div>
+                        <div class="plan-price">$29.99</div>
+                        <div class="plan-chevron">›</div>
+                    </div>
+                </div>
+                <div class="tab-bar">
+                    <span class="tab">🏠</span>
+                    <span class="tab active">🧭</span>
+                    <span class="tab">📶</span>
+                    <span class="tab">👤</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 5: Plan Detail -->
+    <div class="screen-container">
+        <div class="screen-label">5. PLAN DETAIL</div>
+        <div class="phone-frame">
+            <div class="plan-detail">
+                <div class="nav">
+                    <div class="back-btn">←</div>
+                    <div class="nav-title">PLAN DETAILS</div>
+                    <div style="width: 40px;"></div>
+                </div>
+                <div class="hero">
+                    <div class="hero-flag">🇦🇪</div>
+                    <div class="hero-location">United Arab Emirates</div>
+                    <div class="hero-name">Dubai Starter - 5GB</div>
+                </div>
+                <div class="price-card">
+                    <div class="price-value">$9.99</div>
+                    <div class="price-label">ONE-TIME PAYMENT</div>
+                </div>
+                <div class="features">
+                    <div class="feature-card">
+                        <div class="feature-icon">📡</div>
+                        <div class="feature-label">DATA</div>
+                        <div class="feature-value">5 GB</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📅</div>
+                        <div class="feature-label">DURATION</div>
+                        <div class="feature-value">7 days</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <div class="feature-label">SPEED</div>
+                        <div class="feature-value">4G/LTE</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌍</div>
+                        <div class="feature-label">COVERAGE</div>
+                        <div class="feature-value">UAE</div>
+                    </div>
+                </div>
+                <div class="included">
+                    <div class="included-title">INCLUDED</div>
+                    <div class="included-item">Instant activation</div>
+                    <div class="included-item">24/7 support</div>
+                    <div class="included-item">No roaming fees</div>
+                    <div class="included-item">Keep your number</div>
+                </div>
+                <div class="bottom-cta">
+                    <div class="cta-price">
+                        <div class="cta-label">TOTAL</div>
+                        <div class="cta-value">$9.99</div>
+                    </div>
+                    <div class="cta-btn">BUY NOW →</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 6: My eSIMs -->
+    <div class="screen-container">
+        <div class="screen-label">6. MY eSIMs</div>
+        <div class="phone-frame">
+            <div class="my-esims">
+                <div class="header">
+                    <div>
+                        <div class="header-label"
+                            style="font-size:10px;font-weight:700;letter-spacing:1.2px;color:#71717A;">MY ESIMS</div>
+                        <div style="font-size:26px;font-weight:700;color:white;">Your Plans</div>
+                    </div>
+                    <div class="add-btn">+</div>
+                </div>
+                <div class="filters" style="margin-top:16px;display:flex;gap:6px;">
+                    <div class="chip selected">All</div>
+                    <div class="chip">Active</div>
+                    <div class="chip">Expired</div>
+                </div>
+                <div style="margin-top:16px;">
+                    <div class="esim-card">
+                        <div class="esim-header">
+                            <div class="esim-icon">📶</div>
+                            <div class="esim-info">
+                                <div class="esim-name">Dubai 5GB - 7 Days</div>
+                                <div class="esim-iccid">ICCID: 89012345...</div>
+                            </div>
+                            <div class="esim-status active">
+                                <div class="dot"></div>
+                                ACTIVE
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 65%;"></div>
+                        </div>
+                        <div class="esim-meta">
+                            <span>65% used</span>
+                            <span>5 GB</span>
+                            <span>5 days left</span>
+                        </div>
+                    </div>
+                    <div class="esim-card">
+                        <div class="esim-header">
+                            <div class="esim-icon">📶</div>
+                            <div class="esim-info">
+                                <div class="esim-name">Europe 10GB - 30 Days</div>
+                                <div class="esim-iccid">ICCID: 89045678...</div>
+                            </div>
+                            <div class="esim-status active">
+                                <div class="dot"></div>
+                                IN USE
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 30%;"></div>
+                        </div>
+                        <div class="esim-meta">
+                            <span>30% used</span>
+                            <span>10 GB</span>
+                            <span>22 days left</span>
+                        </div>
+                    </div>
+                    <div class="esim-card">
+                        <div class="esim-header">
+                            <div class="esim-icon">📶</div>
+                            <div class="esim-info">
+                                <div class="esim-name">USA 3GB - 7 Days</div>
+                                <div class="esim-iccid">ICCID: 89098765...</div>
+                            </div>
+                            <div class="esim-status expired">
+                                <div class="dot"></div>
+                                EXPIRED
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 100%;"></div>
+                        </div>
+                        <div class="esim-meta">
+                            <span>100% used</span>
+                            <span>3 GB</span>
+                            <span>Expired</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-bar">
+                    <span class="tab">🏠</span>
+                    <span class="tab">🧭</span>
+                    <span class="tab active">📶</span>
+                    <span class="tab">👤</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 7: eSIM Detail -->
+    <div class="screen-container">
+        <div class="screen-label">7. eSIM DETAIL</div>
+        <div class="phone-frame">
+            <div class="esim-detail">
+                <div class="nav" style="padding: 8px 20px;display: flex;align-items: center;">
+                    <div class="back-btn"
+                        style="width:40px;height:40px;background:var(--bg-secondary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;">
+                        ←</div>
+                    <div
+                        style="flex:1;text-align:center;font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--text-secondary);">
+                        ESIM DETAILS</div>
+                    <div style="width:40px;"></div>
+                </div>
+                <div class="qr-section">
+                    <div class="status-pill">
+                        <div class="status-dot"></div>
+                        <div class="status-text">ACTIVE</div>
+                    </div>
+                    <div class="qr-container">
+                        <div class="qr-placeholder"></div>
+                    </div>
+                    <div class="qr-hint">Scan to install eSIM</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">PACKAGE</div>
+                    <div style="display:flex;align-items:center;gap:14px;">
+                        <div
+                            style="width:48px;height:48px;background:rgba(205,255,0,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:20px;">
+                            📶</div>
+                        <div>
+                            <div style="font-size:16px;font-weight:600;color:white;">Dubai 5GB - 7 Days</div>
+                            <div style="font-size:14px;color:var(--text-tertiary);">5 GB</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:14px;">
+                        <div style="flex:1;background:var(--surface);border-radius:12px;padding:12px;">
+                            <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-tertiary);">
+                                EXPIRES</div>
+                            <div style="font-size:14px;font-weight:600;color:white;">2024-12-31</div>
+                        </div>
+                        <div style="flex:1;background:var(--surface);border-radius:12px;padding:12px;">
+                            <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-tertiary);">
+                                ORDER</div>
+                            <div style="font-size:14px;font-weight:600;color:white;">#ABC123</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">TECHNICAL INFO</div>
+                    <div style="background:var(--surface);border-radius:14px;overflow:hidden;">
+                        <div class="tech-row">
+                            <div>
+                                <div class="tech-label">ICCID</div>
+                                <div class="tech-value">890123456789...</div>
+                            </div>
+                            <div class="copy-btn">📋</div>
+                        </div>
+                        <div class="tech-row">
+                            <div>
+                                <div class="tech-label">LPA Code</div>
+                                <div class="tech-value">LPA:1$example...</div>
+                            </div>
+                            <div class="copy-btn">📋</div>
+                        </div>
+                        <div class="tech-row">
+                            <div>
+                                <div class="tech-label">Order No</div>
+                                <div class="tech-value">ORD123456</div>
+                            </div>
+                            <div class="copy-btn">📋</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">INSTALLATION</div>
+                    <div class="install-step">
+                        <div class="step-number">1</div>
+                        <div class="step-text">Go to Settings → Cellular</div>
+                    </div>
+                    <div class="install-step">
+                        <div class="step-number">2</div>
+                        <div class="step-text">Tap 'Add eSIM' or 'Add Cellular Plan'</div>
+                    </div>
+                    <div class="install-step">
+                        <div class="step-number">3</div>
+                        <div class="step-text">Scan the QR code above</div>
+                    </div>
+                    <div class="install-step">
+                        <div class="step-number">4</div>
+                        <div class="step-text">Follow the on-screen instructions</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 8: Profile -->
+    <div class="screen-container">
+        <div class="screen-label">8. PROFILE</div>
+        <div class="phone-frame">
+            <div class="profile">
+                <div class="avatar-section">
+                    <div class="avatar">A</div>
+                    <div class="name">Adrien</div>
+                    <div class="email">adrien@dxbconnect.com</div>
+                    <div class="badge">PRO</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stat">
+                        <div class="stat-icon">📶</div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">ESIMS</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon">🌍</div>
+                        <div class="stat-value">5</div>
+                        <div class="stat-label">COUNTRIES</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value">$45</div>
+                        <div class="stat-label">SAVED</div>
+                    </div>
+                </div>
+                <div class="section-title">ACCOUNT</div>
+                <div class="settings-card">
+                    <div class="settings-row">
+                        <div class="settings-icon">👤</div>
+                        <div class="settings-title">Edit Profile</div>
+                        <div class="settings-chevron">›</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-icon">💳</div>
+                        <div class="settings-title">Payment Methods</div>
+                        <div class="settings-chevron">›</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-icon">⏱</div>
+                        <div class="settings-title">Order History</div>
+                        <div class="settings-chevron">›</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-icon">🎁</div>
+                        <div class="settings-title">Refer a Friend</div>
+                        <div class="settings-badge">$10</div>
+                        <div class="settings-chevron">›</div>
+                    </div>
+                </div>
+                <div class="section-title">PREFERENCES</div>
+                <div class="settings-card">
+                    <div class="settings-row">
+                        <div class="settings-icon">🔔</div>
+                        <div class="settings-title">Notifications</div>
+                        <div class="toggle"></div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-icon">🌍</div>
+                        <div class="settings-title">Language</div>
+                        <div class="settings-value">English</div>
+                        <div class="settings-chevron">›</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-icon">🌙</div>
+                        <div class="settings-title">Appearance</div>
+                        <div class="settings-value">Dark</div>
+                        <div class="settings-chevron">›</div>
+                    </div>
+                </div>
+                <div class="section-title">SUPPORT</div>
+                <div class="settings-card">
+                    <div class="settings-row">
+                        <div class="settings-icon">❓</div>
+                        <div class="settings-title">Help Center</div>
+                        <div class="settings-chevron">›</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-icon">✉️</div>
+                        <div class="settings-title">Contact Us</div>
+                        <div class="settings-chevron">›</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-icon">📄</div>
+                        <div class="settings-title">Terms & Privacy</div>
+                        <div class="settings-chevron">›</div>
+                    </div>
+                </div>
+                <div class="signout-btn">🚪 Sign Out</div>
+                <div class="app-info">
+                    <div class="app-name">DXB CONNECT</div>
+                    <div class="app-version">Version 1.0.0</div>
+                </div>
+                <div class="tab-bar">
+                    <span class="tab">🏠</span>
+                    <span class="tab">🧭</span>
+                    <span class="tab">📶</span>
+                    <span class="tab active">👤</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

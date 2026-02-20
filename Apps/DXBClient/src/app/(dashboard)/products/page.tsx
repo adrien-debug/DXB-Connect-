@@ -152,8 +152,8 @@ export default function ProductsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-14 h-14 rounded-2xl bg-sky-500 flex items-center justify-center animate-pulse">
-          <Package className="w-7 h-7 text-white" />
+        <div className="w-14 h-14 rounded-2xl bg-lime-400 flex items-center justify-center animate-pulse">
+          <Package className="w-7 h-7 text-zinc-950" />
         </div>
       </div>
     )
@@ -165,16 +165,15 @@ export default function ProductsPage() {
       <div className="animate-fade-in-up">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-800">Produits</h1>
-            <p className="text-gray-400 text-sm mt-1">Catalogue produits fournisseurs</p>
+            <h1 className="text-2xl font-semibold text-white">Produits</h1>
+            <p className="text-zinc-400 text-sm mt-1">Catalogue produits fournisseurs</p>
           </div>
           <button
             onClick={handleAdd}
             className="
               flex items-center gap-2 px-5 py-2.5
-              bg-sky-500 hover:bg-sky-600
-              text-white font-medium rounded-xl
-              shadow-md hover:shadow-lg
+              bg-lime-400 hover:bg-lime-300
+              text-zinc-950 font-medium rounded-xl
               transition-all duration-200
             "
           >
@@ -185,23 +184,23 @@ export default function ProductsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100/50 animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'backwards' }}>
+      <div className="bg-zinc-900 rounded-3xl p-5 border border-zinc-800 animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'backwards' }}>
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1 group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-sky-500 transition-colors" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-lime-400 transition-colors" size={18} />
             <input
               type="text"
               placeholder="Rechercher un produit..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 focus:bg-white transition-all placeholder:text-gray-300"
+              className="w-full pl-11 pr-4 py-3 bg-zinc-800 border border-zinc-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400/50 focus:bg-zinc-800 transition-all placeholder:text-zinc-600"
             />
           </div>
           <div className="flex gap-3">
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 appearance-none cursor-pointer min-w-[150px]"
+              className="px-4 py-3 bg-zinc-800 border border-zinc-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400/50 appearance-none cursor-pointer min-w-[150px]"
             >
               <option value="">Toutes catégories</option>
               {categories.map(cat => (
@@ -211,7 +210,7 @@ export default function ProductsPage() {
             <select
               value={supplierFilter}
               onChange={(e) => setSupplierFilter(e.target.value)}
-              className="px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-300 appearance-none cursor-pointer min-w-[180px]"
+              className="px-4 py-3 bg-zinc-800 border border-zinc-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400/20 focus:border-lime-400/50 appearance-none cursor-pointer min-w-[180px]"
             >
               <option value="">Tous fournisseurs</option>
               {suppliers.map(s => (
@@ -238,11 +237,11 @@ export default function ProductsPage() {
 
       {filteredProducts.length === 0 && (
         <div className="text-center py-16 animate-fade-in-up">
-          <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
-            <Package className="w-8 h-8 text-gray-300" />
+          <div className="w-16 h-16 rounded-2xl bg-zinc-800 flex items-center justify-center mx-auto mb-4">
+            <Package className="w-8 h-8 text-zinc-600" />
           </div>
-          <p className="text-gray-500 font-medium">Aucun produit trouvé</p>
-          <p className="text-sm text-gray-400 mt-1">Ajoutez votre premier produit</p>
+          <p className="text-zinc-400 font-medium">Aucun produit trouvé</p>
+          <p className="text-sm text-zinc-500 mt-1">Ajoutez votre premier produit</p>
         </div>
       )}
 
@@ -256,7 +255,7 @@ export default function ProductsPage() {
         <form onSubmit={handleSave} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-600 mb-2">Nom du produit *</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Nom du produit *</label>
               <input
                 type="text"
                 required
@@ -266,7 +265,7 @@ export default function ProductsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">SKU</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">SKU</label>
               <input
                 type="text"
                 value={editingProduct.sku || ''}
@@ -275,7 +274,7 @@ export default function ProductsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">Fournisseur</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Fournisseur</label>
               <select
                 value={editingProduct.supplier_id || ''}
                 onChange={e => setEditingProduct(prev => ({ ...prev, supplier_id: e.target.value || null }))}
@@ -288,7 +287,7 @@ export default function ProductsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">Prix de vente (€) *</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Prix de vente (€) *</label>
               <input
                 type="number"
                 step="0.01"
@@ -299,7 +298,7 @@ export default function ProductsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">Prix d&apos;achat (€)</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Prix d&apos;achat (€)</label>
               <input
                 type="number"
                 step="0.01"
@@ -309,7 +308,7 @@ export default function ProductsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">Catégorie</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Catégorie</label>
               <input
                 type="text"
                 value={editingProduct.category || ''}
@@ -319,7 +318,7 @@ export default function ProductsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">Stock</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Stock</label>
               <input
                 type="number"
                 value={editingProduct.stock || 0}
@@ -328,7 +327,7 @@ export default function ProductsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">Stock minimum</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Stock minimum</label>
               <input
                 type="number"
                 value={editingProduct.min_stock || 5}
@@ -337,7 +336,7 @@ export default function ProductsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">Statut</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">Statut</label>
               <select
                 value={editingProduct.status || 'active'}
                 onChange={e => setEditingProduct(prev => ({ ...prev, status: e.target.value as Product['status'] }))}
@@ -349,7 +348,7 @@ export default function ProductsPage() {
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-600 mb-2">URL Image</label>
+              <label className="block text-sm font-medium text-zinc-200 mb-2">URL Image</label>
               <input
                 type="url"
                 value={editingProduct.image_url || ''}
@@ -360,7 +359,7 @@ export default function ProductsPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-2">Description</label>
+            <label className="block text-sm font-medium text-zinc-200 mb-2">Description</label>
             <textarea
               value={editingProduct.description || ''}
               onChange={e => setEditingProduct(prev => ({ ...prev, description: e.target.value }))}
@@ -368,11 +367,11 @@ export default function ProductsPage() {
               className="input-premium resize-none"
             />
           </div>
-          <div className="flex justify-end gap-3 pt-5 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-5 border-t border-zinc-800">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-5 py-2.5 text-gray-500 hover:bg-gray-50 rounded-2xl transition-all font-medium"
+              className="px-5 py-2.5 text-zinc-400 hover:bg-zinc-800 rounded-2xl transition-all font-medium"
             >
               Annuler
             </button>
@@ -381,9 +380,9 @@ export default function ProductsPage() {
               disabled={saving}
               className="
                 px-6 py-2.5
-                bg-sky-500 hover:bg-sky-600
-                text-white font-medium rounded-2xl
-                
+                bg-lime-400 hover:bg-lime-300
+                text-zinc-950 font-medium rounded-2xl
+
                 hover:-translate-y-0.5
                 transition-all duration-300
                 disabled:opacity-50 disabled:cursor-not-allowed
@@ -417,8 +416,8 @@ function ProductCard({
   return (
     <div
       className="
-        group bg-white rounded-3xl overflow-hidden
-        shadow-sm hover:shadow-md border border-gray-100/50
+        group bg-zinc-900 rounded-3xl overflow-hidden
+        border border-zinc-800
         hover:-translate-y-1
         transition-all duration-300 ease-out
         animate-fade-in-up
@@ -426,7 +425,7 @@ function ProductCard({
       style={{ animationDelay: `${0.15 + index * 0.02}s`, animationFillMode: 'backwards' }}
     >
       {/* Image */}
-      <div className="relative h-40 sm:h-36 bg-gray-50 flex items-center justify-center overflow-hidden">
+      <div className="relative h-40 sm:h-36 bg-zinc-800 flex items-center justify-center overflow-hidden">
         {product.image_url ? (
           <img
             src={product.image_url}
@@ -434,18 +433,18 @@ function ProductCard({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <Package className="w-10 h-10 text-gray-200" />
+          <Package className="w-10 h-10 text-zinc-700" />
         )}
 
         {/* Status badges */}
         <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex flex-wrap gap-1.5 max-w-[calc(100%-5rem)]">
           {isOutOfStock && (
-            <span className="px-2 py-1 bg-rose-500 text-white text-xs font-medium rounded-xl shadow-sm">
+            <span className="px-2 py-1 bg-rose-500 text-white text-xs font-medium rounded-xl">
               Rupture
             </span>
           )}
           {!isOutOfStock && isLowStock && (
-            <span className="px-2 py-1 bg-amber-100 text-amber-600 text-xs font-medium rounded-xl flex items-center gap-1 shadow-sm">
+            <span className="px-2 py-1 bg-amber-500/10 text-amber-400 text-xs font-medium rounded-xl flex items-center gap-1">
               <AlertTriangle size={10} className="flex-shrink-0" />
               <span className="hidden sm:inline">Stock bas</span>
               <span className="sm:hidden">Bas</span>
@@ -457,14 +456,14 @@ function ProductCard({
         <div className="absolute top-2 sm:top-3 right-2 sm:right-3 flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="p-2 bg-white rounded-xl text-gray-400 hover:text-sky-600 shadow-sm transition-all"
+            className="p-2 bg-zinc-900 rounded-xl text-zinc-500 hover:text-lime-400 transition-all"
             aria-label="Modifier"
           >
             <Edit2 size={14} />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-2 bg-white rounded-xl text-gray-400 hover:text-rose-500 shadow-sm transition-all"
+            className="p-2 bg-zinc-900 rounded-xl text-zinc-500 hover:text-rose-400 transition-all"
             aria-label="Supprimer"
           >
             <Trash2 size={14} />
@@ -476,21 +475,21 @@ function ProductCard({
       <div className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-800 text-sm sm:text-base truncate group-hover:text-sky-600 transition-colors">
+            <h3 className="font-semibold text-white text-sm sm:text-base truncate group-hover:text-lime-400 transition-colors">
               {product.name}
             </h3>
             {product.sku && (
-              <p className="text-xs text-gray-400 truncate">SKU: {product.sku}</p>
+              <p className="text-xs text-zinc-500 truncate">SKU: {product.sku}</p>
             )}
           </div>
-          <span className="flex-shrink-0 text-sm sm:text-base font-semibold text-sky-600 whitespace-nowrap">
+          <span className="flex-shrink-0 text-sm sm:text-base font-semibold text-lime-400 whitespace-nowrap">
             {product.price.toFixed(2)} €
           </span>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-3">
           {product.category && (
-            <span className="inline-block px-2 py-0.5 bg-gray-50 text-gray-500 text-xs rounded-lg">
+            <span className="inline-block px-2 py-0.5 bg-zinc-800 text-zinc-400 text-xs rounded-lg">
               {product.category}
             </span>
           )}
@@ -500,22 +499,22 @@ function ProductCard({
             <span className={`
               inline-flex items-center gap-1.5 px-2 py-1 rounded-xl text-xs font-medium
               ${product.supplier.api_status === 'connected'
-                ? 'bg-emerald-50 text-emerald-600'
+                ? 'bg-emerald-500/10 text-emerald-400'
                 : product.supplier.api_status === 'error'
-                  ? 'bg-rose-50 text-rose-600'
-                  : 'bg-gray-50 text-gray-500'
+                  ? 'bg-rose-500/10 text-rose-400'
+                  : 'bg-zinc-800 text-zinc-400'
               }
             `}>
               <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${product.supplier.api_status === 'connected' ? 'bg-emerald-500' :
-                  product.supplier.api_status === 'error' ? 'bg-rose-500' : 'bg-gray-300'
+                  product.supplier.api_status === 'error' ? 'bg-rose-500' : 'bg-zinc-600'
                 }`} />
               <span className="truncate max-w-[120px]">{product.supplier.name}</span>
             </span>
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-gray-50 gap-3">
-          <span className={`text-xs sm:text-sm ${isLowStock ? 'text-amber-600' : 'text-gray-400'} whitespace-nowrap`}>
+        <div className="flex items-center justify-between pt-3 border-t border-zinc-800 gap-3">
+          <span className={`text-xs sm:text-sm ${isLowStock ? 'text-amber-400' : 'text-zinc-500'} whitespace-nowrap`}>
             Stock: <span className="font-medium">{product.stock}</span>
           </span>
           <button
@@ -523,9 +522,9 @@ function ProductCard({
             disabled={isOutOfStock}
             className="
               flex items-center gap-1.5 px-3 py-2
-              bg-sky-500 hover:bg-sky-600
-              text-white text-xs font-medium rounded-xl
-              
+              bg-lime-400 hover:bg-lime-300
+              text-zinc-950 text-xs font-medium rounded-xl
+
               hover:-translate-y-0.5
               transition-all duration-200
               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
