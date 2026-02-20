@@ -19,11 +19,11 @@ export default function CTASection({
   secondaryLabel,
 }: Props) {
   return (
-    <div className="mt-10 glass-card p-6">
+    <div className="mt-10 glass-card p-6 border-lime-400/10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="text-sm font-semibold text-white">{title}</div>
-          {subtitle && <div className="text-sm text-zinc-500 mt-1">{subtitle}</div>}
+          {subtitle && <div className="text-sm text-zinc-400 mt-1">{subtitle}</div>}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">

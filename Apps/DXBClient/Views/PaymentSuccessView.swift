@@ -150,6 +150,43 @@ struct PaymentSuccessView: View {
 
                 Spacer()
 
+                // Perks unlocked banner
+                HStack(spacing: 12) {
+                    Image(systemName: "gift.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(AppTheme.accent)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Perks unlocked in \(plan.location)")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(AppTheme.textPrimary)
+                        Text("Activities, lounges & more")
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundColor(AppTheme.textSecondary)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(AppTheme.textMuted)
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(AppTheme.accent.opacity(0.08))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(AppTheme.accent.opacity(0.2), lineWidth: 1)
+                        )
+                )
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
+                .opacity(showContent ? 1 : 0)
+                .offset(y: showContent ? 0 : 20)
+
+                Spacer()
+
                 VStack(spacing: 12) {
                     Button {
                         HapticFeedback.light()

@@ -1,6 +1,8 @@
-# DXB Connect
+# SimPass (anciennement DXB Connect)
 
-Plateforme eSIM avec app client iOS (SwiftUI) et dashboard admin (NextJS).
+**Not just data—benefits in every destination.**
+
+Plateforme eSIM premium avec app client iOS (SwiftUI), dashboard admin (Next.js), système de partenaires, abonnements (Privilege/Elite/Black), gamification (XP/Points/Tickets), et paiements crypto (Fireblocks).
 
 ---
 
@@ -461,9 +463,85 @@ APIConfig.current = .production  // ⚠️ Pointe vers Railway (ancien)
    - Validation input dans EditProfileSheet
    - Persistence Language/Appearance avec `savePreferences()`
 
+### 🚀 SimPass Features (Février 2026)
+
+#### Phase 1 — Partenaires
+- 27 offres partenaires seeded (GetYourGuide, Tiqets, Klook, LoungeBuddy, SafetyWing)
+- Endpoints : `GET /api/offers`, `POST /api/offers/:id/click`, `POST /api/offers/:id/redeem`
+- iOS : `RewardsView.swift` avec catégories, géolocalisation optionnelle, perks par pays
+- Dashboard : section "Travel Perks" dans DashboardView, "Perks unlocked" dans PaymentSuccessView
+
+#### Phase 2 — Abonnements (Privilege / Elite / Black)
+- Privilege ($9.99/mo) : -15%, Elite ($19.99/mo) : -30%, Black ($39.99/mo) : -50%
+- Stripe Subscriptions + Apple StoreKit 2
+- Guardrails : prix plancher, cap Black (1 achat -50%/mois), exclusions
+- Endpoints : `POST /api/subscriptions/create|me|cancel|change`
+- iOS : `SubscriptionView.swift`, `StoreKitManager.swift`, badge plan dans Profile
+
+#### Phase 3 — Gamification
+- XP / Points / Tickets / Streak / Levels / Tiers (Bronze → Platinum)
+- Event pipeline : `emitEvent()` distribue rewards après purchase, activation, checkin
+- Missions daily/weekly, tirages au sort (raffles)
+- Endpoints : `/api/rewards/summary|checkin|missions`, `/api/raffles/active|enter`
+- iOS : `RewardsHubView.swift`, XP bar + streak dans Dashboard
+
+#### Phase 4 — Crypto (Fireblocks)
+- USDC/USDT (Polygon, Ethereum), ETH
+- Endpoints : `POST /api/checkout/crypto`, `GET /api/checkout/crypto/:id`, webhook Fireblocks
+- iOS : bouton "Pay with Crypto" dans PaymentSheet, `CryptoPaymentView.swift`
+
+#### Phase 5 — Renaming
+- DXB Connect → SimPass (UI strings, splash screen, sidebar, README)
+- Domaines à acheter : `simpass.co` + `getsimpass.com`
+
+### 📊 Nouvelles tables Supabase (SimPass)
+
+| Table | Description |
+|-------|-------------|
+| `partner_offers` | Catalogue offres partenaires |
+| `offer_clicks` | Tracking clicks affiliés |
+| `offer_redemptions` | Rédemptions d'offres |
+| `subscriptions` | Abonnements Privilege/Elite/Black |
+| `subscription_usage` | Usage des remises |
+| `user_wallet` | XP, points, tickets, level, tier, streak |
+| `wallet_transactions` | Historique XP/points/tickets |
+| `missions` | Missions daily/weekly |
+| `user_mission_progress` | Progrès utilisateur sur missions |
+| `raffles` | Tirages au sort |
+| `raffle_entries` | Participations aux tirages |
+| `crypto_invoices` | Factures crypto |
+| `crypto_payments` | Paiements crypto reçus |
+| `event_logs` | Audit trail événements |
+
+Migration : `POST /api/admin/migrate-simpass` (admin only)
+Seed offres : `POST /api/admin/seed-offers` (admin only)
+
+### 🔐 Variables d'environnement SimPass (Railway)
+
+```env
+# Subscriptions Stripe
+STRIPE_PRIVILEGE_PRICE_MONTHLY=price_xxx
+STRIPE_PRIVILEGE_PRICE_YEARLY=price_xxx
+STRIPE_ELITE_PRICE_MONTHLY=price_xxx
+STRIPE_ELITE_PRICE_YEARLY=price_xxx
+STRIPE_BLACK_PRICE_MONTHLY=price_xxx
+STRIPE_BLACK_PRICE_YEARLY=price_xxx
+
+# Crypto (Fireblocks)
+FIREBLOCKS_API_KEY=xxx
+FIREBLOCKS_API_SECRET=xxx
+FIREBLOCKS_VAULT_ID=xxx
+FIREBLOCKS_WEBHOOK_SECRET=xxx
+
+# Affiliés
+GYG_AFFILIATE_ID=SIMPASS
+TIQETS_AFFILIATE_ID=SIMPASS
+KLOOK_AFFILIATE_ID=SIMPASS
+```
+
 ### 🔄 Prochaines Étapes
-1. **Cache**: Ajouter cache local pour mode offline
-2. **Analytics**: Implémenter tracking événements
+1. **Domaines**: Acheter `simpass.co` + `getsimpass.com`, configurer sur Vercel
+2. **Cache**: Ajouter cache local pour mode offline
 3. **Webhook eSIM**: Sécuriser avec signature
 
 ### Scripts Disponibles
@@ -542,10 +620,12 @@ cd Apps/DXBClient
 
 | Composant | Technologies |
 |-----------|--------------|
-| **iOS App** | SwiftUI, DXBCore (Package) |
-| **Admin Web** | NextJS 14, TailwindCSS, React Query |
-| **Backend** | Supabase (Auth, PostgreSQL, Edge Functions) |
+| **iOS App** | SwiftUI, DXBCore (Package), StoreKit 2 |
+| **Admin Web** | Next.js 14, TailwindCSS, React Query |
+| **Backend** | Railway (Next.js API), Supabase (Auth, PostgreSQL) |
 | **eSIM API** | eSIM Access Provider |
+| **Paiements** | Stripe (cartes + abonnements), Apple Pay (StoreKit 2), Fireblocks (crypto) |
+| **Partenaires** | GetYourGuide, Tiqets, Klook, LoungeBuddy, SafetyWing |
 | **Design** | Figma (MCP intégré via Cursor) |
 
 ## 🎨 Design System & Figma
@@ -1012,8 +1092,46 @@ Routes unifiées pour iOS SwiftUI et Admin Web :
 
 | Endpoint | Méthode | Description |
 |----------|---------|-------------|
-| `/api/webhooks/stripe` | POST | Webhook Stripe |
+| `/api/webhooks/stripe` | POST | Webhook Stripe (paiements + subscriptions) |
 | `/api/webhooks/esim` | POST | Webhook eSIM Access |
+| `/api/webhooks/fireblocks` | POST | Webhook Fireblocks (crypto payments) |
+
+### SimPass — Offres & Partenaires
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/offers` | GET | Liste offres partenaires (filtres: country, category, tier) |
+| `/api/offers/:id` | GET | Détail d'une offre |
+| `/api/offers/:id/click` | POST | Track click + redirect affilié |
+| `/api/offers/:id/redeem` | POST | Enregistrer rédemption |
+| `/api/offers/categories` | GET | Catégories disponibles |
+
+### SimPass — Abonnements
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/subscriptions/create` | POST | Créer abonnement (Stripe) |
+| `/api/subscriptions/me` | GET | Mon abonnement actuel |
+| `/api/subscriptions/cancel` | POST | Annuler (fin de période) |
+| `/api/subscriptions/change` | POST | Upgrade/downgrade |
+
+### SimPass — Rewards & Gamification
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/rewards/summary` | GET | XP, points, tickets, missions, raffles |
+| `/api/rewards/checkin` | POST | Check-in quotidien |
+| `/api/rewards/missions` | GET | Missions actives + progrès |
+| `/api/raffles/active` | GET | Tirages en cours |
+| `/api/raffles/enter` | POST | Participer à un tirage |
+
+### SimPass — Crypto
+
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/checkout/crypto` | POST | Créer invoice crypto |
+| `/api/checkout/crypto` | GET | Assets supportés |
+| `/api/checkout/crypto/:id` | GET | Statut invoice (polling) |
 
 ### Configuration Webhook eSIM Access
 

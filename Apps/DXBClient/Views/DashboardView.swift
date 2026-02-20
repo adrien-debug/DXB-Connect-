@@ -17,6 +17,7 @@ struct DashboardView: View {
                         heroHeader
 
                         VStack(spacing: 0) {
+                            perksPreviewSection
                             esimCardsSection
                             recentActivitySection
                         }
@@ -258,7 +259,7 @@ struct DashboardView: View {
             .slideIn(delay: 0)
         }
         .sheet(isPresented: $showSupport) { SupportView() }
-        .sheet(isPresented: $showRewards) { RewardsSheet() }
+        .sheet(isPresented: $showRewards) { RewardsView() }
         .sheet(isPresented: $showScanner) { ScannerSheet() }
     }
 
@@ -308,6 +309,80 @@ struct DashboardView: View {
             }
         let gb = Double(totalMB) / 1024.0
         return gb > 0 ? String(format: "%.0f", gb) : "0"
+    }
+
+    // MARK: - Perks Preview
+
+    private var perksPreviewSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            HStack {
+                Text("Travel Perks")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(AppTheme.textPrimary)
+
+                Spacer()
+
+                Button {
+                    showRewards = true
+                } label: {
+                    Text("See all")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(AppTheme.textSecondary)
+                }
+            }
+            .padding(.horizontal, 20)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    perkQuickCard(icon: "ticket.fill", title: "Activities", subtitle: "Up to 15% off", color: AppTheme.accent)
+                    perkQuickCard(icon: "airplane", title: "Lounges", subtitle: "From $32", color: AppTheme.primary)
+                    perkQuickCard(icon: "shield.fill", title: "Insurance", subtitle: "10% off", color: AppTheme.success)
+                    perkQuickCard(icon: "car.fill", title: "Transfers", subtitle: "10% off", color: AppTheme.warning)
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+        .padding(.bottom, AppTheme.Spacing.lg)
+        .slideIn(delay: 0.03)
+    }
+
+    private func perkQuickCard(icon: String, title: String, subtitle: String, color: Color) -> some View {
+        Button {
+            HapticFeedback.light()
+            showRewards = true
+        } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(0.12))
+                        .frame(width: 36, height: 36)
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(color)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(AppTheme.textPrimary)
+                    Text(subtitle)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(AppTheme.textTertiary)
+                }
+            }
+            .padding(14)
+            .frame(width: 120, height: 105)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(AppTheme.backgroundPrimary)
+                    .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(AppTheme.border.opacity(0.3), lineWidth: 0.5)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - eSIM Cards (Horizontal Scroll — Pulse "Cards" style)

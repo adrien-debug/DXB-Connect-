@@ -65,10 +65,10 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h1 className="text-base font-bold text-white tracking-tight truncate">
-                    DXB Connect
+                    SimPass
                   </h1>
                   <p className="text-[11px] text-lime-400/80 font-semibold truncate uppercase tracking-wider">
-                    Premium Suite
+                    Admin Dashboard
                   </p>
                 </div>
               </div>

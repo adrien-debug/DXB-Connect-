@@ -114,7 +114,7 @@ export default function RegisterPage() {
                 <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-950" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-lg sm:text-xl font-semibold text-white truncate">DXB Connect</h1>
+                <h1 className="text-lg sm:text-xl font-semibold text-white truncate">SimPass</h1>
                 <p className="text-xs text-zinc-500 truncate">Premium Dashboard</p>
               </div>
             </div>
@@ -124,7 +124,7 @@ export default function RegisterPage() {
             Créer un compte
           </h2>
           <p className="text-sm text-zinc-500 text-center mb-6 sm:mb-8">
-            Rejoignez DXB Connect dès maintenant
+            Rejoignez SimPass dès maintenant
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -306,7 +306,7 @@ export default function RegisterPage() {
         </div>
 
         <p className="mt-8 text-center text-xs text-zinc-500">
-          © 2026 DXB Connect. Tous droits réservés.
+          © 2026 SimPass. Tous droits réservés.
         </p>
       </div>
     </div>

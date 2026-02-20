@@ -12,6 +12,7 @@ struct PaymentSheetView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @StateObject private var viewModel = PaymentSheetViewModel()
     @Environment(\.dismiss) private var dismiss
+    @State private var showCryptoPayment = false
 
     var body: some View {
         ZStack {
@@ -90,6 +91,23 @@ struct PaymentSheetView: View {
                                     .fill(AppTheme.border.opacity(0.4))
                                     .frame(height: 0.5)
 
+                                if StoreKitManager.shared.activeDiscountPercent > 0 {
+                                    HStack {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "crown.fill")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(AppTheme.accent)
+                                            Text("Plan discount")
+                                                .font(.system(size: 14, weight: .medium))
+                                                .foregroundColor(AppTheme.textSecondary)
+                                        }
+                                        Spacer()
+                                        Text("-\(StoreKitManager.shared.activeDiscountPercent)%")
+                                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                                            .foregroundColor(AppTheme.success)
+                                    }
+                                }
+
                                 HStack {
                                     Text("Total")
                                         .font(.system(size: 16, weight: .semibold))
@@ -97,9 +115,22 @@ struct PaymentSheetView: View {
 
                                     Spacer()
 
-                                    Text(plan.priceUSD.formattedPrice)
-                                        .font(.system(size: 22, weight: .bold, design: .rounded))
-                                        .foregroundColor(AppTheme.accent)
+                                    if StoreKitManager.shared.activeDiscountPercent > 0 {
+                                        let discounted = plan.priceUSD * (1 - Double(StoreKitManager.shared.activeDiscountPercent) / 100)
+                                        VStack(alignment: .trailing, spacing: 2) {
+                                            Text(plan.priceUSD.formattedPrice)
+                                                .font(.system(size: 14, weight: .medium))
+                                                .foregroundColor(AppTheme.textMuted)
+                                                .strikethrough()
+                                            Text(discounted.formattedPrice)
+                                                .font(.system(size: 22, weight: .bold, design: .rounded))
+                                                .foregroundColor(AppTheme.accent)
+                                        }
+                                    } else {
+                                        Text(plan.priceUSD.formattedPrice)
+                                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                                            .foregroundColor(AppTheme.accent)
+                                    }
                                 }
                             }
                             .padding(20)
@@ -175,12 +206,30 @@ struct PaymentSheetView: View {
                             }
                         }
 
+                        // Crypto payment button
+                        Button {
+                            showCryptoPayment = true
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "bitcoinsign.circle.fill")
+                                    .font(.system(size: 20))
+                                Text("Pay with Crypto")
+                                    .font(.system(size: 16, weight: .semibold))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .foregroundColor(AppTheme.textPrimary)
+                            .glassmorphism(cornerRadius: 14, opacity: 0.05)
+                        }
+                        .scaleOnPress()
+                        .disabled(viewModel.isProcessing)
+
                         HStack(spacing: 8) {
                             Image(systemName: "lock.shield.fill")
                                 .font(.system(size: 14))
                                 .foregroundColor(AppTheme.accent)
 
-                            Text("Secured by Stripe. Your payment details are encrypted.")
+                            Text("Secured by Stripe & Fireblocks. Payments are encrypted.")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(AppTheme.textSecondary)
 
@@ -229,6 +278,13 @@ struct PaymentSheetView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(viewModel.errorMessage)
+        }
+        .sheet(isPresented: $showCryptoPayment) {
+            CryptoPaymentView(
+                amountUSD: plan.priceUSD,
+                onComplete: { onSuccess() },
+                onCancel: { showCryptoPayment = false }
+            )
         }
     }
 }

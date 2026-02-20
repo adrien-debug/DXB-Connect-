@@ -115,7 +115,7 @@ export default function DashboardPage() {
     }
   }
 
-  const COLORS = ['#D4F441', '#B8E600', '#9ACA00', '#7BAE00', '#5C9200', '#3A4A00']
+  const COLORS = ['#BAFF39', '#9FE000', '#85C000', '#6BA000', '#518000', '#375000']
 
   const getGreeting = () => {
     const hour = new Date().getHours()
@@ -243,8 +243,8 @@ export default function DashboardPage() {
                 <AreaChart data={stats.ordersByDay} margin={{ top: 10, right: 5, left: -25, bottom: 0 }}>
                   <defs>
                     <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#D4F441" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#D4F441" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#BAFF39" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#BAFF39" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272A" />
@@ -264,27 +264,27 @@ export default function DashboardPage() {
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#18181B',
+                      backgroundColor: '#141414',
                       borderRadius: '12px',
-                      border: '1px solid #3F3F46',
+                      border: '1px solid #2A2A2A',
                       boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
                       fontSize: '12px',
                       fontWeight: 600,
-                      color: '#FAFAFA',
+                      color: '#FFFFFF',
                       padding: '8px 12px',
                     }}
-                    cursor={{ stroke: '#D4F441', strokeWidth: 1, strokeDasharray: '4 4' }}
-                    labelStyle={{ color: '#71717A', fontWeight: 400, fontSize: '11px' }}
+                    cursor={{ stroke: '#BAFF39', strokeWidth: 1, strokeDasharray: '4 4' }}
+                    labelStyle={{ color: '#6E6E6E', fontWeight: 400, fontSize: '11px' }}
                   />
                   <Area
                     type="monotone"
                     dataKey="orders"
-                    stroke="#D4F441"
+                    stroke="#BAFF39"
                     strokeWidth={2.5}
                     fill="url(#areaGradient)"
                     name="Commandes"
-                    dot={{ fill: '#D4F441', strokeWidth: 0, r: 3 }}
-                    activeDot={{ fill: '#D4F441', strokeWidth: 2, stroke: '#09090B', r: 5 }}
+                    dot={{ fill: '#BAFF39', strokeWidth: 0, r: 3 }}
+                    activeDot={{ fill: '#BAFF39', strokeWidth: 2, stroke: '#0A0A0A', r: 5 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>

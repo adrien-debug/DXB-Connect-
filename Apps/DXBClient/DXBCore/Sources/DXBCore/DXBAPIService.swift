@@ -20,6 +20,18 @@ public protocol DXBAPIServiceProtocol: Sendable {
     func suspendESIM(orderNo: String) async throws -> Bool
     func resumeESIM(orderNo: String) async throws -> Bool
     func refreshAccessToken() async throws -> AuthResponse
+
+    // MARK: - Offers (SimPass)
+    func fetchOffers(country: String?, category: String?) async throws -> [PartnerOfferResponse]
+    func trackOfferClick(offerId: String, country: String?) async throws -> OfferClickResponse
+
+    // MARK: - Subscriptions (SimPass)
+    func fetchMySubscription() async throws -> SubscriptionResponse?
+    func createSubscription(plan: String, billingPeriod: String) async throws -> SubscriptionResponse
+
+    // MARK: - Rewards (SimPass)
+    func fetchRewardsSummary() async throws -> RewardsSummaryResponse
+    func dailyCheckin() async throws -> CheckinResponse
 }
 
 // MARK: - API Service Implementation
@@ -434,6 +446,108 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
         return response.success ?? false
     }
 
+    // MARK: - Offers (SimPass)
+
+    public func fetchOffers(country: String? = nil, category: String? = nil) async throws -> [PartnerOfferResponse] {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        var endpoint = "offers?"
+        if let c = country { endpoint += "country=\(c)&" }
+        if let cat = category { endpoint += "category=\(cat)&" }
+
+        let response: OffersListResponse = try await apiClient.request(
+            endpoint: endpoint,
+            requiresAuth: false
+        )
+
+        return response.data ?? []
+    }
+
+    public func trackOfferClick(offerId: String, country: String? = nil) async throws -> OfferClickResponse {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        let body: [String: Any] = [
+            "country": country ?? "",
+            "source": "app",
+        ]
+
+        return try await apiClient.request(
+            endpoint: "offers/\(offerId)/click",
+            method: "POST",
+            body: body,
+            requiresAuth: true
+        )
+    }
+
+    // MARK: - Subscriptions (SimPass)
+
+    public func fetchMySubscription() async throws -> SubscriptionResponse? {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        let response: SubscriptionWrapper = try await apiClient.request(
+            endpoint: "subscriptions/me",
+            requiresAuth: true
+        )
+
+        return response.data
+    }
+
+    public func createSubscription(plan: String, billingPeriod: String) async throws -> SubscriptionResponse {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        let body: [String: Any] = [
+            "plan": plan,
+            "billing_period": billingPeriod,
+        ]
+
+        let response: SubscriptionWrapper = try await apiClient.request(
+            endpoint: "subscriptions/create",
+            method: "POST",
+            body: body,
+            requiresAuth: true
+        )
+
+        guard let data = response.data else { throw APIError.invalidResponse }
+        return data
+    }
+
+    // MARK: - Rewards (SimPass)
+
+    public func fetchRewardsSummary() async throws -> RewardsSummaryResponse {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        let response: RewardsSummaryWrapper = try await apiClient.request(
+            endpoint: "rewards/summary",
+            requiresAuth: true
+        )
+
+        guard let data = response.data else { throw APIError.invalidResponse }
+        return data
+    }
+
+    public func dailyCheckin() async throws -> CheckinResponse {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        return try await apiClient.request(
+            endpoint: "rewards/checkin",
+            method: "POST",
+            body: [:],
+            requiresAuth: true
+        )
+    }
+
     // MARK: - Token Refresh
 
     public func refreshAccessToken() async throws -> AuthResponse {
@@ -626,4 +740,113 @@ struct TopUpPackageItem: Codable {
 struct SimpleResponse: Codable {
     let success: Bool?
     let message: String?
+}
+
+// MARK: - SimPass Response Types (Offers, Subscriptions, Rewards)
+
+public struct PartnerOfferResponse: Codable, Identifiable {
+    public let id: String
+    public let partner_name: String?
+    public let partner_slug: String?
+    public let category: String?
+    public let title: String?
+    public let description: String?
+    public let image_url: String?
+    public let discount_percent: Int?
+    public let discount_type: String?
+    public let country_codes: [String]?
+    public let city: String?
+    public let is_global: Bool?
+    public let tier_required: String?
+}
+
+struct OffersListResponse: Codable {
+    let success: Bool?
+    let data: [PartnerOfferResponse]?
+}
+
+public struct OfferClickResponse: Codable {
+    public let success: Bool?
+    public let data: OfferClickData?
+}
+
+public struct OfferClickData: Codable {
+    public let redirectUrl: String?
+}
+
+public struct SubscriptionResponse: Codable {
+    public let id: String?
+    public let plan: String?
+    public let status: String?
+    public let billing_period: String?
+    public let discount_percent: Int?
+    public let current_period_end: String?
+    public let cancel_at_period_end: Bool?
+    public let discounts_remaining: Int?
+}
+
+struct SubscriptionWrapper: Codable {
+    let success: Bool?
+    let data: SubscriptionResponse?
+}
+
+public struct RewardsSummaryResponse: Codable {
+    public let wallet: WalletData?
+    public let missions: [MissionData]?
+    public let raffles: [RaffleData]?
+    public let recent_transactions: [TransactionData]?
+}
+
+public struct WalletData: Codable {
+    public let xp_total: Int?
+    public let level: Int?
+    public let points_balance: Int?
+    public let points_earned_total: Int?
+    public let tickets_balance: Int?
+    public let tier: String?
+    public let streak_days: Int?
+    public let last_checkin: String?
+}
+
+public struct MissionData: Codable, Identifiable {
+    public let id: String
+    public let type: String?
+    public let title: String?
+    public let description: String?
+    public let xp_reward: Int?
+    public let points_reward: Int?
+    public let condition_value: Int?
+    public let user_progress: Int?
+    public let user_completed: Bool?
+}
+
+public struct RaffleData: Codable, Identifiable {
+    public let id: String
+    public let title: String?
+    public let prize_description: String?
+    public let draw_date: String?
+    public let image_url: String?
+}
+
+public struct TransactionData: Codable, Identifiable {
+    public let id: String
+    public let type: String?
+    public let delta: Int?
+    public let reason: String?
+    public let description: String?
+}
+
+struct RewardsSummaryWrapper: Codable {
+    let success: Bool?
+    let data: RewardsSummaryResponse?
+}
+
+public struct CheckinResponse: Codable {
+    public let success: Bool?
+    public let data: CheckinData?
+}
+
+public struct CheckinData: Codable {
+    public let streak_days: Int?
+    public let date: String?
 }

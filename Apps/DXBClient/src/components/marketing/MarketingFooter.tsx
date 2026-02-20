@@ -2,12 +2,12 @@ import Link from 'next/link'
 
 export default function MarketingFooter() {
   return (
-    <footer className="border-t border-zinc-800/60 bg-zinc-950">
+    <footer className="border-t border-zinc-800/40 bg-zinc-950">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div className="text-sm font-semibold text-white">DXB Connect</div>
-            <div className="text-sm text-zinc-500 mt-1">
+            <div className="text-sm font-semibold text-white">SimPass</div>
+            <div className="text-sm text-zinc-400 mt-1">
               eSIM internationale. Activation rapide. Support premium.
             </div>
           </div>
@@ -37,11 +37,11 @@ export default function MarketingFooter() {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-zinc-600">
-          <div>© {new Date().getFullYear()} DXB Connect. Tous droits réservés.</div>
+        <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-zinc-500">
+          <div>© {new Date().getFullYear()} SimPass. Tous droits réservés.</div>
           <div>
             Besoin d’aide ?{' '}
-            <Link href="/contact" className="text-lime-400 hover:text-lime-300 transition-colors">
+            <Link href="/contact" className="text-lime-400 hover:text-white transition-colors">
               Contactez-nous
             </Link>
           </div>

@@ -11,6 +11,7 @@ struct ProfileView: View {
     @State private var showAppearance = false
     @State private var showHelpCenter = false
     @State private var showTerms = false
+    @State private var showSubscription = false
 
     var body: some View {
         NavigationStack {
@@ -21,6 +22,7 @@ struct ProfileView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: AppTheme.Spacing.base) {
                         profileHeader
+                        myPlanSection
                         statsCard
                         accountSection
                         preferencesSection
@@ -122,6 +124,65 @@ struct ProfileView: View {
         }
         .padding(.top, 40)
         .slideIn(delay: 0)
+    }
+
+    // MARK: - My Plan Section
+
+    private var myPlanSection: some View {
+        Button {
+            showSubscription = true
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(AppTheme.accent.opacity(0.12))
+                        .frame(width: 48, height: 48)
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(AppTheme.accent)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("My Plan")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(AppTheme.textPrimary)
+
+                    Text(StoreKitManager.shared.activePlanName ?? "No active plan")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(AppTheme.textSecondary)
+                }
+
+                Spacer()
+
+                if let plan = StoreKitManager.shared.activePlanName {
+                    Text("-\(StoreKitManager.shared.activeDiscountPercent)%")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(AppTheme.success)
+                } else {
+                    Text("Upgrade")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "0F172A"))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .background(Capsule().fill(AppTheme.accent))
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(AppTheme.textMuted)
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(AppTheme.backgroundPrimary)
+                    .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+            )
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showSubscription) {
+            SimPassSubscriptionView()
+                .environmentObject(coordinator)
+        }
     }
 
     // MARK: - Stats Card

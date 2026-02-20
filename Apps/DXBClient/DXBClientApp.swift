@@ -515,10 +515,15 @@ struct SplashView: View {
                                 .foregroundColor(Color(hex: "0F172A"))
                         )
 
-                    Text("DXB CONNECT")
+                    Text("SIMPASS")
                         .font(.system(size: 14, weight: .bold))
                         .tracking(3)
                         .foregroundColor(AppTheme.textSecondary)
+
+                    Text("Not just data—benefits in every destination.")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(AppTheme.textTertiary)
+                        .padding(.top, 4)
                 }
                 .scaleEffect(logoScale)
                 .opacity(logoOpacity)

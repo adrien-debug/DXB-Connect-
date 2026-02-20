@@ -11,9 +11,9 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const post = getPostBySlug(params.slug)
-  if (!post) return { title: 'Article introuvable - DXB Connect' }
+  if (!post) return { title: 'Article introuvable - SimPass' }
   return {
-    title: `${post.title} - DXB Connect`,
+    title: `${post.title} - SimPass`,
     description: post.excerpt,
   }
 }

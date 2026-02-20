@@ -3,12 +3,43 @@ import type { Database } from '@/lib/database.types'
 import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
 import type { PurchaseRequest } from '@/lib/esim-types'
 import { createClient } from '@/lib/supabase/server'
+import { emitEvent } from '@/lib/events/event-pipeline'
 import { NextResponse } from 'next/server'
 
 type EsimOrderInsert = Database['public']['Tables']['esim_orders']['Insert']
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
+
+interface SubscriptionRow {
+  id: string
+  plan: string
+  discount_percent: number
+  discounts_used_this_period: number
+  monthly_discount_cap_usd: number | null
+}
+
+async function getActiveDiscount(supabase: SupabaseAny, userId: string): Promise<{ percent: number; subscriptionId: string; isBlackCapped: boolean } | null> {
+  const { data: sub } = await supabase
+    .from('subscriptions')
+    .select('id, plan, discount_percent, discounts_used_this_period, monthly_discount_cap_usd')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .maybeSingle() as { data: SubscriptionRow | null }
+
+  if (!sub) return null
+
+  let percent = sub.discount_percent
+  let isBlackCapped = false
+
+  // Black plan: 1 achat -50% / mois, ensuite -30%
+  if (sub.plan === 'black' && (sub.discounts_used_this_period || 0) >= 1) {
+    percent = 30
+    isBlackCapped = true
+  }
+
+  return { percent, subscriptionId: sub.id, isBlackCapped }
+}
 
 interface OrderResponse {
   success?: boolean
@@ -108,7 +139,39 @@ export async function POST(request: Request) {
     console.log('[esim/purchase] Order completed: orderNo=%s, iccid=%s, status=%s',
       orderNo, esimDetails?.iccid || 'pending', esimDetails?.smdpStatus || 'PENDING')
 
-    // 4. Retourner au format attendu par iOS
+    // 4. Appliquer discount subscription si applicable
+    const discount = await getActiveDiscount(supabase, user.id)
+    if (discount) {
+      // Logger l'usage du discount
+      await (supabase as SupabaseAny).from('subscription_usage').insert({
+        subscription_id: discount.subscriptionId,
+        user_id: user.id,
+        order_id: orderNo,
+        discount_applied_usd: 0, // À calculer selon prix réel
+      })
+
+      // Incrémenter le compteur pour Black
+      if (!discount.isBlackCapped) {
+        await (supabase as SupabaseAny)
+          .from('subscriptions')
+          .update({ discounts_used_this_period: 1, updated_at: new Date().toISOString() })
+          .eq('id', discount.subscriptionId)
+          .eq('user_id', user.id)
+      }
+    }
+
+    // 5. Émettre event pour gamification (XP, points, tickets)
+    await emitEvent({
+      type: 'purchase.completed',
+      userId: user.id,
+      data: {
+        orderId: orderNo,
+        packageCode: body.packageCode,
+        iccid: esimDetails?.iccid || '',
+      },
+    }).catch(() => {})
+
+    // 6. Retourner au format attendu par iOS
     return NextResponse.json({
       success: true,
       obj: {
@@ -124,7 +187,11 @@ export async function POST(request: Request) {
           packageName: pkgDetails.packageName,
           totalVolume: pkgDetails.totalVolume,
           expiredTime: pkgDetails.expiredTime,
-        }] : []
+        }] : [],
+        discount: discount ? {
+          percent: discount.percent,
+          plan: discount.isBlackCapped ? 'black (capped)' : 'active',
+        } : null,
       }
     })
   } catch (error) {

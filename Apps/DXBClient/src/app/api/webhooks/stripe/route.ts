@@ -106,6 +106,66 @@ export async function POST(request: NextRequest) {
         break
       }
 
+      // --- SimPass Subscription Events ---
+      case 'invoice.paid': {
+        const invoice = event.data.object as Stripe.Invoice
+        const subDetails = invoice.parent?.subscription_details
+        const subscriptionRef = subDetails?.subscription
+        const subscriptionId = typeof subscriptionRef === 'string'
+          ? subscriptionRef
+          : subscriptionRef?.id
+
+        if (subscriptionId) {
+          await supabase
+            .from('subscriptions')
+            .update({
+              status: 'active',
+              discounts_used_this_period: 0,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('stripe_subscription_id', subscriptionId)
+
+          console.log(`Subscription invoice paid: ${subscriptionId}`)
+        }
+        break
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription
+        const firstItem = subscription.items.data[0]
+        const periodEnd = firstItem
+          ? new Date(firstItem.current_period_end * 1000)
+          : new Date()
+
+        await supabase
+          .from('subscriptions')
+          .update({
+            status: subscription.status,
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            current_period_end: periodEnd.toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('stripe_subscription_id', subscription.id)
+
+        console.log(`Subscription updated: ${subscription.id}, status: ${subscription.status}`)
+        break
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription
+
+        await supabase
+          .from('subscriptions')
+          .update({
+            status: 'cancelled',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('stripe_subscription_id', subscription.id)
+
+        console.log(`Subscription cancelled: ${subscription.id}`)
+        break
+      }
+
       default:
         console.log(`Unhandled event type: ${event.type}`)
     }

@@ -10,7 +10,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'DXB Connect - Premium Dashboard',
+  title: 'SimPass - Premium Dashboard',
   description: 'Plateforme de gestion centralisée premium',
   icons: {
     icon: '/favicon.svg',

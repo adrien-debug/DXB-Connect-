@@ -51,7 +51,7 @@ export default function ClientRedirectPage() {
           {/* Features */}
           <div className="mt-8 pt-6 border-t border-zinc-800">
             <p className="text-xs text-zinc-500 uppercase tracking-wider mb-4 font-medium">
-              Avec l&apos;app DXB Connect
+              Avec l&apos;app SimPass
             </p>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="flex items-center gap-2 text-zinc-300">
