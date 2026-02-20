@@ -5,12 +5,15 @@ import { supabaseAny as supabase } from '@/lib/supabase'
 import {
   ArrowDownRight,
   ArrowRight,
+  CreditCard,
   DollarSign,
+  Gift,
   Globe,
   LayoutDashboard,
   Package,
   RefreshCw,
   ShoppingBag,
+  Star,
   TrendingUp,
   Users,
   Wifi,
@@ -347,6 +350,48 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* SimPass Modules */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link href="/perks" className="group bg-white rounded-2xl border border-gray-light p-5 hover:border-lime-400/50 hover:shadow-sm transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-lime-400/20 border border-lime-400/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Gift size={22} className="text-black" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-black">Perks & Offres</h3>
+              <p className="text-xs text-gray mt-0.5">Offres partenaires actives</p>
+            </div>
+            <ArrowRight size={16} className="text-gray group-hover:text-lime-500 group-hover:translate-x-0.5 transition-all" />
+          </div>
+        </Link>
+
+        <Link href="/subscriptions" className="group bg-white rounded-2xl border border-gray-light p-5 hover:border-lime-400/50 hover:shadow-sm transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-blue-100 border border-blue-200 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <CreditCard size={22} className="text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-black">Abonnements</h3>
+              <p className="text-xs text-gray mt-0.5">Plans Privilege, Elite, Black</p>
+            </div>
+            <ArrowRight size={16} className="text-gray group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+          </div>
+        </Link>
+
+        <Link href="/rewards" className="group bg-white rounded-2xl border border-gray-light p-5 hover:border-lime-400/50 hover:shadow-sm transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-purple-100 border border-purple-200 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Star size={22} className="text-purple-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-black">Rewards</h3>
+              <p className="text-xs text-gray mt-0.5">Gamification & fidélité</p>
+            </div>
+            <ArrowRight size={16} className="text-gray group-hover:text-purple-500 group-hover:translate-x-0.5 transition-all" />
+          </div>
+        </Link>
+      </div>
+
       {/* Stock eSIM + Quick Actions */}
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
         {/* Mon stock */}
@@ -411,8 +456,10 @@ export default function DashboardPage() {
               {[
                 { href: '/esim', icon: Globe, label: 'Acheter eSIM', desc: 'Parcourir le catalogue', color: 'bg-lime-400/20 text-black border-lime-400/30' },
                 { href: '/esim/orders', icon: ShoppingBag, label: 'Mes commandes', desc: 'Historique & QR codes', color: 'bg-lime-400/10 text-black border-lime-400/20' },
+                { href: '/perks', icon: Gift, label: 'Perks & Offres', desc: 'Partenaires actifs', color: 'bg-lime-400/10 text-black border-lime-400/20' },
+                { href: '/subscriptions', icon: CreditCard, label: 'Abonnements', desc: 'Plans & revenus', color: 'bg-blue-50 text-blue-600 border-blue-200' },
+                { href: '/rewards', icon: Star, label: 'Rewards', desc: 'Gamification', color: 'bg-purple-50 text-purple-600 border-purple-200' },
                 { href: '/customers', icon: Users, label: 'Clients', desc: 'Gestion CRM', color: 'bg-gray-light text-gray border-gray-light' },
-                { href: '/esim/pricing', icon: DollarSign, label: 'Prix & Marges', desc: 'Gestion tarifaire', color: 'bg-gray-light text-gray border-gray-light' },
               ].map((action) => (
                 <Link
                   key={action.href}
