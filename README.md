@@ -513,8 +513,14 @@ APIConfig.current = .production  // ⚠️ Pointe vers Railway (ancien)
 | `crypto_payments` | Paiements crypto reçus |
 | `event_logs` | Audit trail événements |
 
-Migration : `POST /api/admin/migrate-simpass` (admin only)
-Seed offres : `POST /api/admin/seed-offers` (admin only)
+**Migration (via script)** :
+```bash
+DATABASE_URL="postgresql://postgres.[ref]:[password]@aws-1-[region].pooler.supabase.com:5432/postgres" node scripts/migrate-simpass.js
+```
+
+**Seed offres** (via API admin ou service role) : `POST /api/admin/seed-offers`
+
+**Statut (20/02/2026)** : ✅ 14/14 tables créées, 17 offres + 5 missions seedées
 
 ### 🔐 Variables d'environnement SimPass (Railway)
 
@@ -540,9 +546,12 @@ KLOOK_AFFILIATE_ID=SIMPASS
 ```
 
 ### 🔄 Prochaines Étapes
-1. **Domaines**: Acheter `simpass.co` + `getsimpass.com`, configurer sur Vercel
-2. **Cache**: Ajouter cache local pour mode offline
-3. **Webhook eSIM**: Sécuriser avec signature
+1. **Stripe Dashboard** : Créer les 6 produits/prix d'abonnement (Privilege/Elite/Black × Monthly/Yearly) et mettre les Price IDs dans Railway
+2. **App Store Connect** : Configurer les 6 IAP subscriptions (`com.simpass.privilege.monthly`, etc.)
+3. **Fireblocks Console** : Configurer vault + webhook vers `/api/webhooks/fireblocks`
+4. **Affiliés** : S'inscrire sur GetYourGuide, Tiqets, Klook comme apporteur d'affaire
+5. **Domaines** : Acheter `simpass.co` / `getsimpass.com`, configurer sur Vercel
+6. **Webhook eSIM** : Sécuriser avec signature
 
 ### Scripts Disponibles
 ```bash
