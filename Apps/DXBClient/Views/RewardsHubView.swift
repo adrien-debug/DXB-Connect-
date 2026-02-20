@@ -11,20 +11,25 @@ struct RewardsHubView: View {
     @State private var hasCheckedIn = false
     @Environment(\.dismiss) private var dismiss
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+    private typealias BankingRadius = AppTheme.Banking.Radius
+
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundSecondary.ignoresSafeArea()
+                BankingColors.backgroundPrimary.ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
+                    VStack(spacing: BankingSpacing.xl) {
                         xpLevelSection
                         dailyCheckinCard
                         missionsSection
                         rafflesSection
                         recentTransactionsSection
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, BankingSpacing.lg)
                     .padding(.bottom, 100)
                 }
             }
@@ -35,7 +40,7 @@ struct RewardsHubView: View {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 20))
-                            .foregroundColor(AppTheme.textMuted)
+                            .foregroundColor(BankingColors.textOnDarkMuted)
                     }
                 }
             }
@@ -46,31 +51,30 @@ struct RewardsHubView: View {
     // MARK: - XP & Level
 
     private var xpLevelSection: some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 16) {
+        VStack(spacing: BankingSpacing.base) {
+            HStack(spacing: BankingSpacing.base) {
                 VStack(spacing: 4) {
                     Text("Level \(wallet?.level ?? 1)")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(AppTheme.textPrimary)
+                        .font(BankingTypo.detailAmount())
+                        .foregroundColor(BankingColors.textOnLightPrimary)
                     Text(wallet?.tier.uppercased() ?? "BRONZE")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(BankingTypo.label())
                         .tracking(1.5)
                         .foregroundColor(tierColor)
-                        .padding(.horizontal, 10)
+                        .padding(.horizontal, BankingSpacing.sm)
                         .padding(.vertical, 4)
                         .background(Capsule().fill(tierColor.opacity(0.15)))
                 }
 
                 Spacer()
 
-                HStack(spacing: 20) {
-                    WalletStat(icon: "star.fill", value: "\(wallet?.xp_total ?? 0)", label: "XP", color: AppTheme.accent)
-                    WalletStat(icon: "circle.fill", value: "\(wallet?.points_balance ?? 0)", label: "Points", color: AppTheme.success)
+                HStack(spacing: BankingSpacing.lg) {
+                    WalletStat(icon: "star.fill", value: "\(wallet?.xp_total ?? 0)", label: "XP", color: BankingColors.accent)
+                    WalletStat(icon: "circle.fill", value: "\(wallet?.points_balance ?? 0)", label: "Points", color: BankingColors.accentDark)
                     WalletStat(icon: "ticket.fill", value: "\(wallet?.tickets_balance ?? 0)", label: "Tickets", color: AppTheme.warning)
                 }
             }
 
-            // XP Progress bar
             let xpForNext = xpForNextLevel
             let progress = xpForNext > 0 ? Double(wallet?.xp_total ?? 0) / Double(xpForNext) : 0
 
@@ -78,26 +82,26 @@ struct RewardsHubView: View {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(AppTheme.gray100)
+                            .fill(BankingColors.surfaceMedium)
                             .frame(height: 8)
 
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(AppTheme.accent)
+                            .fill(BankingColors.accent)
                             .frame(width: geo.size.width * min(progress, 1), height: 8)
                     }
                 }
                 .frame(height: 8)
 
                 Text("\(wallet?.xp_total ?? 0) / \(xpForNext) XP to Level \((wallet?.level ?? 1) + 1)")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(AppTheme.textTertiary)
+                    .font(BankingTypo.caption())
+                    .foregroundColor(BankingColors.textOnLightMuted)
             }
         }
-        .padding(20)
+        .padding(BankingSpacing.lg)
         .background(
-            RoundedRectangle(cornerRadius: 22)
-                .fill(AppTheme.backgroundPrimary)
-                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                .fill(BankingColors.surfaceLight)
+                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
         )
     }
 
@@ -107,34 +111,34 @@ struct RewardsHubView: View {
         Button {
             Task { await performCheckin() }
         } label: {
-            HStack(spacing: 14) {
+            HStack(spacing: BankingSpacing.md) {
                 ZStack {
                     Circle()
-                        .fill(hasCheckedIn ? AppTheme.success.opacity(0.12) : AppTheme.accent.opacity(0.12))
+                        .fill(hasCheckedIn ? BankingColors.accentDark.opacity(0.15) : BankingColors.accent.opacity(0.15))
                         .frame(width: 48, height: 48)
                     Image(systemName: hasCheckedIn ? "checkmark.circle.fill" : "sun.max.fill")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(hasCheckedIn ? AppTheme.success : AppTheme.accent)
+                        .font(BankingTypo.sectionTitle())
+                        .foregroundColor(hasCheckedIn ? BankingColors.accentDark : BankingColors.accent)
                 }
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(hasCheckedIn ? "Checked in!" : "Daily Check-in")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(AppTheme.textPrimary)
+                        .font(BankingTypo.body())
+                        .foregroundColor(BankingColors.textOnLightPrimary)
                     Text(hasCheckedIn ? "+25 XP, +10 Points" : "Tap to claim +25 XP")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(AppTheme.textSecondary)
+                        .font(BankingTypo.caption())
+                        .foregroundColor(BankingColors.textOnLightMuted)
                 }
 
                 Spacer()
 
                 if !hasCheckedIn {
                     Text("Claim")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(Color(hex: "0F172A"))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Capsule().fill(AppTheme.accent))
+                        .font(BankingTypo.button())
+                        .foregroundColor(BankingColors.backgroundPrimary)
+                        .padding(.horizontal, BankingSpacing.base)
+                        .padding(.vertical, BankingSpacing.sm)
+                        .background(Capsule().fill(BankingColors.accent))
                 }
 
                 if let streak = wallet?.streak_days, streak > 0 {
@@ -143,16 +147,16 @@ struct RewardsHubView: View {
                             .font(.system(size: 14))
                             .foregroundColor(AppTheme.error)
                         Text("\(streak)")
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .font(BankingTypo.button())
                             .foregroundColor(AppTheme.error)
                     }
                 }
             }
-            .padding(16)
+            .padding(BankingSpacing.base)
             .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(AppTheme.backgroundPrimary)
-                    .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+                RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                    .fill(BankingColors.surfaceLight)
+                    .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
             )
         }
         .buttonStyle(.plain)
@@ -169,7 +173,7 @@ struct RewardsHubView: View {
 
             if missions.isEmpty {
                 Text("No active missions")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(AppTheme.Typography.tabLabel())
                     .foregroundColor(AppTheme.textTertiary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
@@ -195,7 +199,7 @@ struct RewardsHubView: View {
                         .font(.system(size: 28))
                         .foregroundColor(AppTheme.textTertiary)
                     Text("No active raffles")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(AppTheme.Typography.tabLabel())
                         .foregroundColor(AppTheme.textTertiary)
                 }
                 .frame(maxWidth: .infinity)
@@ -218,7 +222,7 @@ struct RewardsHubView: View {
 
             if transactions.isEmpty {
                 Text("No activity yet")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(AppTheme.Typography.tabLabel())
                     .foregroundColor(AppTheme.textTertiary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
@@ -231,7 +235,7 @@ struct RewardsHubView: View {
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(tx.description ?? tx.reason)
-                                .font(.system(size: 14, weight: .medium))
+                                .font(AppTheme.Typography.tabLabel())
                                 .foregroundColor(AppTheme.textPrimary)
                                 .lineLimit(1)
                         }
@@ -394,17 +398,17 @@ struct MissionRow: View {
                     .fill(mission.user_completed == true ? AppTheme.success.opacity(0.12) : AppTheme.accent.opacity(0.12))
                     .frame(width: 40, height: 40)
                 Image(systemName: mission.user_completed == true ? "checkmark" : missionIcon)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(AppTheme.Typography.bodyMedium())
                     .foregroundColor(mission.user_completed == true ? AppTheme.success : AppTheme.accent)
             }
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(mission.title)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(AppTheme.Typography.buttonMedium())
                     .foregroundColor(AppTheme.textPrimary)
 
                 Text("\(mission.user_progress ?? 0)/\(mission.condition_value)")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(AppTheme.Typography.navTitle())
                     .foregroundColor(AppTheme.textTertiary)
             }
 
@@ -416,14 +420,14 @@ struct MissionRow: View {
                     .foregroundColor(AppTheme.accent)
                 if mission.points_reward > 0 {
                     Text("+\(mission.points_reward) pts")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(AppTheme.Typography.smallMedium())
                         .foregroundColor(AppTheme.success)
                 }
             }
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                 .fill(AppTheme.backgroundPrimary)
                 .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 1)
         )
@@ -452,7 +456,7 @@ struct RaffleCard: View {
                         .font(.system(size: 17, weight: .bold))
                         .foregroundColor(AppTheme.textPrimary)
                     Text(raffle.prize_description)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(AppTheme.Typography.tabLabel())
                         .foregroundColor(AppTheme.textSecondary)
                         .lineLimit(2)
                 }
@@ -469,7 +473,7 @@ struct RaffleCard: View {
                     Image(systemName: "clock")
                         .font(.system(size: 12))
                     Text("Draw: \(raffle.draw_date)")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(AppTheme.Typography.navTitle())
                 }
                 .foregroundColor(AppTheme.textTertiary)
 
@@ -482,14 +486,14 @@ struct RaffleCard: View {
                     } label: {
                         Text("Enter (1 ticket)")
                             .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(Color(hex: "0F172A"))
+                            .foregroundColor(AppTheme.anthracite)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 7)
                             .background(Capsule().fill(AppTheme.accent))
                     }
                 } else {
                     Text("No tickets")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(AppTheme.Typography.navTitle())
                         .foregroundColor(AppTheme.textMuted)
                 }
             }

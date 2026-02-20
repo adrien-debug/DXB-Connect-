@@ -26,12 +26,12 @@ struct FlagImage: View {
                 fallbackFlag
             case .empty:
                 RoundedRectangle(cornerRadius: size * 0.12)
-                    .fill(AppTheme.gray100)
+                    .fill(AppTheme.Banking.Colors.surfaceMedium)
                     .frame(width: size, height: size * 0.7)
                     .overlay(
                         ProgressView()
                             .scaleEffect(0.5)
-                            .tint(AppTheme.textTertiary)
+                            .tint(AppTheme.Banking.Colors.textOnLightMuted)
                     )
             @unknown default:
                 fallbackFlag
@@ -41,12 +41,12 @@ struct FlagImage: View {
 
     private var fallbackFlag: some View {
         RoundedRectangle(cornerRadius: size * 0.12)
-            .fill(AppTheme.gray100)
+            .fill(AppTheme.Banking.Colors.surfaceMedium)
             .frame(width: size, height: size * 0.7)
             .overlay(
                 Image(systemName: "globe")
                     .font(.system(size: size * 0.35, weight: .medium))
-                    .foregroundColor(AppTheme.textTertiary)
+                    .foregroundColor(AppTheme.Banking.Colors.textOnLightMuted)
             )
     }
 }
@@ -56,6 +56,11 @@ struct PlanListView: View {
     @State private var searchText = ""
     @State private var selectedFilter = "All"
     @State private var selectedPlan: Plan?
+
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingRadius = AppTheme.Banking.Radius
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
 
     let filters = ["All", "1GB", "2GB", "5GB", "10GB"]
 
@@ -101,7 +106,7 @@ struct PlanListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundSecondary
+                BankingColors.backgroundPrimary
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -142,126 +147,96 @@ struct PlanListView: View {
 
     private var headerSection: some View {
         ZStack {
-            // Background anthracite
-            AppTheme.anthracite
+            BankingColors.backgroundSecondary
 
-            // World map overlay
             WorldMapDarkView(
                 highlightedCodes: popularDestinationCodes,
                 showConnections: false,
                 showDubaiPulse: true
             )
-            .opacity(0.5)
-
-            // Signal rings centered on Dubai
-            GeometryReader { geo in
-                SignalRings(color: AppTheme.accent.opacity(0.35), size: 90)
-                    .position(
-                        x: 0.654 * geo.size.width,
-                        y: 0.42 * geo.size.height
-                    )
-            }
-
-            // Gradient overlay for better text readability
-            LinearGradient(
-                colors: [
-                    AppTheme.anthracite.opacity(0.8),
-                    AppTheme.anthracite.opacity(0.3),
-                    AppTheme.anthracite.opacity(0.6)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            .opacity(0.4)
 
             VStack(spacing: 0) {
-                // Top bar
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Explore")
-                            .font(.system(size: 28, weight: .bold))
-                            .tracking(-0.5)
-                            .foregroundColor(.white)
+                            .font(BankingTypo.detailAmount())
+                            .foregroundColor(BankingColors.textOnDarkPrimary)
 
                         Text("Find your perfect plan")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white.opacity(0.5))
+                            .font(BankingTypo.caption())
+                            .foregroundColor(BankingColors.textOnDarkMuted)
                     }
 
                     Spacer()
 
-                    // Filter button
                     Button {
                         HapticFeedback.light()
                     } label: {
                         Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
+                            .font(BankingTypo.body())
+                            .foregroundColor(BankingColors.textOnDarkPrimary)
                             .frame(width: 44, height: 44)
-                            .background(Circle().fill(Color.white.opacity(0.12)))
+                            .background(Circle().fill(BankingColors.backgroundTertiary))
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, BankingSpacing.lg)
                 .padding(.top, 56)
 
                 Spacer()
 
-                // Stats row with price highlight
-                HStack(spacing: 8) {
-                    // Destinations
+                HStack(spacing: BankingSpacing.sm) {
                     HStack(spacing: 5) {
                         Image(systemName: "globe.americas.fill")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(BankingTypo.label())
                         Text("\(uniqueCountriesCount > 0 ? uniqueCountriesCount : 190)+")
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .font(BankingTypo.button())
                     }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(Capsule().fill(Color.white.opacity(0.12)))
+                    .foregroundColor(BankingColors.textOnDarkPrimary)
+                    .padding(.horizontal, BankingSpacing.md)
+                    .padding(.vertical, BankingSpacing.sm)
+                    .background(Capsule().fill(BankingColors.backgroundTertiary))
 
-                    // Plans count
                     HStack(spacing: 5) {
                         Image(systemName: "simcard.2.fill")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(BankingTypo.label())
                         Text("\(coordinator.plans.count)")
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .font(BankingTypo.button())
                     }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(Capsule().fill(Color.white.opacity(0.12)))
+                    .foregroundColor(BankingColors.textOnDarkPrimary)
+                    .padding(.horizontal, BankingSpacing.md)
+                    .padding(.vertical, BankingSpacing.sm)
+                    .background(Capsule().fill(BankingColors.backgroundTertiary))
 
                     Spacer()
 
-                    // Price highlight
                     if cheapestPrice > 0 {
                         HStack(spacing: 4) {
                             Text("from")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.white.opacity(0.6))
+                                .font(BankingTypo.caption())
+                                .foregroundColor(BankingColors.textOnDarkMuted)
                             Text(cheapestPrice.formattedPrice)
-                                .font(.system(size: 15, weight: .bold, design: .rounded))
-                                .foregroundColor(AppTheme.accent)
+                                .font(BankingTypo.button())
+                                .foregroundColor(BankingColors.accent)
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, BankingSpacing.md)
+                        .padding(.vertical, BankingSpacing.sm)
                         .background(
                             Capsule()
-                                .fill(AppTheme.accent.opacity(0.15))
+                                .fill(BankingColors.accent.opacity(0.15))
                                 .overlay(
                                     Capsule()
-                                        .stroke(AppTheme.accent.opacity(0.3), lineWidth: 1)
+                                        .stroke(BankingColors.accent.opacity(0.3), lineWidth: 1)
                                 )
                         )
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 16)
+                .padding(.horizontal, BankingSpacing.lg)
+                .padding(.bottom, BankingSpacing.base)
             }
         }
         .frame(height: 180)
-        .clipShape(RoundedCorner(radius: 24, corners: [.bottomLeft, .bottomRight]))
-        .shadow(color: AppTheme.anthracite.opacity(0.5), radius: 20, x: 0, y: 10)
+        .clipShape(RoundedCorner(radius: CGFloat(BankingRadius.card), corners: [.bottomLeft, .bottomRight]))
     }
 
     // MARK: - Search
@@ -293,14 +268,13 @@ struct PlanListView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(AppTheme.backgroundPrimary)
-                    .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
-                    .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
+                RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                    .fill(BankingColors.backgroundSecondary)
+                    .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(searchText.isEmpty ? Color.clear : AppTheme.accent.opacity(0.3), lineWidth: 1.5)
+                RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                    .stroke(searchText.isEmpty ? Color.clear : BankingColors.accent.opacity(0.3), lineWidth: 1.5)
             )
 
             // Filter chips with icons
@@ -359,9 +333,9 @@ struct PlanListView: View {
 
                 HStack {
                     Text(searchText.isEmpty && selectedFilter == "All" ? "ALL PLANS" : "\(filteredPlans.count) RESULTS")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(BankingTypo.label())
                         .tracking(1.5)
-                        .foregroundColor(AppTheme.textSecondary)
+                        .foregroundColor(BankingColors.textOnDarkMuted)
                     Spacer()
                 }
                 .padding(.horizontal, 16)
@@ -386,26 +360,26 @@ struct PlanListView: View {
     }
 
     private var destinationsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: BankingSpacing.md) {
             HStack {
                 HStack(spacing: 6) {
                     Image(systemName: "flame.fill")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(AppTheme.accent)
+                        .font(BankingTypo.label())
+                        .foregroundColor(BankingColors.accent)
 
                     Text("TRENDING")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(BankingTypo.label())
                         .tracking(1.5)
-                        .foregroundColor(AppTheme.textSecondary)
+                        .foregroundColor(BankingColors.textOnDarkMuted)
                 }
 
                 Spacer()
 
                 Text("\(popularDestinations.count) popular")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(AppTheme.textMuted)
+                    .font(BankingTypo.caption())
+                    .foregroundColor(BankingColors.textOnDarkMuted)
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, BankingSpacing.base)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -434,34 +408,34 @@ struct PlanListView: View {
 
     private var loadingView: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: AppTheme.Spacing.base) {
+            VStack(spacing: BankingSpacing.base) {
                 ForEach(0..<5, id: \.self) { index in
-                    ShimmerPlaceholder(cornerRadius: 16)
+                    ShimmerPlaceholder(cornerRadius: CGFloat(BankingRadius.card))
                         .frame(height: 80)
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, BankingSpacing.lg)
                         .bounceIn(delay: Double(index) * 0.08)
                 }
             }
-            .padding(.top, AppTheme.Spacing.md)
+            .padding(.top, BankingSpacing.md)
         }
     }
 
     private var emptyView: some View {
-        VStack(spacing: AppTheme.Spacing.lg) {
+        VStack(spacing: BankingSpacing.lg) {
             Spacer()
 
             Image(systemName: "simcard")
                 .font(.system(size: 32, weight: .medium))
-                .foregroundColor(AppTheme.textSecondary)
+                .foregroundColor(BankingColors.textOnDarkMuted)
 
-            VStack(spacing: AppTheme.Spacing.xs) {
+            VStack(spacing: BankingSpacing.xs) {
                 Text("No Plans Available")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(AppTheme.textPrimary)
+                    .font(BankingTypo.sectionTitle())
+                    .foregroundColor(BankingColors.textOnDarkPrimary)
 
                 Text("Pull to refresh")
-                    .font(AppTheme.Typography.caption())
-                    .foregroundColor(AppTheme.textSecondary)
+                    .font(BankingTypo.caption())
+                    .foregroundColor(BankingColors.textOnDarkMuted)
             }
 
             Spacer()
@@ -547,7 +521,7 @@ struct ESIMOrderRow: View {
             )
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .bold))
+                .font(AppTheme.Typography.navTitle())
                 .foregroundColor(AppTheme.textSecondary)
         }
         .padding(AppTheme.Spacing.md)
@@ -578,7 +552,7 @@ struct CountryCard: View {
                 .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
 
             Text(country)
-                .font(.system(size: 14, weight: .semibold))
+                .font(AppTheme.Typography.tabLabel())
                 .foregroundColor(AppTheme.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -632,7 +606,7 @@ struct CountryPlansView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(AppTheme.Typography.tabLabel())
                             .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 40, height: 40)
                             .background(Circle().fill(AppTheme.gray100))
@@ -643,7 +617,7 @@ struct CountryPlansView: View {
                     HStack(spacing: 8) {
                         FlagImage(code: countryCode, size: 28)
                         Text(country)
-                            .font(.system(size: 16, weight: .bold))
+                            .font(AppTheme.Typography.bodyMedium())
                             .foregroundColor(AppTheme.textPrimary)
                     }
 
@@ -700,7 +674,7 @@ struct TechChip: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 13, weight: isSelected ? .bold : .medium))
-                .foregroundColor(isSelected ? Color(hex: "0F172A") : AppTheme.textSecondary)
+                .foregroundColor(isSelected ? AppTheme.anthracite : AppTheme.textSecondary)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 10)
                 .background(
@@ -727,7 +701,7 @@ struct FilterChipEnhanced: View {
                 Text(title)
                     .font(.system(size: 13, weight: isSelected ? .bold : .semibold))
             }
-            .foregroundColor(isSelected ? Color(hex: "0F172A") : AppTheme.textSecondary)
+            .foregroundColor(isSelected ? AppTheme.anthracite : AppTheme.textSecondary)
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
             .background(
@@ -834,7 +808,7 @@ struct StockESIMRow: View {
                 .fixedSize()
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(AppTheme.Typography.navTitle())
                     .foregroundColor(AppTheme.textSecondary)
             }
         }
@@ -865,10 +839,10 @@ struct PlanTechRow: View {
                     Image(systemName: "crown.fill")
                         .font(.system(size: 9))
                     Text("BEST VALUE")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(AppTheme.Typography.label())
                         .tracking(1.2)
                 }
-                .foregroundColor(Color(hex: "0F172A"))
+                .foregroundColor(AppTheme.anthracite)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 7)
                 .background(AppTheme.accent)
@@ -886,15 +860,15 @@ struct PlanTechRow: View {
 
                     HStack(spacing: 12) {
                         Label("\(plan.dataGB) GB", systemImage: "arrow.down.circle.fill")
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(AppTheme.Typography.navTitle())
                             .foregroundColor(AppTheme.accent)
 
                         Label("\(plan.durationDays)d", systemImage: "clock")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(AppTheme.Typography.navTitle())
                             .foregroundColor(AppTheme.textTertiary)
 
                         Label(plan.speed, systemImage: "bolt.fill")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(AppTheme.Typography.navTitle())
                             .foregroundColor(AppTheme.textTertiary)
                     }
                     .labelStyle(CompactLabelStyle())
@@ -908,7 +882,7 @@ struct PlanTechRow: View {
                         .foregroundColor(AppTheme.textPrimary)
 
                     Text("one-time")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(AppTheme.Typography.smallMedium())
                         .foregroundColor(AppTheme.textMuted)
                 }
             }
@@ -916,10 +890,10 @@ struct PlanTechRow: View {
             .padding(.vertical, 16)
         }
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
                 .fill(AppTheme.backgroundPrimary)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
                         .stroke(
                             isBestValue ? AppTheme.accent.opacity(0.4) : AppTheme.border.opacity(0.3),
                             lineWidth: isBestValue ? 1.5 : 0.5
@@ -985,7 +959,7 @@ struct DestinationPill: View {
 
             VStack(spacing: 4) {
                 Text(name)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(AppTheme.Typography.captionSemibold())
                     .foregroundColor(AppTheme.textPrimary)
                     .lineLimit(1)
 
@@ -997,7 +971,7 @@ struct DestinationPill: View {
         .frame(width: 105)
         .padding(.vertical, 16)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
                 .fill(AppTheme.backgroundPrimary)
                 .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
                 .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
@@ -1022,7 +996,7 @@ struct DestinationCardEnhanced: View {
                 if rank > 0 && rank <= 3 {
                     Text("#\(rank)")
                         .font(.system(size: 9, weight: .bold, design: .rounded))
-                        .foregroundColor(rank == 1 ? Color(hex: "0F172A") : .white)
+                        .foregroundColor(rank == 1 ? AppTheme.anthracite : .white)
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)
                         .background(
@@ -1037,12 +1011,12 @@ struct DestinationCardEnhanced: View {
 
             VStack(spacing: 3) {
                 Text(name)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(AppTheme.Typography.button())
                     .foregroundColor(AppTheme.textPrimary)
                     .lineLimit(1)
 
                 Text("\(count) plans")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(AppTheme.Typography.smallMedium())
                     .foregroundColor(AppTheme.textMuted)
             }
 
@@ -1062,13 +1036,13 @@ struct DestinationCardEnhanced: View {
         }
         .frame(width: 110)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
                 .fill(AppTheme.backgroundPrimary)
                 .shadow(color: Color.black.opacity(0.02), radius: 1, x: 0, y: 1)
                 .shadow(color: Color.black.opacity(0.08), radius: 14, x: 0, y: 5)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
                 .stroke(AppTheme.border.opacity(0.3), lineWidth: 0.5)
         )
     }
@@ -1110,7 +1084,7 @@ struct ErrorStateTech: View {
             VStack(spacing: AppTheme.Spacing.sm) {
                 Text("Connection Error")
                     .font(AppTheme.Typography.cardAmount())
-                    .foregroundColor(.white)
+                    .foregroundColor(AppTheme.textPrimary)
 
                 Text(message)
                     .font(AppTheme.Typography.body())
@@ -1123,7 +1097,7 @@ struct ErrorStateTech: View {
                 Text("TRY AGAIN")
                     .font(AppTheme.Typography.small())
                     .tracking(1.2)
-                    .foregroundColor(Color(hex: "0F172A"))
+                    .foregroundColor(AppTheme.anthracite)
                     .padding(.horizontal, AppTheme.Spacing.xxl)
                     .padding(.vertical, AppTheme.Spacing.md)
                     .background(

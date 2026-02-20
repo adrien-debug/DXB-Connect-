@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { loginSchema, type LoginInput } from '@/lib/validations/schemas'
-import { Check, Gift, Loader2, Mail, Lock, Wifi, ArrowRight, ArrowLeft, Star } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Gift, Loader2, Lock, Mail, Star, Wifi } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
 
 export default function RegisterPage() {
   const { signUp, loading: authLoading } = useAuth()
@@ -14,6 +15,7 @@ export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false)
   const [focused, setFocused] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,14 +81,7 @@ export default function RegisterPage() {
 
             <Link
               href="/login"
-              className="
-                inline-flex items-center justify-center gap-2
-                w-full h-12 rounded-full
-                bg-lime-400 hover:bg-lime-300
-                text-black font-medium text-sm
-                shadow-md shadow-lime-400/20 hover:shadow-lg hover:shadow-lime-400/30
-                transition-all duration-200
-              "
+              className="inline-flex items-center justify-center gap-2 w-full h-12 rounded-full bg-lime-400 hover:bg-lime-300 text-black font-medium text-sm shadow-md shadow-lime-400/20 hover:shadow-lg hover:shadow-lime-400/30 transition-all duration-200"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to sign in
@@ -103,7 +98,6 @@ export default function RegisterPage() {
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6">
         <div className="w-full max-w-md animate-fade-in-up">
           <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/5 border border-gray-light">
-            {/* Logo */}
             <div className="flex justify-center mb-6 sm:mb-8">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-lime-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-lime-400/20">
@@ -124,7 +118,6 @@ export default function RegisterPage() {
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray">Email</label>
                 <div className="relative">
@@ -149,7 +142,6 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {/* Password */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray">Password</label>
                 <div className="relative">
@@ -174,7 +166,6 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {/* Confirm Password */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray">Confirm password</label>
                 <div className="relative">
@@ -199,7 +190,6 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {/* Submit */}
               <div className="pt-2">
                 <button
                   type="submit"
@@ -248,37 +238,51 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Right: Benefits panel (hidden on mobile) */}
-      <div className="hidden lg:flex flex-1 items-center justify-center bg-gray-light/30 border-l border-gray-light px-12">
-        <div className="max-w-sm space-y-6">
-          <h2 className="text-2xl font-bold text-black">
-            Join 10,000+ travelers.
-          </h2>
-          <p className="text-sm text-gray leading-relaxed">
-            Create your free account and instantly unlock eSIM connectivity, travel perks, and rewards.
-          </p>
-          <div className="space-y-4">
-            {[
-              { icon: Wifi, label: 'Instant eSIM activation in 120+ countries' },
-              { icon: Gift, label: 'Partner discounts on activities, lounges & insurance' },
-              { icon: Star, label: 'Earn XP, complete missions, enter raffles' },
-            ].map((item) => {
-              const Icon = item.icon
-              return (
-                <div key={item.label} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-lime-400/20 border border-lime-400/30 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-4 h-4 text-lime-600" />
-                  </div>
-                  <span className="text-sm text-black">{item.label}</span>
-                </div>
-              )
-            })}
-          </div>
+      {/* Right: Image panel (hidden on mobile) */}
+      <div className="hidden lg:block relative flex-1 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+        {!imgError && (
+          <Image
+            src="/images/hero-register.jpg"
+            alt="Travel destination"
+            fill
+            className="object-cover"
+            onError={() => setImgError(true)}
+          />
+        )}
+        <div className="absolute inset-0 bg-black/50" />
 
-          <div className="p-4 rounded-xl bg-white border border-gray-light">
-            <div className="text-xs text-gray mb-1">Membership plans from</div>
-            <div className="text-lg font-bold text-black">$9.99<span className="text-sm font-normal text-gray">/mo</span></div>
-            <div className="text-xs text-lime-600 font-semibold">Save up to 50% on every eSIM</div>
+        <div className="relative z-10 flex items-center justify-center h-full p-12">
+          <div className="max-w-sm space-y-6">
+            <h2 className="text-2xl font-bold text-white">
+              Join 10,000+ travelers.
+            </h2>
+            <p className="text-sm text-white/70 leading-relaxed">
+              Create your free account and instantly unlock eSIM connectivity, travel perks, and rewards.
+            </p>
+            <div className="space-y-4">
+              {[
+                { icon: Wifi, label: 'Instant eSIM activation in 120+ countries' },
+                { icon: Gift, label: 'Partner discounts on activities, lounges & insurance' },
+                { icon: Star, label: 'Earn XP, complete missions, enter raffles' },
+              ].map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.label} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-4 h-4 text-lime-400" />
+                    </div>
+                    <span className="text-sm text-white">{item.label}</span>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="p-4 rounded-xl bg-white/10 border border-white/20 backdrop-blur-sm">
+              <div className="text-xs text-white/60 mb-1">Membership plans from</div>
+              <div className="text-lg font-bold text-white">$9.99<span className="text-sm font-normal text-white/60">/mo</span></div>
+              <div className="text-xs text-lime-400 font-semibold">Save up to 50% on every eSIM</div>
+            </div>
           </div>
         </div>
       </div>

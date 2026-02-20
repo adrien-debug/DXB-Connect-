@@ -3,6 +3,7 @@
 import { useAuth } from '@/hooks/useAuth'
 import { loginSchema, type LoginInput } from '@/lib/validations/schemas'
 import { ArrowRight, Gift, Loader2, Lock, Mail, Shield, Star, User, Wifi } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<Partial<LoginInput>>({})
   const [submitting, setSubmitting] = useState(false)
   const [focused, setFocused] = useState<string | null>(null)
+  const [imgError, setImgError] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,7 +63,6 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6">
         <div className="w-full max-w-md animate-fade-in-up">
           <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/5 border border-gray-light">
-            {/* Logo */}
             <div className="flex justify-center mb-6 sm:mb-8">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-lime-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-lime-400/20">
@@ -82,17 +83,10 @@ export default function LoginPage() {
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray">
-                  Email
-                </label>
+                <label className="block text-sm font-medium text-gray">Email</label>
                 <div className="relative">
-                  <div className={`
-                    absolute left-4 top-1/2 -translate-y-1/2
-                    transition-colors duration-300
-                    ${focused === 'email' ? 'text-lime-500' : 'text-gray'}
-                  `}>
+                  <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focused === 'email' ? 'text-lime-500' : 'text-gray'}`}>
                     <Mail size={18} />
                   </div>
                   <input
@@ -102,19 +96,7 @@ export default function LoginPage() {
                     onFocus={() => setFocused('email')}
                     onBlur={() => setFocused(null)}
                     placeholder="you@example.com"
-                    className={`
-                      w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                      bg-white border rounded-xl text-black
-                      focus:outline-none
-                      transition-all ease-hearst duration-300
-                      placeholder:text-gray
-                      ${errors.email
-                        ? 'border-red-400 bg-red-50'
-                        : focused === 'email'
-                          ? 'border-lime-400 ring-[3px] ring-lime-400/20'
-                          : 'border-gray-light hover:border-gray'
-                      }
-                    `}
+                    className={`w-full pl-12 pr-4 py-3 min-h-[2.75rem] bg-white border rounded-xl text-black focus:outline-none transition-all ease-hearst duration-300 placeholder:text-gray ${errors.email ? 'border-red-400 bg-red-50' : focused === 'email' ? 'border-lime-400 ring-[3px] ring-lime-400/20' : 'border-gray-light hover:border-gray'}`}
                   />
                 </div>
                 {errors.email && (
@@ -125,17 +107,10 @@ export default function LoginPage() {
                 )}
               </div>
 
-              {/* Password */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray">
-                  Password
-                </label>
+                <label className="block text-sm font-medium text-gray">Password</label>
                 <div className="relative">
-                  <div className={`
-                    absolute left-4 top-1/2 -translate-y-1/2
-                    transition-colors duration-300
-                    ${focused === 'password' ? 'text-lime-500' : 'text-gray'}
-                  `}>
+                  <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focused === 'password' ? 'text-lime-500' : 'text-gray'}`}>
                     <Lock size={18} />
                   </div>
                   <input
@@ -145,19 +120,7 @@ export default function LoginPage() {
                     onFocus={() => setFocused('password')}
                     onBlur={() => setFocused(null)}
                     placeholder="••••••••"
-                    className={`
-                      w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                      bg-white border rounded-xl text-black
-                      focus:outline-none
-                      transition-all ease-hearst duration-300
-                      placeholder:text-gray
-                      ${errors.password
-                        ? 'border-red-400 bg-red-50'
-                        : focused === 'password'
-                          ? 'border-lime-400 ring-[3px] ring-lime-400/20'
-                          : 'border-gray-light hover:border-gray'
-                      }
-                    `}
+                    className={`w-full pl-12 pr-4 py-3 min-h-[2.75rem] bg-white border rounded-xl text-black focus:outline-none transition-all ease-hearst duration-300 placeholder:text-gray ${errors.password ? 'border-red-400 bg-red-50' : focused === 'password' ? 'border-lime-400 ring-[3px] ring-lime-400/20' : 'border-gray-light hover:border-gray'}`}
                   />
                 </div>
                 {errors.password && (
@@ -168,20 +131,11 @@ export default function LoginPage() {
                 )}
               </div>
 
-              {/* Submit */}
               <div className="pt-2">
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="
-                    w-full h-12 rounded-full
-                    bg-lime-400 hover:bg-lime-300
-                    text-black font-semibold text-sm
-                    shadow-md shadow-lime-400/20 hover:shadow-lg hover:shadow-lime-400/30
-                    transition-all duration-200
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    flex items-center justify-center gap-2
-                  "
+                  className="w-full h-12 rounded-full bg-lime-400 hover:bg-lime-300 text-black font-semibold text-sm shadow-md shadow-lime-400/20 hover:shadow-lg hover:shadow-lime-400/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <span className="flex items-center justify-center gap-2">
                     {submitting ? (
@@ -265,34 +219,48 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right: Benefits panel (hidden on mobile) */}
-      <div className="hidden lg:flex flex-1 items-center justify-center bg-gray-light/30 border-l border-gray-light px-12">
-        <div className="max-w-sm space-y-6">
-          <h2 className="text-2xl font-bold text-black">
-            More than just data.
-          </h2>
-          <p className="text-sm text-gray leading-relaxed">
-            Sign in to unlock travel perks, earn rewards, and save up to 50% on every eSIM.
-          </p>
-          <div className="space-y-4">
-            {[
-              { icon: Wifi, title: '120+ countries', desc: 'Global eSIM coverage' },
-              { icon: Gift, title: 'Travel perks', desc: 'Partner discounts worldwide' },
-              { icon: Star, title: 'Rewards program', desc: 'Earn XP, win prizes' },
-            ].map((item) => {
-              const Icon = item.icon
-              return (
-                <div key={item.title} className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-lime-400/20 border border-lime-400/30 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-5 h-5 text-lime-600" />
+      {/* Right: Image panel (hidden on mobile) */}
+      <div className="hidden lg:block relative flex-1 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+        {!imgError && (
+          <Image
+            src="/images/hero-login.jpg"
+            alt="Travel destination"
+            fill
+            className="object-cover"
+            onError={() => setImgError(true)}
+          />
+        )}
+        <div className="absolute inset-0 bg-black/50" />
+
+        <div className="relative z-10 flex items-center justify-center h-full p-16">
+          <div className="max-w-md space-y-8">
+            <h2 className="text-3xl font-bold text-white tracking-tight">
+              More than just data.
+            </h2>
+            <p className="text-base text-white/60 leading-relaxed">
+              Sign in to unlock travel perks, earn rewards, and save up to 50% on every eSIM.
+            </p>
+            <div className="space-y-5">
+              {[
+                { icon: Wifi, title: '120+ countries', desc: 'Global eSIM coverage' },
+                { icon: Gift, title: 'Travel perks', desc: 'Partner discounts worldwide' },
+                { icon: Star, title: 'Rewards program', desc: 'Earn XP, win prizes' },
+              ].map((item) => {
+                const Icon = item.icon
+                return (
+                  <div key={item.title} className="flex items-center gap-4">
+                    <div className="w-11 h-11 rounded-xl bg-lime-400/15 border border-lime-400/25 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-5 h-5 text-lime-400" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white">{item.title}</div>
+                      <div className="text-xs text-white/50">{item.desc}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm font-semibold text-black">{item.title}</div>
-                    <div className="text-xs text-gray">{item.desc}</div>
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>

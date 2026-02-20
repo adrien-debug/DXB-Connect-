@@ -38,14 +38,18 @@ struct DesignShowcaseView: View {
     }
 }
 
-// MARK: - Mock Dashboard
+// MARK: - Mock Dashboard (Banking Style)
 
 struct MockDashboardView: View {
     @State private var ringAppear = false
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     var body: some View {
         ZStack {
-            Color(hex: "09090B").ignoresSafeArea()
+            BankingColors.backgroundPrimary.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
@@ -58,50 +62,50 @@ struct MockDashboardView: View {
 
     private var mockHeroHeader: some View {
         VStack(spacing: 0) {
-            HStack(spacing: AppTheme.Spacing.sm) {
+            HStack(spacing: BankingSpacing.sm) {
                 Circle()
-                    .fill(Color(hex: "CDFF00"))
+                    .fill(BankingColors.accent)
                     .frame(width: 36, height: 36)
                     .overlay(
                         Text("A")
                             .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(Color(hex: "0F172A"))
+                            .foregroundColor(BankingColors.backgroundPrimary)
                     )
 
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Good evening")
-                        .font(.system(size: 11, weight: .regular))
-                        .foregroundColor(Color(hex: "71717A"))
+                        .font(BankingTypo.caption())
+                        .foregroundColor(BankingColors.textOnDarkMuted)
 
                     Text("Adrien")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
+                        .font(BankingTypo.sectionTitle())
+                        .foregroundColor(BankingColors.textOnDarkPrimary)
                 }
 
                 Spacer()
 
                 HStack(spacing: 8) {
                     Circle()
-                        .fill(Color(hex: "27272A"))
+                        .fill(BankingColors.backgroundTertiary)
                         .frame(width: 36, height: 36)
                         .overlay(
                             Image(systemName: "ellipsis")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white)
+                                .foregroundColor(BankingColors.textOnDarkPrimary)
                         )
 
                     ZStack(alignment: .topTrailing) {
                         Circle()
-                            .fill(Color(hex: "27272A"))
+                            .fill(BankingColors.backgroundTertiary)
                             .frame(width: 36, height: 36)
                             .overlay(
                                 Image(systemName: "bell")
                                     .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(BankingColors.textOnDarkPrimary)
                             )
 
                         Circle()
-                            .fill(Color(hex: "CDFF00"))
+                            .fill(Color(hex: "BAFF39"))
                             .frame(width: 8, height: 8)
                             .offset(x: 0, y: 2)
                     }
@@ -115,12 +119,12 @@ struct MockDashboardView: View {
                 VStack(spacing: 4) {
                     Text("Total Balance")
                         .font(.system(size: 13, weight: .regular))
-                        .foregroundColor(Color(hex: "0F172A").opacity(0.6))
+                        .foregroundColor(Color(hex: "6E6E6E").opacity(0.6))
 
                     Text("$8,312.64")
                         .font(.system(size: 48, weight: .bold, design: .rounded))
                         .tracking(-2)
-                        .foregroundColor(Color(hex: "0F172A"))
+                        .foregroundColor(Color(hex: "6E6E6E"))
                 }
                 .padding(.top, 8)
 
@@ -135,7 +139,7 @@ struct MockDashboardView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .background(RoundedRectangle(cornerRadius: 14).fill(Color(hex: "0F172A")))
+                        .background(RoundedRectangle(cornerRadius: 14).fill(Color(hex: "6E6E6E")))
                     }
 
                     Button {} label: {
@@ -148,13 +152,13 @@ struct MockDashboardView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .background(RoundedRectangle(cornerRadius: 14).fill(Color(hex: "0F172A")))
+                        .background(RoundedRectangle(cornerRadius: 14).fill(Color(hex: "6E6E6E")))
                     }
 
                     Button {} label: {
                         Image(systemName: "square.grid.2x2")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Color(hex: "0F172A"))
+                            .foregroundColor(Color(hex: "6E6E6E"))
                             .frame(width: 48, height: 48)
                             .background(
                                 RoundedRectangle(cornerRadius: 14)
@@ -166,7 +170,7 @@ struct MockDashboardView: View {
                 .padding(.bottom, 20)
             }
             .frame(maxWidth: .infinity)
-            .background(Color(hex: "CDFF00"))
+            .background(Color(hex: "BAFF39"))
         }
     }
 
@@ -189,7 +193,7 @@ struct MockDashboardView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Cards")
                 .font(.system(size: 22, weight: .semibold))
-                .foregroundColor(Color(hex: "09090B"))
+                .foregroundColor(Color(hex: "6E6E6E"))
                 .padding(.horizontal, 20)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -202,13 +206,13 @@ struct MockDashboardView: View {
                             Spacer()
                             Image(systemName: "plus")
                                 .font(.system(size: 24, weight: .light))
-                                .foregroundColor(Color(hex: "A1A1AA"))
+                                .foregroundColor(Color(hex: "A3A3A3"))
                             Spacer()
                         }
                         .frame(width: 80, height: 100)
                         .background(
                             RoundedRectangle(cornerRadius: 18)
-                                .fill(Color(hex: "F4F4F5"))
+                                .fill(Color(hex: "F5F5F5"))
                         )
                     }
                 }
@@ -222,12 +226,12 @@ struct MockDashboardView: View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .stroke(Color(hex: "E4E4E7"), lineWidth: 4)
+                    .stroke(Color(hex: "E5E5E5"), lineWidth: 4)
                     .frame(width: 44, height: 44)
 
                 Circle()
                     .trim(from: 0, to: 0.69)
-                    .stroke(Color(hex: "CDFF00"), style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .stroke(Color(hex: "BAFF39"), style: StrokeStyle(lineWidth: 4, lineCap: .round))
                     .frame(width: 44, height: 44)
                     .rotationEffect(.degrees(-90))
             }
@@ -235,11 +239,11 @@ struct MockDashboardView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Monthly budget")
                     .font(.system(size: 15, weight: .regular))
-                    .foregroundColor(Color(hex: "09090B"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
 
                 Text("$110.87 a day")
                     .font(.system(size: 13, weight: .regular))
-                    .foregroundColor(Color(hex: "71717A"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
             }
 
             Spacer()
@@ -247,11 +251,11 @@ struct MockDashboardView: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text("$1,219.57")
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(Color(hex: "09090B"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
 
                 Text("left of $4,000.00")
                     .font(.system(size: 13, weight: .regular))
-                    .foregroundColor(Color(hex: "71717A"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
             }
         }
         .padding(.horizontal, 20)
@@ -262,15 +266,15 @@ struct MockDashboardView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Recent transactions")
                 .font(.system(size: 22, weight: .semibold))
-                .foregroundColor(Color(hex: "09090B"))
+                .foregroundColor(Color(hex: "6E6E6E"))
                 .padding(.horizontal, 20)
 
             VStack(spacing: 0) {
-                MockTransactionRow(icon: "simcard.fill", name: "Dubai eSIM", subtitle: "Data Plan", amount: "-$12.99", time: "6:41 PM", isExpense: true, iconBg: Color(hex: "CDFF00"))
-                MockTransactionRow(icon: "person.fill", name: "Bob Green", subtitle: "Transaction", amount: "+$750.00", time: "4:17 PM", isExpense: false, iconBg: Color(hex: "E4E4E7"))
-                MockTransactionRow(icon: "airplane", name: "Travel Pass", subtitle: "LA—Dubai", amount: "-$47.49", time: "2:32 PM", isExpense: true, iconBg: Color(hex: "E4E4E7"))
-                MockTransactionRow(icon: "globe", name: "Europe Pack", subtitle: "10GB Data", amount: "-$24.99", time: "11:45 AM", isExpense: true, iconBg: Color(hex: "CDFF00"))
-                MockTransactionRow(icon: "arrow.down.circle.fill", name: "Top Up", subtitle: "Balance", amount: "+$500.00", time: "8:20 AM", isExpense: false, iconBg: Color(hex: "E4E4E7"))
+                MockTransactionRow(icon: "simcard.fill", name: "Dubai eSIM", subtitle: "Data Plan", amount: "-$12.99", time: "6:41 PM", isExpense: true, iconBg: Color(hex: "BAFF39"))
+                MockTransactionRow(icon: "person.fill", name: "Bob Green", subtitle: "Transaction", amount: "+$750.00", time: "4:17 PM", isExpense: false, iconBg: Color(hex: "E5E5E5"))
+                MockTransactionRow(icon: "airplane", name: "Travel Pass", subtitle: "LA—Dubai", amount: "-$47.49", time: "2:32 PM", isExpense: true, iconBg: Color(hex: "E5E5E5"))
+                MockTransactionRow(icon: "globe", name: "Europe Pack", subtitle: "10GB Data", amount: "-$24.99", time: "11:45 AM", isExpense: true, iconBg: Color(hex: "BAFF39"))
+                MockTransactionRow(icon: "arrow.down.circle.fill", name: "Top Up", subtitle: "Balance", amount: "+$500.00", time: "8:20 AM", isExpense: false, iconBg: Color(hex: "E5E5E5"))
             }
         }
     }
@@ -290,7 +294,7 @@ struct MockESIMCard: View {
             HStack {
                 Image(systemName: "simcard.fill")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(isDark ? Color(hex: "CDFF00") : Color(hex: "09090B"))
+                    .foregroundColor(isDark ? Color(hex: "BAFF39") : Color(hex: "6E6E6E"))
                 Spacer()
             }
 
@@ -298,29 +302,29 @@ struct MockESIMCard: View {
 
             Text(data)
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(isDark ? .white : Color(hex: "09090B"))
+                .foregroundColor(isDark ? .white : Color(hex: "6E6E6E"))
 
             HStack(spacing: 6) {
                 Text(type)
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(isDark ? Color(hex: "CDFF00") : .white)
+                    .foregroundColor(isDark ? Color(hex: "BAFF39") : .white)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(
                         Capsule()
-                            .fill(isDark ? Color(hex: "CDFF00").opacity(0.2) : Color(hex: "09090B"))
+                            .fill(isDark ? Color(hex: "BAFF39").opacity(0.2) : Color(hex: "6E6E6E"))
                     )
 
                 Text(iccid)
                     .font(.system(size: 11, weight: .regular))
             }
-            .foregroundColor(isDark ? .white.opacity(0.5) : Color(hex: "71717A"))
+            .foregroundColor(isDark ? .white.opacity(0.5) : Color(hex: "6E6E6E"))
         }
         .padding(12)
         .frame(width: 160, height: 100)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(isDark ? Color(hex: "18181B") : Color(hex: "E4E4E7"))
+                .fill(isDark ? Color(hex: "6E6E6E") : Color(hex: "E5E5E5"))
         )
     }
 }
@@ -344,18 +348,18 @@ struct MockTransactionRow: View {
                 .overlay(
                     Image(systemName: icon)
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(iconBg == Color(hex: "CDFF00") ? Color(hex: "09090B") : Color(hex: "52525B"))
+                        .foregroundColor(iconBg == Color(hex: "BAFF39") ? Color(hex: "6E6E6E") : Color(hex: "525252"))
                 )
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(name)
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(Color(hex: "09090B"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
                     .lineLimit(1)
 
                 Text(subtitle)
                     .font(.system(size: 13, weight: .regular))
-                    .foregroundColor(Color(hex: "71717A"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
             }
 
             Spacer()
@@ -363,11 +367,11 @@ struct MockTransactionRow: View {
             VStack(alignment: .trailing, spacing: 3) {
                 Text(amount)
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(isExpense ? Color(hex: "09090B") : Color(hex: "16A34A"))
+                    .foregroundColor(isExpense ? Color(hex: "6E6E6E") : Color(hex: "16A34A"))
 
                 Text(time)
                     .font(.system(size: 13, weight: .regular))
-                    .foregroundColor(Color(hex: "71717A"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
             }
         }
         .padding(.horizontal, 20)
@@ -384,14 +388,14 @@ struct MockExploreView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "09090B").ignoresSafeArea()
+            Color(hex: "6E6E6E").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("ESIM PLANS")
                         .font(.system(size: 10, weight: .bold))
                         .tracking(1.2)
-                        .foregroundColor(Color(hex: "71717A"))
+                        .foregroundColor(Color(hex: "6E6E6E"))
 
                     Text("Explore")
                         .font(.system(size: 26, weight: .bold))
@@ -399,7 +403,7 @@ struct MockExploreView: View {
 
                     Text("124 plans available")
                         .font(.system(size: 11, weight: .regular))
-                        .foregroundColor(Color(hex: "71717A"))
+                        .foregroundColor(Color(hex: "6E6E6E"))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
@@ -410,7 +414,7 @@ struct MockExploreView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(Color(hex: "71717A"))
+                            .foregroundColor(Color(hex: "6E6E6E"))
 
                         TextField("Search plans...", text: $searchText)
                             .font(.system(size: 14, weight: .medium))
@@ -419,10 +423,10 @@ struct MockExploreView: View {
                     .padding(12)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(Color(hex: "18181B"))
+                            .fill(Color(hex: "6E6E6E"))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color(hex: "27272A"), lineWidth: 1)
+                                    .stroke(Color(hex: "525252"), lineWidth: 1)
                             )
                     )
 
@@ -483,15 +487,15 @@ struct MockChip: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 13, weight: .regular))
-                .foregroundColor(isSelected ? .black : Color(hex: "71717A"))
+                .foregroundColor(isSelected ? .black : Color(hex: "6E6E6E"))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 9)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(isSelected ? Color(hex: "CDFF00") : Color(hex: "18181B"))
+                        .fill(isSelected ? Color(hex: "BAFF39") : Color(hex: "6E6E6E"))
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
-                                .stroke(isSelected ? Color.clear : Color(hex: "27272A"), lineWidth: 1)
+                                .stroke(isSelected ? Color.clear : Color(hex: "525252"), lineWidth: 1)
                         )
                 )
         }
@@ -509,7 +513,7 @@ struct MockPlanRow: View {
     var body: some View {
         HStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color(hex: "27272A"))
+                .fill(Color(hex: "525252"))
                 .frame(width: 48, height: 48)
                 .overlay(
                     Text(flag)
@@ -531,7 +535,7 @@ struct MockPlanRow: View {
                     Text(speed)
                         .font(.system(size: 11, weight: .regular))
                 }
-                .foregroundColor(Color(hex: "71717A"))
+                .foregroundColor(Color(hex: "6E6E6E"))
             }
 
             Spacer()
@@ -542,15 +546,15 @@ struct MockPlanRow: View {
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 11, weight: .medium))
-                .foregroundColor(Color(hex: "71717A"))
+                .foregroundColor(Color(hex: "6E6E6E"))
         }
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color(hex: "18181B"))
+                .fill(Color(hex: "6E6E6E"))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
-                        .stroke(Color(hex: "27272A"), lineWidth: 1)
+                        .stroke(Color(hex: "525252"), lineWidth: 1)
                 )
         )
     }
@@ -563,14 +567,14 @@ struct MockMyESIMsView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "09090B").ignoresSafeArea()
+            Color(hex: "6E6E6E").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("MY ESIMS")
                         .font(.system(size: 10, weight: .bold))
                         .tracking(1.2)
-                        .foregroundColor(Color(hex: "71717A"))
+                        .foregroundColor(Color(hex: "6E6E6E"))
 
                     Text("Your eSIMs")
                         .font(.system(size: 26, weight: .bold))
@@ -589,12 +593,12 @@ struct MockMyESIMsView: View {
                         } label: {
                             Text(tab)
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(selectedSegment == idx ? .black : Color(hex: "71717A"))
+                                .foregroundColor(selectedSegment == idx ? .black : Color(hex: "6E6E6E"))
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 40)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .fill(selectedSegment == idx ? Color(hex: "CDFF00") : Color.clear)
+                                        .fill(selectedSegment == idx ? Color(hex: "BAFF39") : Color.clear)
                                 )
                         }
                     }
@@ -602,7 +606,7 @@ struct MockMyESIMsView: View {
                 .padding(4)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(hex: "18181B"))
+                        .fill(Color(hex: "6E6E6E"))
                 )
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)
@@ -619,10 +623,10 @@ struct MockMyESIMsView: View {
                             MockESIMRow(flag: "🇹🇷", name: "Turkey 3GB - 15 Days", data: "3 GB", status: "ACTIVE", statusColor: Color(hex: "16A34A"))
                         }.buttonStyle(.plain)
                         NavigationLink { MockESIMDetailView() } label: {
-                            MockESIMRow(flag: "🇸🇦", name: "Saudi Arabia 2GB", data: "2 GB", status: "EXPIRED", statusColor: Color(hex: "71717A"))
+                            MockESIMRow(flag: "🇸🇦", name: "Saudi Arabia 2GB", data: "2 GB", status: "EXPIRED", statusColor: Color(hex: "6E6E6E"))
                         }.buttonStyle(.plain)
                         NavigationLink { MockESIMDetailView() } label: {
-                            MockESIMRow(flag: "🇺🇸", name: "USA 5GB - 7 Days", data: "5 GB", status: "EXPIRED", statusColor: Color(hex: "71717A"))
+                            MockESIMRow(flag: "🇺🇸", name: "USA 5GB - 7 Days", data: "5 GB", status: "EXPIRED", statusColor: Color(hex: "6E6E6E"))
                         }.buttonStyle(.plain)
                     }
                     .padding(.horizontal, 16)
@@ -644,7 +648,7 @@ struct MockESIMRow: View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(hex: "27272A"))
+                    .fill(Color(hex: "525252"))
                     .frame(width: 48, height: 48)
 
                 Text(flag)
@@ -665,7 +669,7 @@ struct MockESIMRow: View {
                             .font(.system(size: 11, weight: .regular))
                     }
                 }
-                .foregroundColor(Color(hex: "71717A"))
+                .foregroundColor(Color(hex: "6E6E6E"))
             }
 
             Spacer()
@@ -689,15 +693,15 @@ struct MockESIMRow: View {
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundColor(Color(hex: "52525B"))
+                .foregroundColor(Color(hex: "525252"))
         }
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color(hex: "18181B"))
+                .fill(Color(hex: "6E6E6E"))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
-                        .stroke(Color(hex: "27272A"), lineWidth: 1)
+                        .stroke(Color(hex: "525252"), lineWidth: 1)
                 )
         )
     }
@@ -710,7 +714,7 @@ struct MockProfileView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "09090B").ignoresSafeArea()
+            Color(hex: "6E6E6E").ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 16) {
@@ -731,12 +735,12 @@ struct MockProfileView: View {
     private var mockProfileHeader: some View {
         VStack(spacing: 12) {
             Circle()
-                .fill(Color(hex: "CDFF00"))
+                .fill(Color(hex: "BAFF39"))
                 .frame(width: 64, height: 64)
                 .overlay(
                     Text("A")
                         .font(.system(size: 24, weight: .semibold))
-                        .foregroundColor(Color(hex: "0F172A"))
+                        .foregroundColor(Color(hex: "6E6E6E"))
                 )
 
             VStack(spacing: 4) {
@@ -746,17 +750,17 @@ struct MockProfileView: View {
 
                 Text("adrien@dxbconnect.com")
                     .font(.system(size: 11, weight: .regular))
-                    .foregroundColor(Color(hex: "71717A"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
 
                 Text("PRO")
                     .font(.system(size: 10, weight: .bold))
                     .tracking(0.8)
-                    .foregroundColor(Color(hex: "CDFF00"))
+                    .foregroundColor(Color(hex: "BAFF39"))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background(
                         Capsule()
-                            .fill(Color(hex: "CDFF00").opacity(0.1))
+                            .fill(Color(hex: "BAFF39").opacity(0.1))
                     )
             }
         }
@@ -766,18 +770,18 @@ struct MockProfileView: View {
     private var mockStatsCard: some View {
         HStack(spacing: 0) {
             MockProfileStat(value: "5", label: "ESIMS", icon: "simcard.fill")
-            Rectangle().fill(Color(hex: "27272A")).frame(width: 1, height: 32)
+            Rectangle().fill(Color(hex: "525252")).frame(width: 1, height: 32)
             MockProfileStat(value: "4", label: "COUNTRIES", icon: "globe")
-            Rectangle().fill(Color(hex: "27272A")).frame(width: 1, height: 32)
+            Rectangle().fill(Color(hex: "525252")).frame(width: 1, height: 32)
             MockProfileStat(value: "$36", label: "SAVED", icon: "dollarsign.circle.fill")
         }
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color(hex: "18181B"))
+                .fill(Color(hex: "6E6E6E"))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color(hex: "27272A"), lineWidth: 1)
+                        .stroke(Color(hex: "525252"), lineWidth: 1)
                 )
         )
     }
@@ -833,10 +837,10 @@ struct MockProfileView: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(Color(hex: "18181B"))
+                    .fill(Color(hex: "6E6E6E"))
                     .overlay(
                         RoundedRectangle(cornerRadius: 14)
-                            .stroke(Color(hex: "27272A"), lineWidth: 1)
+                            .stroke(Color(hex: "525252"), lineWidth: 1)
                     )
             )
         }
@@ -847,11 +851,11 @@ struct MockProfileView: View {
             Text("DXB CONNECT")
                 .font(.system(size: 10, weight: .bold))
                 .tracking(1.5)
-                .foregroundColor(Color(hex: "52525B"))
+                .foregroundColor(Color(hex: "525252"))
 
             Text("Version 1.0.0")
                 .font(.system(size: 10, weight: .bold))
-                .foregroundColor(Color(hex: "3F3F46"))
+                .foregroundColor(Color(hex: "404040"))
         }
         .padding(.top, 8)
     }
@@ -868,7 +872,7 @@ struct MockProfileStat: View {
         VStack(spacing: 5) {
             Image(systemName: icon)
                 .font(.system(size: 11, weight: .regular))
-                .foregroundColor(Color(hex: "52525B"))
+                .foregroundColor(Color(hex: "525252"))
 
             Text(value)
                 .font(.system(size: 18, weight: .semibold))
@@ -877,7 +881,7 @@ struct MockProfileStat: View {
             Text(label)
                 .font(.system(size: 10, weight: .bold))
                 .tracking(0.5)
-                .foregroundColor(Color(hex: "52525B"))
+                .foregroundColor(Color(hex: "525252"))
         }
         .frame(maxWidth: .infinity)
     }
@@ -892,15 +896,15 @@ struct MockSectionCard<Content: View>: View {
             Text(title)
                 .font(.system(size: 10, weight: .bold))
                 .tracking(1.5)
-                .foregroundColor(Color(hex: "52525B"))
+                .foregroundColor(Color(hex: "525252"))
 
             content()
                 .background(
                     RoundedRectangle(cornerRadius: 14)
-                        .fill(Color(hex: "18181B"))
+                        .fill(Color(hex: "6E6E6E"))
                         .overlay(
                             RoundedRectangle(cornerRadius: 14)
-                                .stroke(Color(hex: "27272A"), lineWidth: 1)
+                                .stroke(Color(hex: "525252"), lineWidth: 1)
                         )
                 )
         }
@@ -917,7 +921,7 @@ struct MockSettingsRow: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 15, weight: .regular))
-                .foregroundColor(Color(hex: "52525B"))
+                .foregroundColor(Color(hex: "525252"))
                 .frame(width: 24)
 
             Text(title)
@@ -929,21 +933,21 @@ struct MockSettingsRow: View {
             if let badge = badge {
                 Text(badge)
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(Color(hex: "CDFF00"))
+                    .foregroundColor(Color(hex: "BAFF39"))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(Capsule().fill(Color(hex: "CDFF00").opacity(0.12)))
+                    .background(Capsule().fill(Color(hex: "BAFF39").opacity(0.12)))
             }
 
             if let value = value {
                 Text(value)
                     .font(.system(size: 13, weight: .regular))
-                    .foregroundColor(Color(hex: "52525B"))
+                    .foregroundColor(Color(hex: "525252"))
             }
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 11, weight: .medium))
-                .foregroundColor(Color(hex: "52525B"))
+                .foregroundColor(Color(hex: "525252"))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 13)
@@ -959,7 +963,7 @@ struct MockToggleRow: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 15, weight: .regular))
-                .foregroundColor(Color(hex: "52525B"))
+                .foregroundColor(Color(hex: "525252"))
                 .frame(width: 24)
 
             Text(title)
@@ -969,7 +973,7 @@ struct MockToggleRow: View {
             Spacer()
 
             Toggle("", isOn: $isOn)
-                .tint(Color(hex: "CDFF00"))
+                .tint(Color(hex: "BAFF39"))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -979,7 +983,7 @@ struct MockToggleRow: View {
 struct MockDivider: View {
     var body: some View {
         Rectangle()
-            .fill(Color(hex: "27272A"))
+            .fill(Color(hex: "525252"))
             .frame(height: 1)
             .padding(.leading, 52)
     }
@@ -1009,7 +1013,7 @@ struct ShowcaseTabBar: View {
                     VStack(spacing: 3) {
                         Image(systemName: selectedTab == index ? tabs[index].activeIcon : tabs[index].icon)
                             .font(.system(size: 18, weight: selectedTab == index ? .semibold : .regular))
-                            .foregroundColor(selectedTab == index ? Color(hex: "CDFF00") : Color.white.opacity(0.6))
+                            .foregroundColor(selectedTab == index ? Color(hex: "BAFF39") : Color.white.opacity(0.6))
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 40)
@@ -1022,7 +1026,7 @@ struct ShowcaseTabBar: View {
         .padding(.vertical, 10)
         .background(
             Capsule()
-                .fill(Color(hex: "0F172A"))
+                .fill(Color(hex: "6E6E6E"))
                 .shadow(color: Color.black.opacity(0.08), radius: 8, y: 3)
         )
         .padding(.horizontal, 32)
@@ -1037,12 +1041,12 @@ struct MockAuthView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "09090B").ignoresSafeArea()
+            Color(hex: "6E6E6E").ignoresSafeArea()
 
             Circle()
                 .fill(
                     RadialGradient(
-                        colors: [Color(hex: "CDFF00").opacity(0.08), Color.clear],
+                        colors: [Color(hex: "BAFF39").opacity(0.08), Color.clear],
                         center: .center,
                         startRadius: 10,
                         endRadius: 300
@@ -1057,17 +1061,17 @@ struct MockAuthView: View {
                 VStack(spacing: 28) {
                     ZStack {
                         Circle()
-                            .fill(Color(hex: "CDFF00").opacity(0.12))
+                            .fill(Color(hex: "BAFF39").opacity(0.12))
                             .frame(width: 140, height: 140)
 
                         RoundedRectangle(cornerRadius: 30)
-                            .fill(Color(hex: "CDFF00"))
+                            .fill(Color(hex: "BAFF39"))
                             .frame(width: 100, height: 100)
-                            .shadow(color: Color(hex: "CDFF00").opacity(0.3), radius: 24, y: 12)
+                            .shadow(color: Color(hex: "BAFF39").opacity(0.3), radius: 24, y: 12)
 
                         Image(systemName: "antenna.radiowaves.left.and.right")
                             .font(.system(size: 44, weight: .semibold))
-                            .foregroundColor(Color(hex: "0F172A"))
+                            .foregroundColor(Color(hex: "6E6E6E"))
                     }
 
                     VStack(spacing: 8) {
@@ -1078,7 +1082,7 @@ struct MockAuthView: View {
 
                         Text("Connected the moment you land")
                             .font(.system(size: 15, weight: .regular))
-                            .foregroundColor(Color(hex: "A1A1AA"))
+                            .foregroundColor(Color(hex: "A3A3A3"))
                     }
                 }
 
@@ -1097,10 +1101,10 @@ struct MockAuthView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
-                        .foregroundColor(Color(hex: "0F172A"))
+                        .foregroundColor(Color(hex: "6E6E6E"))
                         .background(
                             RoundedRectangle(cornerRadius: 18)
-                                .fill(Color(hex: "CDFF00"))
+                                .fill(Color(hex: "BAFF39"))
                         )
                     }
 
@@ -1119,10 +1123,10 @@ struct MockAuthView: View {
                         .foregroundColor(.white)
                         .background(
                             RoundedRectangle(cornerRadius: 18)
-                                .fill(Color(hex: "18181B"))
+                                .fill(Color(hex: "6E6E6E"))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 18)
-                                        .stroke(Color(hex: "27272A"), lineWidth: 1.5)
+                                        .stroke(Color(hex: "525252"), lineWidth: 1.5)
                                 )
                         )
                     }
@@ -1131,15 +1135,15 @@ struct MockAuthView: View {
 
                 VStack(spacing: 8) {
                     Text("By continuing, you agree to our")
-                        .foregroundColor(Color(hex: "3F3F46"))
+                        .foregroundColor(Color(hex: "404040"))
 
                     HStack(spacing: 4) {
                         Text("Terms of Service")
-                            .foregroundColor(Color(hex: "CDFF00"))
+                            .foregroundColor(Color(hex: "BAFF39"))
                         Text("&")
-                            .foregroundColor(Color(hex: "3F3F46"))
+                            .foregroundColor(Color(hex: "404040"))
                         Text("Privacy Policy")
-                            .foregroundColor(Color(hex: "CDFF00"))
+                            .foregroundColor(Color(hex: "BAFF39"))
                     }
                 }
                 .font(.system(size: 11, weight: .regular))
@@ -1159,7 +1163,7 @@ struct MockPlanDetailView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "09090B").ignoresSafeArea()
+            Color(hex: "6E6E6E").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 HStack {
@@ -1168,13 +1172,13 @@ struct MockPlanDetailView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(width: 40, height: 40)
-                            .background(Circle().fill(Color(hex: "18181B")))
+                            .background(Circle().fill(Color(hex: "6E6E6E")))
                     }
                     Spacer()
                     Text("PLAN DETAILS")
                         .font(.system(size: 12, weight: .bold))
                         .tracking(1.5)
-                        .foregroundColor(Color(hex: "52525B"))
+                        .foregroundColor(Color(hex: "525252"))
                     Spacer()
                     Color.clear.frame(width: 40, height: 40)
                 }
@@ -1186,7 +1190,7 @@ struct MockPlanDetailView: View {
                         VStack(spacing: 18) {
                             ZStack {
                                 Circle()
-                                    .fill(Color(hex: "18181B"))
+                                    .fill(Color(hex: "6E6E6E"))
                                     .frame(width: 80, height: 80)
                                 Text("🇦🇪")
                                     .font(.system(size: 40))
@@ -1198,7 +1202,7 @@ struct MockPlanDetailView: View {
                                     .foregroundColor(.white)
                                 Text("Dubai Starter - 5GB")
                                     .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(Color(hex: "52525B"))
+                                    .foregroundColor(Color(hex: "525252"))
                             }
                         }
                         .padding(.top, 20)
@@ -1207,15 +1211,15 @@ struct MockPlanDetailView: View {
                             Text("$12.99")
                                 .font(.system(size: 48, weight: .bold, design: .rounded))
                                 .tracking(-2)
-                                .foregroundColor(Color(hex: "0F172A"))
+                                .foregroundColor(Color(hex: "6E6E6E"))
                             Text("ONE-TIME PAYMENT")
                                 .font(.system(size: 11, weight: .bold))
                                 .tracking(1.5)
-                                .foregroundColor(Color(hex: "0F172A").opacity(0.6))
+                                .foregroundColor(Color(hex: "6E6E6E").opacity(0.6))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 28)
-                        .background(RoundedRectangle(cornerRadius: 20).fill(Color(hex: "CDFF00")))
+                        .background(RoundedRectangle(cornerRadius: 20).fill(Color(hex: "BAFF39")))
                         .padding(.horizontal, 20)
 
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -1230,7 +1234,7 @@ struct MockPlanDetailView: View {
                             Text("INCLUDED")
                                 .font(.system(size: 11, weight: .bold))
                                 .tracking(1.5)
-                                .foregroundColor(Color(hex: "52525B"))
+                                .foregroundColor(Color(hex: "525252"))
 
                             VStack(spacing: 12) {
                                 MockIncludedRow(text: "Instant activation")
@@ -1243,8 +1247,8 @@ struct MockPlanDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(hex: "18181B"))
-                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "27272A"), lineWidth: 1))
+                                .fill(Color(hex: "6E6E6E"))
+                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "525252"), lineWidth: 1))
                         )
                         .padding(.horizontal, 20)
 
@@ -1253,13 +1257,13 @@ struct MockPlanDetailView: View {
                 }
 
                 VStack(spacing: 0) {
-                    Rectangle().fill(Color(hex: "18181B")).frame(height: 0.5)
+                    Rectangle().fill(Color(hex: "6E6E6E")).frame(height: 0.5)
                     HStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("TOTAL")
                                 .font(.system(size: 10, weight: .bold))
                                 .tracking(1)
-                                .foregroundColor(Color(hex: "52525B"))
+                                .foregroundColor(Color(hex: "525252"))
                             Text("$12.99")
                                 .font(.system(size: 22, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
@@ -1274,14 +1278,14 @@ struct MockPlanDetailView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
-                            .foregroundColor(Color(hex: "0F172A"))
-                            .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: "CDFF00")))
+                            .foregroundColor(Color(hex: "6E6E6E"))
+                            .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: "BAFF39")))
                         }
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 16)
                     .padding(.bottom, 34)
-                    .background(Color(hex: "09090B").shadow(color: .black.opacity(0.2), radius: 8, y: -2))
+                    .background(Color(hex: "6E6E6E").shadow(color: .black.opacity(0.2), radius: 8, y: -2))
                 }
             }
         }
@@ -1305,17 +1309,17 @@ struct MockFeatureCard: View {
         VStack(alignment: .leading, spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(hex: "CDFF00").opacity(0.15))
+                    .fill(Color(hex: "BAFF39").opacity(0.15))
                     .frame(width: 36, height: 36)
                 Image(systemName: icon)
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(Color(hex: "CDFF00"))
+                    .foregroundColor(Color(hex: "BAFF39"))
             }
             VStack(alignment: .leading, spacing: 3) {
                 Text(label)
                     .font(.system(size: 10, weight: .bold))
                     .tracking(1)
-                    .foregroundColor(Color(hex: "52525B"))
+                    .foregroundColor(Color(hex: "525252"))
                 Text(value)
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
@@ -1325,8 +1329,8 @@ struct MockFeatureCard: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(hex: "18181B"))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "27272A"), lineWidth: 1))
+                .fill(Color(hex: "6E6E6E"))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(hex: "525252"), lineWidth: 1))
         )
     }
 }
@@ -1337,10 +1341,10 @@ struct MockIncludedRow: View {
         HStack(spacing: 12) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(Color(hex: "CDFF00"))
+                .foregroundColor(Color(hex: "BAFF39"))
             Text(text)
                 .font(.system(size: 15, weight: .medium))
-                .foregroundColor(Color(hex: "71717A"))
+                .foregroundColor(Color(hex: "6E6E6E"))
             Spacer()
         }
     }
@@ -1354,11 +1358,11 @@ struct MockCheckoutView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "09090B").ignoresSafeArea()
+            Color(hex: "6E6E6E").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 RoundedRectangle(cornerRadius: 2.5)
-                    .fill(Color(hex: "27272A"))
+                    .fill(Color(hex: "525252"))
                     .frame(width: 36, height: 5)
                     .padding(.top, 12)
 
@@ -1367,7 +1371,7 @@ struct MockCheckoutView: View {
                         Text("CHECKOUT")
                             .font(.system(size: 11, weight: .bold))
                             .tracking(1.5)
-                            .foregroundColor(Color(hex: "52525B"))
+                            .foregroundColor(Color(hex: "525252"))
                         Text("United Arab Emirates")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.white)
@@ -1378,7 +1382,7 @@ struct MockCheckoutView: View {
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(width: 32, height: 32)
-                            .background(Circle().fill(Color(hex: "18181B")))
+                            .background(Circle().fill(Color(hex: "6E6E6E")))
                     }
                 }
                 .padding(.horizontal, 24)
@@ -1391,7 +1395,7 @@ struct MockCheckoutView: View {
                                 Text("ORDER SUMMARY")
                                     .font(.system(size: 11, weight: .bold))
                                     .tracking(1.5)
-                                    .foregroundColor(Color(hex: "52525B"))
+                                    .foregroundColor(Color(hex: "525252"))
                                 Spacer()
                             }
 
@@ -1403,7 +1407,7 @@ struct MockCheckoutView: View {
                                             .foregroundColor(.white)
                                         Text("5 GB • 7 days")
                                             .font(.system(size: 14, weight: .medium))
-                                            .foregroundColor(Color(hex: "52525B"))
+                                            .foregroundColor(Color(hex: "525252"))
                                     }
                                     Spacer()
                                     Text("$12.99")
@@ -1411,7 +1415,7 @@ struct MockCheckoutView: View {
                                         .foregroundColor(.white)
                                 }
 
-                                Rectangle().fill(Color(hex: "27272A")).frame(height: 1)
+                                Rectangle().fill(Color(hex: "525252")).frame(height: 1)
 
                                 HStack {
                                     Text("Total")
@@ -1420,14 +1424,14 @@ struct MockCheckoutView: View {
                                     Spacer()
                                     Text("$12.99")
                                         .font(.system(size: 20, weight: .bold, design: .rounded))
-                                        .foregroundColor(Color(hex: "CDFF00"))
+                                        .foregroundColor(Color(hex: "BAFF39"))
                                 }
                             }
                             .padding(18)
                             .background(
                                 RoundedRectangle(cornerRadius: 18)
-                                    .fill(Color(hex: "18181B"))
-                                    .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(hex: "27272A"), lineWidth: 1))
+                                    .fill(Color(hex: "6E6E6E"))
+                                    .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(hex: "525252"), lineWidth: 1))
                             )
                         }
 
@@ -1436,7 +1440,7 @@ struct MockCheckoutView: View {
                                 Text("PAYMENT METHOD")
                                     .font(.system(size: 11, weight: .bold))
                                     .tracking(1.5)
-                                    .foregroundColor(Color(hex: "52525B"))
+                                    .foregroundColor(Color(hex: "525252"))
                                 Spacer()
                             }
 
@@ -1454,15 +1458,15 @@ struct MockCheckoutView: View {
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 56)
                                     .foregroundColor(.white)
-                                    .background(RoundedRectangle(cornerRadius: 14).fill(Color(hex: "0F172A")))
+                                    .background(RoundedRectangle(cornerRadius: 14).fill(Color(hex: "6E6E6E")))
                                 }
 
                                 HStack(spacing: 16) {
-                                    Rectangle().fill(Color(hex: "27272A")).frame(height: 1)
+                                    Rectangle().fill(Color(hex: "525252")).frame(height: 1)
                                     Text("or")
                                         .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(Color(hex: "52525B"))
-                                    Rectangle().fill(Color(hex: "27272A")).frame(height: 1)
+                                        .foregroundColor(Color(hex: "525252"))
+                                    Rectangle().fill(Color(hex: "525252")).frame(height: 1)
                                 }
 
                                 Button {
@@ -1480,8 +1484,8 @@ struct MockCheckoutView: View {
                                     .foregroundColor(.white)
                                     .background(
                                         RoundedRectangle(cornerRadius: 14)
-                                            .fill(Color(hex: "18181B"))
-                                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: "27272A"), lineWidth: 1.5))
+                                            .fill(Color(hex: "6E6E6E"))
+                                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: "525252"), lineWidth: 1.5))
                                     )
                                 }
                             }
@@ -1490,14 +1494,14 @@ struct MockCheckoutView: View {
                         HStack(spacing: 8) {
                             Image(systemName: "lock.shield.fill")
                                 .font(.system(size: 14))
-                                .foregroundColor(Color(hex: "CDFF00"))
+                                .foregroundColor(Color(hex: "BAFF39"))
                             Text("Secured by Stripe. Your payment details are encrypted.")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Color(hex: "52525B"))
+                                .foregroundColor(Color(hex: "525252"))
                             Spacer()
                         }
                         .padding(14)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: "18181B")))
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: "6E6E6E")))
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 24)
@@ -1518,32 +1522,32 @@ struct MockPaymentSuccessView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "09090B").ignoresSafeArea()
+            Color(hex: "6E6E6E").ignoresSafeArea()
 
             VStack(spacing: 32) {
                 Spacer()
 
                 ZStack {
                     Circle()
-                        .stroke(Color(hex: "CDFF00").opacity(0.1), lineWidth: 2)
+                        .stroke(Color(hex: "BAFF39").opacity(0.1), lineWidth: 2)
                         .frame(width: 160, height: 160)
                         .scaleEffect(pulseAnimation ? 1.3 : 1)
                         .opacity(pulseAnimation ? 0 : 1)
 
                     Circle()
-                        .stroke(Color(hex: "CDFF00").opacity(0.2), lineWidth: 2)
+                        .stroke(Color(hex: "BAFF39").opacity(0.2), lineWidth: 2)
                         .frame(width: 140, height: 140)
                         .scaleEffect(pulseAnimation ? 1.2 : 1)
                         .opacity(pulseAnimation ? 0 : 1)
 
                     Circle()
-                        .fill(Color(hex: "CDFF00"))
+                        .fill(Color(hex: "BAFF39"))
                         .frame(width: 120, height: 120)
-                        .shadow(color: Color(hex: "CDFF00").opacity(0.3), radius: 24, y: 8)
+                        .shadow(color: Color(hex: "BAFF39").opacity(0.3), radius: 24, y: 8)
 
                     Image(systemName: "checkmark")
                         .font(.system(size: 48, weight: .bold))
-                        .foregroundColor(Color(hex: "0F172A"))
+                        .foregroundColor(Color(hex: "6E6E6E"))
                         .scaleEffect(showCheckmark ? 1 : 0)
                         .opacity(showCheckmark ? 1 : 0)
                 }
@@ -1554,7 +1558,7 @@ struct MockPaymentSuccessView: View {
                         .foregroundColor(.white)
                     Text("Your eSIM is being activated")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(Color(hex: "52525B"))
+                        .foregroundColor(Color(hex: "525252"))
                 }
                 .opacity(showContent ? 1 : 0)
                 .offset(y: showContent ? 0 : 16)
@@ -1567,7 +1571,7 @@ struct MockPaymentSuccessView: View {
                                 .foregroundColor(.white)
                             Text("United Arab Emirates")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(Color(hex: "52525B"))
+                                .foregroundColor(Color(hex: "525252"))
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 4) {
@@ -1576,25 +1580,25 @@ struct MockPaymentSuccessView: View {
                                 .foregroundColor(.white)
                             Text("7 days")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(Color(hex: "52525B"))
+                                .foregroundColor(Color(hex: "525252"))
                         }
                     }
-                    Rectangle().fill(Color(hex: "27272A")).frame(height: 1)
+                    Rectangle().fill(Color(hex: "525252")).frame(height: 1)
                     HStack {
                         Text("Total Paid")
                             .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(Color(hex: "71717A"))
+                            .foregroundColor(Color(hex: "6E6E6E"))
                         Spacer()
                         Text("$12.99")
                             .font(.system(size: 17, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(hex: "CDFF00"))
+                            .foregroundColor(Color(hex: "BAFF39"))
                     }
                 }
                 .padding(20)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(Color(hex: "18181B"))
-                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "27272A"), lineWidth: 1))
+                        .fill(Color(hex: "6E6E6E"))
+                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "525252"), lineWidth: 1))
                 )
                 .padding(.horizontal, 24)
                 .opacity(showContent ? 1 : 0)
@@ -1612,8 +1616,8 @@ struct MockPaymentSuccessView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .foregroundColor(Color(hex: "0F172A"))
-                    .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: "CDFF00")))
+                    .foregroundColor(Color(hex: "6E6E6E"))
+                    .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: "BAFF39")))
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 40)
@@ -1636,7 +1640,7 @@ struct MockESIMDetailView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "09090B").ignoresSafeArea()
+            Color(hex: "6E6E6E").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 HStack {
@@ -1645,13 +1649,13 @@ struct MockESIMDetailView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(width: 40, height: 40)
-                            .background(Circle().fill(Color(hex: "18181B")))
+                            .background(Circle().fill(Color(hex: "6E6E6E")))
                     }
                     Spacer()
                     Text("ESIM DETAILS")
                         .font(.system(size: 12, weight: .bold))
                         .tracking(1.5)
-                        .foregroundColor(Color(hex: "52525B"))
+                        .foregroundColor(Color(hex: "525252"))
                     Spacer()
                     Color.clear.frame(width: 40, height: 40)
                 }
@@ -1675,9 +1679,9 @@ struct MockESIMDetailView: View {
 
                             ZStack {
                                 RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color(hex: "18181B"))
+                                    .fill(Color(hex: "6E6E6E"))
                                     .frame(width: 200, height: 200)
-                                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "27272A"), lineWidth: 1))
+                                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "525252"), lineWidth: 1))
 
                                 VStack(spacing: 12) {
                                     Image(systemName: "qrcode")
@@ -1685,17 +1689,17 @@ struct MockESIMDetailView: View {
                                         .foregroundColor(.white.opacity(0.8))
                                     Text("QR Code")
                                         .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(Color(hex: "71717A"))
+                                        .foregroundColor(Color(hex: "6E6E6E"))
                                 }
                             }
 
                             Text("Scan to install eSIM")
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(Color(hex: "71717A"))
+                                .foregroundColor(Color(hex: "6E6E6E"))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 24)
-                        .background(RoundedRectangle(cornerRadius: 24).fill(Color(hex: "18181B")))
+                        .background(RoundedRectangle(cornerRadius: 24).fill(Color(hex: "6E6E6E")))
                         .padding(.horizontal, 20)
                         .padding(.top, 16)
 
@@ -1704,16 +1708,16 @@ struct MockESIMDetailView: View {
                             Text("PACKAGE")
                                 .font(.system(size: 11, weight: .bold))
                                 .tracking(1.5)
-                                .foregroundColor(Color(hex: "71717A"))
+                                .foregroundColor(Color(hex: "6E6E6E"))
 
                             HStack(spacing: 14) {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 14)
-                                        .fill(Color(hex: "CDFF00").opacity(0.15))
+                                        .fill(Color(hex: "BAFF39").opacity(0.15))
                                         .frame(width: 48, height: 48)
                                     Image(systemName: "simcard.fill")
                                         .font(.system(size: 20, weight: .semibold))
-                                        .foregroundColor(Color(hex: "CDFF00"))
+                                        .foregroundColor(Color(hex: "BAFF39"))
                                 }
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Dubai 5GB - 7 Days")
@@ -1721,7 +1725,7 @@ struct MockESIMDetailView: View {
                                         .foregroundColor(.white)
                                     Text("5 GB")
                                         .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(Color(hex: "71717A"))
+                                        .foregroundColor(Color(hex: "6E6E6E"))
                                 }
                                 Spacer()
                             }
@@ -1734,8 +1738,8 @@ struct MockESIMDetailView: View {
                         .padding(18)
                         .background(
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(hex: "18181B"))
-                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "27272A"), lineWidth: 1))
+                                .fill(Color(hex: "6E6E6E"))
+                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "525252"), lineWidth: 1))
                         )
                         .padding(.horizontal, 20)
 
@@ -1744,22 +1748,22 @@ struct MockESIMDetailView: View {
                             Text("TECHNICAL INFO")
                                 .font(.system(size: 11, weight: .bold))
                                 .tracking(1.5)
-                                .foregroundColor(Color(hex: "71717A"))
+                                .foregroundColor(Color(hex: "6E6E6E"))
 
                             VStack(spacing: 0) {
                                 MockTechInfoRow(label: "ICCID", value: "8901234567890123456") { showCopied = true }
-                                Rectangle().fill(Color(hex: "3F3F46")).frame(height: 0.5).padding(.leading, 16)
+                                Rectangle().fill(Color(hex: "404040")).frame(height: 0.5).padding(.leading, 16)
                                 MockTechInfoRow(label: "LPA Code", value: "LPA:1$example.com$123") { showCopied = true }
-                                Rectangle().fill(Color(hex: "3F3F46")).frame(height: 0.5).padding(.leading, 16)
+                                Rectangle().fill(Color(hex: "404040")).frame(height: 0.5).padding(.leading, 16)
                                 MockTechInfoRow(label: "Order No", value: "ORD-2026-A8F92C") { showCopied = true }
                             }
-                            .background(RoundedRectangle(cornerRadius: 14).fill(Color(hex: "27272A")))
+                            .background(RoundedRectangle(cornerRadius: 14).fill(Color(hex: "525252")))
                         }
                         .padding(18)
                         .background(
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(hex: "18181B"))
-                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "27272A"), lineWidth: 1))
+                                .fill(Color(hex: "6E6E6E"))
+                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "525252"), lineWidth: 1))
                         )
                         .padding(.horizontal, 20)
 
@@ -1768,7 +1772,7 @@ struct MockESIMDetailView: View {
                             Text("INSTALLATION")
                                 .font(.system(size: 11, weight: .bold))
                                 .tracking(1.5)
-                                .foregroundColor(Color(hex: "71717A"))
+                                .foregroundColor(Color(hex: "6E6E6E"))
 
                             VStack(spacing: 16) {
                                 MockInstallStep(number: 1, text: "Go to Settings → Cellular")
@@ -1780,8 +1784,8 @@ struct MockESIMDetailView: View {
                         .padding(18)
                         .background(
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(hex: "18181B"))
-                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "27272A"), lineWidth: 1))
+                                .fill(Color(hex: "6E6E6E"))
+                                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "525252"), lineWidth: 1))
                         )
                         .padding(.horizontal, 20)
 
@@ -1797,10 +1801,10 @@ struct MockESIMDetailView: View {
                         Image(systemName: "checkmark.circle.fill").font(.system(size: 16, weight: .semibold))
                         Text("Copied!").font(.system(size: 14, weight: .semibold))
                     }
-                    .foregroundColor(Color(hex: "0F172A"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
-                    .background(Capsule().fill(Color(hex: "CDFF00")))
+                    .background(Capsule().fill(Color(hex: "BAFF39")))
                     .padding(.bottom, 40)
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -1822,7 +1826,7 @@ struct MockInfoMiniCard: View {
             Text(label)
                 .font(.system(size: 10, weight: .bold))
                 .tracking(1)
-                .foregroundColor(Color(hex: "71717A"))
+                .foregroundColor(Color(hex: "6E6E6E"))
             Text(value)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.white)
@@ -1830,7 +1834,7 @@ struct MockInfoMiniCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: "27272A")))
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: "525252")))
     }
 }
 
@@ -1845,7 +1849,7 @@ struct MockTechInfoRow: View {
                 Text(label)
                     .font(.system(size: 11, weight: .bold))
                     .tracking(0.5)
-                    .foregroundColor(Color(hex: "71717A"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
                 Text(value)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white)
@@ -1855,9 +1859,9 @@ struct MockTechInfoRow: View {
             Button(action: onCopy) {
                 Image(systemName: "doc.on.doc")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color(hex: "CDFF00"))
+                    .foregroundColor(Color(hex: "BAFF39"))
                     .frame(width: 32, height: 32)
-                    .background(Circle().fill(Color(hex: "CDFF00").opacity(0.15)))
+                    .background(Circle().fill(Color(hex: "BAFF39").opacity(0.15)))
             }
         }
         .padding(14)
@@ -1870,14 +1874,14 @@ struct MockInstallStep: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             ZStack {
-                Circle().fill(Color(hex: "CDFF00")).frame(width: 26, height: 26)
+                Circle().fill(Color(hex: "BAFF39")).frame(width: 26, height: 26)
                 Text("\(number)")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(Color(hex: "0F172A"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
             }
             Text(text)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color(hex: "71717A"))
+                .foregroundColor(Color(hex: "6E6E6E"))
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -1899,7 +1903,7 @@ struct MockSupportView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "09090B").ignoresSafeArea()
+            Color(hex: "6E6E6E").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 HStack {
@@ -1908,13 +1912,13 @@ struct MockSupportView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.white)
                             .frame(width: 36, height: 36)
-                            .background(Circle().fill(Color(hex: "18181B")))
+                            .background(Circle().fill(Color(hex: "6E6E6E")))
                     }
                     Spacer()
                     Text("SUPPORT")
                         .font(.system(size: 12, weight: .bold))
                         .tracking(1.5)
-                        .foregroundColor(Color(hex: "52525B"))
+                        .foregroundColor(Color(hex: "525252"))
                     Spacer()
                     Color.clear.frame(width: 36, height: 36)
                 }
@@ -1926,11 +1930,11 @@ struct MockSupportView: View {
                         VStack(spacing: 14) {
                             ZStack {
                                 Circle()
-                                    .fill(Color(hex: "CDFF00").opacity(0.15))
+                                    .fill(Color(hex: "BAFF39").opacity(0.15))
                                     .frame(width: 72, height: 72)
                                 Image(systemName: "headphones")
                                     .font(.system(size: 30, weight: .semibold))
-                                    .foregroundColor(Color(hex: "CDFF00"))
+                                    .foregroundColor(Color(hex: "BAFF39"))
                             }
                             VStack(spacing: 6) {
                                 Text("How can we help?")
@@ -1938,7 +1942,7 @@ struct MockSupportView: View {
                                     .foregroundColor(.white)
                                 Text("Find answers or contact us")
                                     .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(Color(hex: "52525B"))
+                                    .foregroundColor(Color(hex: "525252"))
                             }
                         }
                         .padding(.top, 20)
@@ -1953,7 +1957,7 @@ struct MockSupportView: View {
                             Text("FREQUENTLY ASKED")
                                 .font(.system(size: 11, weight: .bold))
                                 .tracking(1.5)
-                                .foregroundColor(Color(hex: "52525B"))
+                                .foregroundColor(Color(hex: "525252"))
                                 .padding(.horizontal, 20)
 
                             VStack(spacing: 10) {
@@ -1989,17 +1993,17 @@ struct MockContactCard: View {
         VStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(hex: "CDFF00"))
+                    .fill(Color(hex: "BAFF39"))
                     .frame(width: 44, height: 44)
                 Image(systemName: icon)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(Color(hex: "0F172A"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
             }
             VStack(spacing: 3) {
                 Text(title)
                     .font(.system(size: 10, weight: .bold))
                     .tracking(1)
-                    .foregroundColor(Color(hex: "52525B"))
+                    .foregroundColor(Color(hex: "525252"))
                 Text(subtitle)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.white)
@@ -2011,8 +2015,8 @@ struct MockContactCard: View {
         .padding(.vertical, 18)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color(hex: "18181B"))
-                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(hex: "27272A"), lineWidth: 1))
+                .fill(Color(hex: "6E6E6E"))
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(hex: "525252"), lineWidth: 1))
         )
     }
 }
@@ -2034,7 +2038,7 @@ struct MockFAQCard: View {
                     Spacer()
                     Image(systemName: "chevron.down")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(isExpanded ? Color(hex: "CDFF00") : Color(hex: "52525B"))
+                        .foregroundColor(isExpanded ? Color(hex: "BAFF39") : Color(hex: "525252"))
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 }
                 .padding(16)
@@ -2044,7 +2048,7 @@ struct MockFAQCard: View {
             if isExpanded {
                 Text(answer)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color(hex: "71717A"))
+                    .foregroundColor(Color(hex: "6E6E6E"))
                     .lineSpacing(4)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
@@ -2052,10 +2056,10 @@ struct MockFAQCard: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(hex: "18181B"))
+                .fill(Color(hex: "6E6E6E"))
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(isExpanded ? Color(hex: "CDFF00").opacity(0.3) : Color(hex: "27272A"), lineWidth: 1)
+                        .stroke(isExpanded ? Color(hex: "BAFF39").opacity(0.3) : Color(hex: "525252"), lineWidth: 1)
                 )
         )
     }

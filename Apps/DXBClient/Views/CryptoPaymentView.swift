@@ -16,15 +16,21 @@ struct CryptoPaymentView: View {
     @State private var error: String?
     @State private var pollTask: Task<Void, Never>?
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     var body: some View {
         ZStack {
-            AppTheme.backgroundSecondary.ignoresSafeArea()
+            BankingColors.backgroundPrimary.ignoresSafeArea()
 
-            VStack(spacing: 24) {
+            VStack(spacing: BankingSpacing.xl) {
                 headerSection
 
                 if isLoading {
                     ProgressView("Creating invoice...")
+                        .tint(BankingColors.accent)
+                        .foregroundColor(BankingColors.textOnDarkMuted)
                         .padding(.top, 40)
                 } else if let error = error {
                     errorView(error)
@@ -39,8 +45,8 @@ struct CryptoPaymentView: View {
                     onCancel()
                 } label: {
                     Text("Cancel")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(AppTheme.textSecondary)
+                        .font(BankingTypo.button())
+                        .foregroundColor(BankingColors.textOnDarkMuted)
                 }
                 .padding(.bottom, 30)
             }
@@ -52,20 +58,20 @@ struct CryptoPaymentView: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: BankingSpacing.sm) {
             Image(systemName: "bitcoinsign.circle.fill")
                 .font(.system(size: 48, weight: .medium))
-                .foregroundColor(AppTheme.accent)
+                .foregroundColor(BankingColors.accent)
 
             Text("Pay with Crypto")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(AppTheme.textPrimary)
+                .font(BankingTypo.detailAmount())
+                .foregroundColor(BankingColors.textOnDarkPrimary)
 
             Text(String(format: "$%.2f", amountUSD))
-                .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundColor(AppTheme.textPrimary)
+                .font(BankingTypo.heroAmount())
+                .foregroundColor(BankingColors.textOnDarkPrimary)
         }
-        .padding(.top, 32)
+        .padding(.top, BankingSpacing.xxl)
     }
 
     // MARK: - Invoice Content
@@ -78,7 +84,7 @@ struct CryptoPaymentView: View {
                     .fill(statusColor)
                     .frame(width: 10, height: 10)
                 Text(statusText)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(AppTheme.Typography.buttonMedium())
                     .foregroundColor(statusColor)
             }
             .padding(.horizontal, 16)
@@ -91,7 +97,7 @@ struct CryptoPaymentView: View {
                     .foregroundColor(AppTheme.textSecondary)
                 Spacer()
                 Text(assetLabel)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(AppTheme.Typography.buttonMedium())
                     .foregroundColor(AppTheme.textPrimary)
             }
             .padding(.horizontal, 20)
@@ -99,7 +105,7 @@ struct CryptoPaymentView: View {
             // Address
             VStack(alignment: .leading, spacing: 8) {
                 Text("Send to this address:")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(AppTheme.Typography.captionMedium())
                     .foregroundColor(AppTheme.textSecondary)
 
                 Text(depositAddress)
@@ -120,7 +126,7 @@ struct CryptoPaymentView: View {
                         Image(systemName: "doc.on.doc")
                             .font(.system(size: 13))
                         Text("Copy Address")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(AppTheme.Typography.tabLabel())
                     }
                     .foregroundColor(AppTheme.accent)
                     .frame(maxWidth: .infinity)
@@ -139,7 +145,7 @@ struct CryptoPaymentView: View {
                     Image(systemName: "clock")
                         .font(.system(size: 13))
                     Text("Expires: \(expires, style: .relative)")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(AppTheme.Typography.captionMedium())
                 }
                 .foregroundColor(AppTheme.warning)
             }

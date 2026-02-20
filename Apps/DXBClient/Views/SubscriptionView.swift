@@ -9,6 +9,11 @@ struct SimPassSubscriptionView: View {
     @State private var errorMessage = ""
     @Environment(\.dismiss) private var dismiss
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingRadius = AppTheme.Banking.Radius
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     enum BillingPeriod {
         case monthly, yearly
     }
@@ -16,17 +21,17 @@ struct SimPassSubscriptionView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundSecondary.ignoresSafeArea()
+                BankingColors.backgroundPrimary.ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
+                    VStack(spacing: BankingSpacing.xl) {
                         headerSection
                         periodToggle
                         plansSection
                         featuresComparison
                         restoreButton
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, BankingSpacing.lg)
                     .padding(.bottom, 40)
                 }
             }
@@ -36,8 +41,8 @@ struct SimPassSubscriptionView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(BankingTypo.button())
+                            .foregroundColor(BankingColors.textOnDarkPrimary)
                     }
                 }
             }
@@ -53,17 +58,17 @@ struct SimPassSubscriptionView: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: BankingSpacing.sm) {
             Text("Unlock Premium Benefits")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(AppTheme.textPrimary)
+                .font(BankingTypo.detailAmount())
+                .foregroundColor(BankingColors.textOnDarkPrimary)
 
             Text("Save on every eSIM purchase\nand unlock exclusive travel perks")
-                .font(.system(size: 15, weight: .regular))
-                .foregroundColor(AppTheme.textSecondary)
+                .font(BankingTypo.body())
+                .foregroundColor(BankingColors.textOnDarkMuted)
                 .multilineTextAlignment(.center)
         }
-        .padding(.top, 16)
+        .padding(.top, BankingSpacing.base)
     }
 
     // MARK: - Period Toggle
@@ -73,7 +78,7 @@ struct SimPassSubscriptionView: View {
             periodButton(title: "Monthly", period: .monthly)
             periodButton(title: "Yearly (-17%)", period: .yearly)
         }
-        .background(AppTheme.gray100)
+        .background(BankingColors.backgroundTertiary)
         .clipShape(Capsule())
     }
 
@@ -84,13 +89,13 @@ struct SimPassSubscriptionView: View {
             }
         } label: {
             Text(title)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(selectedPeriod == period ? Color(hex: "0F172A") : AppTheme.textSecondary)
+                .font(BankingTypo.button())
+                .foregroundColor(selectedPeriod == period ? BankingColors.backgroundPrimary : BankingColors.textOnDarkMuted)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background(
                     selectedPeriod == period
-                        ? Capsule().fill(AppTheme.accent)
+                        ? Capsule().fill(BankingColors.accent)
                         : Capsule().fill(Color.clear)
                 )
         }
@@ -99,14 +104,14 @@ struct SimPassSubscriptionView: View {
     // MARK: - Plans
 
     private var plansSection: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: BankingSpacing.md) {
             planCard(
                 name: "Privilege",
                 discount: 15,
                 monthlyPrice: "$9.99",
                 yearlyPrice: "$99/yr",
                 features: ["15% off all eSIMs", "Global perks access"],
-                color: AppTheme.success,
+                color: BankingColors.accentDark,
                 isPopular: false
             )
 
@@ -116,7 +121,7 @@ struct SimPassSubscriptionView: View {
                 monthlyPrice: "$19.99",
                 yearlyPrice: "$199/yr",
                 features: ["30% off all eSIMs", "Priority support", "Monthly raffle entry"],
-                color: AppTheme.primary,
+                color: BankingColors.accent,
                 isPopular: true
             )
 
@@ -126,52 +131,52 @@ struct SimPassSubscriptionView: View {
                 monthlyPrice: "$39.99",
                 yearlyPrice: "$399/yr",
                 features: ["50% off (1x/month)", "30% off remaining", "VIP lounge access", "Premium transfers"],
-                color: AppTheme.accent,
+                color: BankingColors.accentLight,
                 isPopular: false
             )
         }
     }
 
     private func planCard(name: String, discount: Int, monthlyPrice: String, yearlyPrice: String, features: [String], color: Color, isPopular: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: BankingSpacing.md) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: BankingSpacing.sm) {
                         Text(name)
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(BankingTypo.sectionTitle())
+                            .foregroundColor(BankingColors.textOnLightPrimary)
 
                         if isPopular {
                             Text("POPULAR")
-                                .font(.system(size: 9, weight: .bold))
-                                .foregroundColor(Color(hex: "0F172A"))
-                                .padding(.horizontal, 8)
+                                .font(BankingTypo.label())
+                                .foregroundColor(BankingColors.backgroundPrimary)
+                                .padding(.horizontal, BankingSpacing.sm)
                                 .padding(.vertical, 3)
-                                .background(Capsule().fill(AppTheme.accent))
+                                .background(Capsule().fill(BankingColors.accent))
                         }
                     }
 
                     Text(selectedPeriod == .monthly ? monthlyPrice + "/mo" : yearlyPrice)
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(AppTheme.textSecondary)
+                        .font(BankingTypo.body())
+                        .foregroundColor(BankingColors.textOnLightMuted)
                 }
 
                 Spacer()
 
                 Text("-\(discount)%")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(BankingTypo.detailAmount())
                     .foregroundColor(color)
             }
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: BankingSpacing.sm) {
                 ForEach(features, id: \.self) { feature in
-                    HStack(spacing: 8) {
+                    HStack(spacing: BankingSpacing.sm) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 14))
                             .foregroundColor(color)
                         Text(feature)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(BankingTypo.body())
+                            .foregroundColor(BankingColors.textOnLightPrimary)
                     }
                 }
             }
@@ -181,13 +186,13 @@ struct SimPassSubscriptionView: View {
                 Task { await subscribeToPlan(name: name) }
             } label: {
                 Text(isActive ? "Current Plan" : "Subscribe")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(BankingTypo.button())
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .foregroundColor(isActive ? AppTheme.textSecondary : Color(hex: "0F172A"))
+                    .foregroundColor(isActive ? BankingColors.textOnLightMuted : BankingColors.backgroundPrimary)
                     .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(isActive ? AppTheme.gray100 : color)
+                        RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
+                            .fill(isActive ? BankingColors.surfaceMedium : color)
                     )
             }
             .disabled(isActive || storeKit.isLoading)
@@ -210,13 +215,13 @@ struct SimPassSubscriptionView: View {
     private var featuresComparison: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("All plans include")
-                .font(.system(size: 16, weight: .semibold))
+                .font(AppTheme.Typography.bodyMedium())
                 .foregroundColor(AppTheme.textPrimary)
 
             ForEach(["Automatic billing", "Cancel anytime", "Instant activation", "Global partner perks"], id: \.self) { feature in
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(AppTheme.Typography.navTitle())
                         .foregroundColor(AppTheme.accent)
                     Text(feature)
                         .font(.system(size: 14, weight: .regular))
@@ -227,7 +232,7 @@ struct SimPassSubscriptionView: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                 .fill(AppTheme.gray100)
         )
     }
@@ -239,7 +244,7 @@ struct SimPassSubscriptionView: View {
             Task { await storeKit.restorePurchases() }
         } label: {
             Text("Restore Purchases")
-                .font(.system(size: 14, weight: .medium))
+                .font(AppTheme.Typography.tabLabel())
                 .foregroundColor(AppTheme.textTertiary)
         }
     }

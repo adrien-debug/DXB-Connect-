@@ -13,14 +13,19 @@ struct ProfileView: View {
     @State private var showTerms = false
     @State private var showSubscription = false
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingRadius = AppTheme.Banking.Radius
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundSecondary
+                BankingColors.backgroundPrimary
                     .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: AppTheme.Spacing.base) {
+                    VStack(spacing: BankingSpacing.base) {
                         profileHeader
                         myPlanSection
                         statsCard
@@ -30,7 +35,7 @@ struct ProfileView: View {
                         signOutButton
                         appInfo
                     }
-                    .padding(.horizontal, AppTheme.Spacing.base)
+                    .padding(.horizontal, BankingSpacing.base)
                     .padding(.bottom, 100)
                 }
             }
@@ -58,68 +63,55 @@ struct ProfileView: View {
     private var profileHeader: some View {
         VStack(spacing: 0) {
             ZStack {
-                // Gradient background
-                RoundedRectangle(cornerRadius: 28)
-                    .fill(
-                        LinearGradient(
-                            colors: [AppTheme.accent, AppTheme.accent.opacity(0.7)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                    .fill(BankingColors.accent)
                     .frame(height: 140)
 
                 VStack(spacing: 0) {
                     Spacer()
                         .frame(height: 80)
 
-                    // Avatar with SignalRings
                     ZStack {
-                        // Signal rings around avatar
-                        SignalRings(color: AppTheme.accent.opacity(0.15), size: 110)
-
                         Circle()
-                            .fill(AppTheme.backgroundPrimary)
+                            .fill(BankingColors.backgroundPrimary)
                             .frame(width: 88, height: 88)
 
                         Circle()
-                            .fill(AppTheme.accent)
+                            .fill(BankingColors.accent)
                             .frame(width: 80, height: 80)
                             .overlay(
                                 Text(String(coordinator.user.name.prefix(1)).uppercased())
                                     .font(.system(size: 36, weight: .bold))
-                                    .foregroundColor(Color(hex: "0F172A"))
+                                    .foregroundColor(BankingColors.backgroundPrimary)
                             )
-                            .shadow(color: AppTheme.accent.opacity(0.4), radius: 16, x: 0, y: 8)
+                            .shadow(color: BankingColors.accentDark.opacity(0.4), radius: 16, x: 0, y: 8)
                     }
                 }
             }
-            .padding(.bottom, 16)
+            .padding(.bottom, BankingSpacing.base)
 
-            VStack(spacing: 8) {
-                HStack(spacing: 8) {
+            VStack(spacing: BankingSpacing.sm) {
+                HStack(spacing: BankingSpacing.sm) {
                     Text(coordinator.user.name)
-                        .font(.system(size: 26, weight: .bold))
-                        .tracking(-0.5)
-                        .foregroundColor(AppTheme.textPrimary)
+                        .font(BankingTypo.detailAmount())
+                        .foregroundColor(BankingColors.textOnDarkPrimary)
 
                     if coordinator.user.isPro {
                         Text("PRO")
-                            .font(.system(size: 9, weight: .bold))
-                            .tracking(1)
-                            .foregroundColor(Color(hex: "0F172A"))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
+                            .font(BankingTypo.label())
+                            .foregroundColor(BankingColors.backgroundPrimary)
+                            .padding(.horizontal, BankingSpacing.sm)
+                            .padding(.vertical, 4)
                             .background(
                                 Capsule()
-                                    .fill(AppTheme.accent)
+                                    .fill(BankingColors.accent)
                             )
                     }
                 }
 
                 Text(coordinator.user.email)
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(AppTheme.textTertiary)
+                    .font(BankingTypo.body())
+                    .foregroundColor(BankingColors.textOnDarkMuted)
             }
         }
         .padding(.top, 40)
@@ -132,50 +124,50 @@ struct ProfileView: View {
         Button {
             showSubscription = true
         } label: {
-            HStack(spacing: 14) {
+            HStack(spacing: BankingSpacing.md) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(AppTheme.accent.opacity(0.12))
+                    RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
+                        .fill(BankingColors.surfaceMedium)
                         .frame(width: 48, height: 48)
                     Image(systemName: "crown.fill")
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(AppTheme.accent)
+                        .foregroundColor(BankingColors.accentDark)
                 }
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("My Plan")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(AppTheme.textPrimary)
+                        .font(BankingTypo.body())
+                        .foregroundColor(BankingColors.textOnLightPrimary)
 
                     Text(StoreKitManager.shared.activePlanName ?? "No active plan")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(AppTheme.textSecondary)
+                        .font(BankingTypo.caption())
+                        .foregroundColor(BankingColors.textOnLightMuted)
                 }
 
                 Spacer()
 
-                if let plan = StoreKitManager.shared.activePlanName {
+                if StoreKitManager.shared.activePlanName != nil {
                     Text("-\(StoreKitManager.shared.activeDiscountPercent)%")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundColor(AppTheme.success)
+                        .font(BankingTypo.cardAmount())
+                        .foregroundColor(BankingColors.accentDark)
                 } else {
                     Text("Upgrade")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: "0F172A"))
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 7)
-                        .background(Capsule().fill(AppTheme.accent))
+                        .font(BankingTypo.button())
+                        .foregroundColor(BankingColors.backgroundPrimary)
+                        .padding(.horizontal, BankingSpacing.md)
+                        .padding(.vertical, BankingSpacing.sm)
+                        .background(Capsule().fill(BankingColors.accent))
                 }
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(AppTheme.textMuted)
+                    .foregroundColor(BankingColors.textOnLightMuted)
             }
-            .padding(16)
+            .padding(BankingSpacing.base)
             .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(AppTheme.backgroundPrimary)
-                    .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+                RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                    .fill(BankingColors.surfaceLight)
+                    .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
             )
         }
         .buttonStyle(.plain)
@@ -335,7 +327,7 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 15)
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                         .fill(AppTheme.error.opacity(0.06))
                 )
         }
@@ -378,26 +370,25 @@ struct ProfileStatCard: View {
     let icon: String
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: AppTheme.Banking.Spacing.sm) {
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(AppTheme.accent)
+                .foregroundColor(AppTheme.Banking.Colors.accentDark)
 
             Text(value)
-                .font(.system(size: 24, weight: .bold, design: .rounded))
-                .foregroundColor(AppTheme.textPrimary)
+                .font(AppTheme.Banking.Typography.cardAmount())
+                .foregroundColor(AppTheme.Banking.Colors.textOnLightPrimary)
 
             Text(label)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundColor(AppTheme.textTertiary)
+                .font(AppTheme.Banking.Typography.label())
+                .foregroundColor(AppTheme.Banking.Colors.textOnLightMuted)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
+        .padding(.vertical, AppTheme.Banking.Spacing.lg)
         .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(AppTheme.backgroundPrimary)
-                .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
-                .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: CGFloat(AppTheme.Banking.Radius.card))
+                .fill(AppTheme.Banking.Colors.surfaceLight)
+                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
         )
     }
 }
@@ -426,10 +417,10 @@ struct SectionCardTech<Content: View>: View {
 
             content()
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                         .fill(AppTheme.backgroundPrimary)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 16)
+                            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                                 .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
                         )
                         .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
@@ -479,7 +470,7 @@ struct SettingsRowTech: View {
                 }
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(AppTheme.Typography.navTitle())
                     .foregroundColor(AppTheme.textTertiary)
             }
             .padding(.horizontal, 16)
@@ -616,7 +607,7 @@ struct EditProfileSheet: View {
 
                             Text(String(name.prefix(1)).uppercased())
                                 .font(.system(size: 36, weight: .bold))
-                                .foregroundColor(Color(hex: "0F172A"))
+                                .foregroundColor(AppTheme.anthracite)
 
                             Button {} label: {
                                 Circle()
@@ -624,7 +615,7 @@ struct EditProfileSheet: View {
                                     .frame(width: 30, height: 30)
                                     .overlay(
                                         Image(systemName: "camera.fill")
-                                            .font(.system(size: 13, weight: .semibold))
+                                            .font(AppTheme.Typography.captionSemibold())
                                             .foregroundColor(AppTheme.gray900)
                                     )
                                     .shadow(color: .black.opacity(0.1), radius: 4)
@@ -646,7 +637,7 @@ struct EditProfileSheet: View {
                 VStack(spacing: AppTheme.Spacing.sm) {
                     if let validationError = validationError {
                         Text(validationError)
-                            .font(.system(size: 13, weight: .medium))
+                            .font(AppTheme.Typography.captionMedium())
                             .foregroundColor(AppTheme.error)
                             .padding(.horizontal, AppTheme.Spacing.xl)
                     }
@@ -672,7 +663,7 @@ struct EditProfileSheet: View {
                                     .tracking(1.2)
                             }
                         }
-                        .foregroundColor(Color(hex: "0F172A"))
+                        .foregroundColor(AppTheme.anthracite)
                         .frame(maxWidth: .infinity)
                         .frame(height: 54)
                         .background(RoundedRectangle(cornerRadius: AppTheme.Radius.lg).fill(isFormValid ? AppTheme.accent : AppTheme.border))
@@ -722,7 +713,7 @@ struct PaymentMethodsSheet: View {
                                         .frame(width: 48, height: 32)
 
                                     Image(systemName: "plus")
-                                        .font(.system(size: 14, weight: .semibold))
+                                        .font(AppTheme.Typography.tabLabel())
                                         .foregroundColor(AppTheme.accent)
                                 }
 
@@ -733,7 +724,7 @@ struct PaymentMethodsSheet: View {
                                 Spacer()
 
                                 Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
+                                    .font(AppTheme.Typography.navTitle())
                                     .foregroundColor(AppTheme.textSecondary)
                             }
                             .padding(AppTheme.Spacing.md)
@@ -763,7 +754,7 @@ struct PaymentCardRow: View {
                     .fill(AppTheme.gray100)
                     .frame(width: 48, height: 32)
                 Image(systemName: "creditcard.fill")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(AppTheme.Typography.bodyMedium())
                     .foregroundColor(AppTheme.textPrimary)
             }
 
@@ -776,7 +767,7 @@ struct PaymentCardRow: View {
                         Text("DEFAULT")
                             .font(AppTheme.Typography.label())
                             .tracking(0.5)
-                            .foregroundColor(Color(hex: "0F172A"))
+                            .foregroundColor(AppTheme.anthracite)
                             .padding(.horizontal, AppTheme.Spacing.sm)
                             .padding(.vertical, 3)
                             .background(Capsule().fill(AppTheme.accent))
@@ -791,7 +782,7 @@ struct PaymentCardRow: View {
 
             Button {} label: {
                 Image(systemName: "ellipsis")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(AppTheme.Typography.bodyMedium())
                     .foregroundColor(AppTheme.textSecondary)
                     .frame(width: 32, height: 32)
             }
@@ -835,7 +826,7 @@ struct AddCardSheet: View {
                         Text("ADD CARD")
                             .font(AppTheme.Typography.caption())
                             .tracking(1.2)
-                            .foregroundColor(Color(hex: "0F172A"))
+                            .foregroundColor(AppTheme.anthracite)
                             .frame(maxWidth: .infinity)
                             .frame(height: 54)
                             .background(RoundedRectangle(cornerRadius: AppTheme.Radius.lg).fill(AppTheme.accent))
@@ -919,7 +910,7 @@ struct OrderRow: View {
                     .fill(AppTheme.accent.opacity(0.1))
                     .frame(width: 44, height: 44)
                 Image(systemName: "simcard.fill")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(AppTheme.Typography.cardAmount())
                     .foregroundColor(AppTheme.accent)
             }
 
@@ -1006,7 +997,7 @@ struct ReferFriendSheet: View {
                                     .font(.system(size: 20, weight: .bold, design: .monospaced))
                                     .foregroundColor(AppTheme.accent)
                                 Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                                    .font(.system(size: 15, weight: .semibold))
+                                    .font(AppTheme.Typography.buttonMedium())
                                     .foregroundColor(copied ? AppTheme.success : AppTheme.textSecondary)
                             }
                             .padding(.horizontal, AppTheme.Spacing.xl)
@@ -1034,12 +1025,12 @@ struct ReferFriendSheet: View {
                     } label: {
                         HStack(spacing: AppTheme.Spacing.sm) {
                             Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(AppTheme.Typography.bodyMedium())
                             Text("SHARE CODE")
                                 .font(AppTheme.Typography.caption())
                                 .tracking(1.2)
                         }
-                        .foregroundColor(Color(hex: "0F172A"))
+                        .foregroundColor(AppTheme.anthracite)
                         .frame(maxWidth: .infinity)
                         .frame(height: 54)
                         .background(RoundedRectangle(cornerRadius: AppTheme.Radius.lg).fill(AppTheme.accent))
@@ -1139,7 +1130,7 @@ struct AppearanceSheet: View {
                                         .fill(AppTheme.accent.opacity(0.1))
                                         .frame(width: 44, height: 44)
                                     Image(systemName: appearance.1)
-                                        .font(.system(size: 18, weight: .semibold))
+                                        .font(AppTheme.Typography.cardAmount())
                                         .foregroundColor(AppTheme.accent)
                                 }
 
@@ -1302,7 +1293,7 @@ struct ProfileSheetHeader: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(AppTheme.Typography.tabLabel())
                     .foregroundColor(AppTheme.textPrimary)
                     .frame(width: 36, height: 36)
                     .background(Circle().fill(AppTheme.gray100))

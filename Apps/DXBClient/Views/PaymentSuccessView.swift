@@ -5,6 +5,11 @@ struct PaymentSuccessView: View {
     let plan: Plan
     let onDismiss: () -> Void
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingRadius = AppTheme.Banking.Radius
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     @State private var showCheckmark = false
     @State private var showContent = false
     @State private var showConnection = false
@@ -15,18 +20,17 @@ struct PaymentSuccessView: View {
 
     var body: some View {
         ZStack {
-            AppTheme.backgroundPrimary
+            BankingColors.backgroundPrimary
                 .ignoresSafeArea()
 
-            // Background world map
             WorldMapView(
                 highlightedCodes: [plan.locationCode],
                 showConnections: showConnection,
                 accentDots: false,
                 connectionCodes: [plan.locationCode],
-                strokeColor: AppTheme.anthracite,
-                strokeOpacity: 0.03,
-                dotColor: AppTheme.accent,
+                strokeColor: BankingColors.textOnDarkMuted,
+                strokeOpacity: 0.15,
+                dotColor: BankingColors.accent,
                 showDubaiPulse: showConnection
             )
             .ignoresSafeArea()
@@ -35,74 +39,71 @@ struct PaymentSuccessView: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                // Animated success rings
                 ZStack {
                     Circle()
-                        .stroke(AppTheme.accent.opacity(0.05), lineWidth: 2)
+                        .stroke(BankingColors.accent.opacity(0.08), lineWidth: 2)
                         .frame(width: 200, height: 200)
                         .scaleEffect(ringScale3 ? 1 : 0.3)
                         .opacity(ringScale3 ? 0 : 0.6)
 
                     Circle()
-                        .stroke(AppTheme.accent.opacity(0.1), lineWidth: 2)
+                        .stroke(BankingColors.accent.opacity(0.12), lineWidth: 2)
                         .frame(width: 160, height: 160)
                         .scaleEffect(ringScale2 ? 1 : 0.3)
                         .opacity(ringScale2 ? 0 : 0.8)
 
                     Circle()
-                        .stroke(AppTheme.accent.opacity(0.15), lineWidth: 2)
+                        .stroke(BankingColors.accent.opacity(0.18), lineWidth: 2)
                         .frame(width: 130, height: 130)
                         .scaleEffect(ringScale1 ? 1 : 0.3)
                         .opacity(ringScale1 ? 0 : 1)
 
                     Circle()
-                        .fill(AppTheme.accent)
+                        .fill(BankingColors.accent)
                         .frame(width: 100, height: 100)
-                        .shadow(color: AppTheme.accent.opacity(0.4), radius: 30, x: 0, y: 10)
+                        .shadow(color: BankingColors.accentDark.opacity(0.5), radius: 30, x: 0, y: 10)
 
                     Image(systemName: "checkmark")
                         .font(.system(size: 44, weight: .bold))
-                        .foregroundColor(Color(hex: "0F172A"))
+                        .foregroundColor(BankingColors.backgroundPrimary)
                         .scaleEffect(showCheckmark ? 1 : 0)
                         .opacity(showCheckmark ? 1 : 0)
                 }
 
-                VStack(spacing: 14) {
+                VStack(spacing: BankingSpacing.md) {
                     Text("Payment Successful!")
-                        .font(.system(size: 28, weight: .bold))
-                        .tracking(-0.5)
-                        .foregroundColor(AppTheme.textPrimary)
+                        .font(BankingTypo.detailAmount())
+                        .foregroundColor(BankingColors.textOnDarkPrimary)
 
                     Text("Your eSIM is being activated.\nYou'll be connected in seconds.")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(AppTheme.textSecondary)
+                        .font(BankingTypo.body())
+                        .foregroundColor(BankingColors.textOnDarkMuted)
                         .multilineTextAlignment(.center)
                         .lineSpacing(5)
                 }
-                .padding(.top, 36)
+                .padding(.top, BankingSpacing.xxl)
                 .opacity(showContent ? 1 : 0)
                 .offset(y: showContent ? 0 : 20)
 
-                // Receipt card
                 VStack(spacing: 0) {
-                    HStack(spacing: 14) {
+                    HStack(spacing: BankingSpacing.md) {
                         ZStack {
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(AppTheme.accent.opacity(0.1))
+                            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.small))
+                                .fill(BankingColors.surfaceMedium)
                                 .frame(width: 48, height: 48)
 
                             Image(systemName: "simcard.fill")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(AppTheme.accent)
+                                .font(BankingTypo.cardAmount())
+                                .foregroundColor(BankingColors.accentDark)
                         }
 
                         VStack(alignment: .leading, spacing: 3) {
                             Text(plan.name)
-                                .font(.system(size: 16, weight: .bold))
+                                .font(AppTheme.Typography.bodyMedium())
                                 .foregroundColor(AppTheme.textPrimary)
 
                             Text(plan.location)
-                                .font(.system(size: 13, weight: .regular))
+                                .font(AppTheme.Typography.caption())
                                 .foregroundColor(AppTheme.textTertiary)
                         }
 
@@ -114,7 +115,7 @@ struct PaymentSuccessView: View {
                                 .foregroundColor(AppTheme.textPrimary)
 
                             Text("\(plan.durationDays) days")
-                                .font(.system(size: 13, weight: .regular))
+                                .font(AppTheme.Typography.caption())
                                 .foregroundColor(AppTheme.textTertiary)
                         }
                     }
@@ -153,30 +154,30 @@ struct PaymentSuccessView: View {
                 // Perks unlocked banner
                 HStack(spacing: 12) {
                     Image(systemName: "gift.fill")
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(AppTheme.Typography.cardAmount())
                         .foregroundColor(AppTheme.accent)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Perks unlocked in \(plan.location)")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(AppTheme.Typography.buttonMedium())
                             .foregroundColor(AppTheme.textPrimary)
                         Text("Activities, lounges & more")
-                            .font(.system(size: 13, weight: .regular))
+                            .font(AppTheme.Typography.caption())
                             .foregroundColor(AppTheme.textSecondary)
                     }
 
                     Spacer()
 
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(AppTheme.Typography.navTitle())
                         .foregroundColor(AppTheme.textMuted)
                 }
                 .padding(16)
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                         .fill(AppTheme.accent.opacity(0.08))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 16)
+                            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                                 .stroke(AppTheme.accent.opacity(0.2), lineWidth: 1)
                         )
                 )
@@ -194,13 +195,13 @@ struct PaymentSuccessView: View {
                     } label: {
                         HStack(spacing: 8) {
                             Text("View my eSIMs")
-                                .font(.system(size: 17, weight: .semibold))
+                                .font(AppTheme.Typography.buttonLarge())
                             Image(systemName: "arrow.right")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(AppTheme.Typography.button())
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 58)
-                        .foregroundColor(Color(hex: "0F172A"))
+                        .foregroundColor(AppTheme.anthracite)
                         .background(
                             RoundedRectangle(cornerRadius: 18)
                                 .fill(AppTheme.accent)

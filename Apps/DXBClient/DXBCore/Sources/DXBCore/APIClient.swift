@@ -58,6 +58,7 @@ public actor APIClient {
     ) async throws -> T {
         var request = URLRequest(url: url)
         request.httpMethod = method
+        request.timeoutInterval = 30 // Timeout de 30 secondes
 
         // Headers communs
         for (key, value) in APIConfig.commonHeaders {

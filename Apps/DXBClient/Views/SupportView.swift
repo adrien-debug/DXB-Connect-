@@ -5,9 +5,13 @@ struct SupportView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var expandedFAQ: UUID? = nil
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     var body: some View {
         ZStack {
-            AppTheme.backgroundSecondary
+            BankingColors.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -16,50 +20,49 @@ struct SupportView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(BankingTypo.button())
+                            .foregroundColor(BankingColors.textOnDarkPrimary)
                             .frame(width: 36, height: 36)
-                            .background(Circle().fill(AppTheme.gray100))
+                            .background(Circle().fill(BankingColors.backgroundTertiary))
                     }
                     .accessibilityLabel("Fermer")
 
                     Spacer()
 
                     Text("SUPPORT")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(BankingTypo.label())
                         .tracking(1.5)
-                        .foregroundColor(AppTheme.textSecondary)
+                        .foregroundColor(BankingColors.textOnDarkMuted)
 
                     Spacer()
 
                     Color.clear.frame(width: 36, height: 36)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 8)
+                .padding(.horizontal, BankingSpacing.xl)
+                .padding(.top, BankingSpacing.sm)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 28) {
-                        VStack(spacing: 16) {
+                    VStack(spacing: BankingSpacing.xxl) {
+                        VStack(spacing: BankingSpacing.base) {
                             ZStack {
                                 Circle()
-                                    .fill(AppTheme.accent.opacity(0.08))
+                                    .fill(BankingColors.accent.opacity(0.15))
                                     .frame(width: 80, height: 80)
 
                                 Image(systemName: "headphones")
                                     .font(.system(size: 32, weight: .medium))
-                                    .foregroundColor(AppTheme.accent)
+                                    .foregroundColor(BankingColors.accent)
                             }
 
                             Text("How can we help?")
-                                .font(.system(size: 30, weight: .bold))
-                                .tracking(-0.5)
-                                .foregroundColor(AppTheme.textPrimary)
+                                .font(BankingTypo.detailAmount())
+                                .foregroundColor(BankingColors.textOnDarkPrimary)
 
                             Text("We're here for you 24/7")
-                                .font(.system(size: 15, weight: .regular))
-                                .foregroundColor(AppTheme.textTertiary)
+                                .font(BankingTypo.body())
+                                .foregroundColor(BankingColors.textOnDarkMuted)
                         }
-                        .padding(.top, 20)
+                        .padding(.top, BankingSpacing.lg)
                         .slideIn(delay: 0)
 
                         HStack(spacing: 12) {
@@ -89,7 +92,7 @@ struct SupportView: View {
                         // FAQ
                         VStack(alignment: .leading, spacing: 14) {
                             Text("Frequently asked")
-                                .font(.system(size: 18, weight: .semibold))
+                                .font(AppTheme.Typography.cardAmount())
                                 .foregroundColor(AppTheme.textPrimary)
                                 .padding(.horizontal, 20)
 
@@ -139,12 +142,12 @@ struct ContactOptionCard: View {
                     .overlay(
                         Image(systemName: icon)
                             .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(Color(hex: "0F172A"))
+                            .foregroundColor(AppTheme.anthracite)
                     )
 
                 VStack(spacing: 5) {
                     Text(title)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(AppTheme.Typography.bodyMedium())
                         .foregroundColor(AppTheme.textPrimary)
 
                     Text(subtitle)
@@ -185,14 +188,14 @@ struct FAQCardTech: View {
             Button(action: onTap) {
                 HStack(spacing: 12) {
                     Text(item.question)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(AppTheme.Typography.buttonMedium())
                         .foregroundColor(AppTheme.textPrimary)
                         .multilineTextAlignment(.leading)
 
                     Spacer()
 
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(AppTheme.Typography.navTitle())
                         .foregroundColor(isExpanded ? AppTheme.accent : AppTheme.textTertiary)
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 }
@@ -212,10 +215,10 @@ struct FAQCardTech: View {
             }
         }
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                 .fill(AppTheme.backgroundPrimary)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                         .stroke(isExpanded ? AppTheme.accent.opacity(0.25) : AppTheme.border.opacity(0.5), lineWidth: isExpanded ? 1.5 : 0.5)
                 )
                 .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)

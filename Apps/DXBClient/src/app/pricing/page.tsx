@@ -1,46 +1,12 @@
-import Link from 'next/link'
-import { ArrowRight, Check, Crown, Globe, MapPin, Star, Zap } from 'lucide-react'
-import MarketingShell from '@/components/marketing/MarketingShell'
 import CTASection from '@/components/marketing/CTASection'
+import MarketingShell from '@/components/marketing/MarketingShell'
+import PageHeader from '@/components/marketing/PageHeader'
 import { listEsimPackagesForUI, type EsimPackageForUI } from '@/lib/esim-packages-service'
+import { ArrowRight, Crown, Globe, MapPin, RefreshCw, Star } from 'lucide-react'
+import Link from 'next/link'
+import PricingPlans from './PricingPlans'
 
 export const revalidate = 60 * 60
-
-const plans = [
-  {
-    name: 'Privilege',
-    discount: 15,
-    monthly: '$9.99',
-    yearly: '$99/yr',
-    features: ['15% off all eSIMs', 'Global perks access', 'Daily rewards', 'Cancel anytime'],
-    color: 'border-green-400',
-    bg: 'bg-green-50',
-    textColor: 'text-green-600',
-    badge: '',
-  },
-  {
-    name: 'Elite',
-    discount: 30,
-    monthly: '$19.99',
-    yearly: '$199/yr',
-    features: ['30% off all eSIMs', 'Priority support', 'Monthly raffle entry', 'All Privilege perks'],
-    color: 'border-lime-400',
-    bg: 'bg-lime-50',
-    textColor: 'text-lime-600',
-    badge: 'MOST POPULAR',
-  },
-  {
-    name: 'Black',
-    discount: 50,
-    monthly: '$39.99',
-    yearly: '$399/yr',
-    features: ['50% off (1x/month)', '30% off remaining', 'VIP lounge access', 'Premium transfers', 'All Elite perks'],
-    color: 'border-black',
-    bg: 'bg-gray-light',
-    textColor: 'text-black',
-    badge: 'VIP',
-  },
-]
 
 const popularDestinations = [
   { name: 'France', flag: '🇫🇷' },
@@ -79,80 +45,39 @@ export default async function PricingPage() {
 
   return (
     <MarketingShell>
-      {/* Hero */}
-      <section className="section-padding-lg">
+      <PageHeader
+        badge="Flexible plans"
+        badgeIcon={Crown}
+        title="Plans & Pricing"
+        subtitle="Pay-as-you-go or subscribe to save up to 50% on every eSIM purchase."
+      />
+
+      {/* Subscription Plans with toggle */}
+      <section className="section-padding-md">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="relative">
-            <div className="absolute -inset-8 bg-lime-400/10 blur-3xl opacity-50 rounded-full" />
-            <div className="relative max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-lime-400/40 bg-lime-400/10 text-black text-xs font-semibold tracking-wide mb-6">
-                <Zap className="w-3 h-3" />
-                Plans & Pricing
-              </div>
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-black">
-                eSIM pricing.
-                <span className="block">Subscription savings.</span>
-              </h1>
-              <p className="mt-5 text-base sm:text-lg text-gray max-w-xl">
-                Pay-as-you-go or subscribe to save up to 50% on every eSIM purchase.
-              </p>
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-10 h-10 rounded-xl bg-lime-400/15 border border-lime-400/25 flex items-center justify-center">
+              <Crown className="w-5 h-5 text-lime-600" />
             </div>
+            <h2 className="text-2xl font-bold text-black">Membership Plans</h2>
           </div>
-        </div>
-      </section>
-
-      {/* Subscription Plans */}
-      <section className="section-padding-sm">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Crown className="w-5 h-5 text-lime-500" />
-            <h2 className="text-xl font-bold text-black">Membership Plans</h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-5">
-            {plans.map((plan) => (
-              <div key={plan.name} className={`glass-card p-6 hover-lift border-2 ${plan.color} relative`}>
-                {plan.badge && (
-                  <div className="absolute -top-3 right-5 px-3 py-1 bg-lime-400 text-black text-[10px] font-bold rounded-full tracking-wider">
-                    {plan.badge}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-xl font-bold text-black">{plan.name}</h3>
-                  <div className={`text-3xl font-bold ${plan.textColor}`}>-{plan.discount}%</div>
-                </div>
-                <p className="text-sm text-gray mb-5">{plan.monthly}/mo · {plan.yearly}</p>
-
-                <ul className="space-y-2.5 mb-6">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2.5 text-sm text-black">
-                      <Check className="w-4 h-4 text-lime-500 flex-shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <Link href="/login" className="btn-premium w-full text-sm py-2.5">
-                  Subscribe <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            ))}
-          </div>
+          <PricingPlans />
         </div>
       </section>
 
       {/* Destinations */}
-      <section className="section-padding-sm">
+      <section className="section-padding-sm section-alt">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="glass-card p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <MapPin className="w-5 h-5 text-black" />
-              <h2 className="text-sm font-semibold text-black">Popular destinations</h2>
+          <div className="premium-card p-7 sm:p-9">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-9 h-9 rounded-xl bg-lime-400/15 border border-lime-400/25 flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-lime-600" />
+              </div>
+              <h2 className="text-base font-bold text-black">Popular destinations</h2>
             </div>
             <div className="flex flex-wrap gap-2">
               {popularDestinations.map((dest) => (
-                <span key={dest.name} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-gray-light text-sm text-black">
+                <span key={dest.name} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-gray-light text-sm text-black hover:border-lime-400/40 transition-colors">
                   <span>{dest.flag}</span>
                   {dest.name}
                 </span>
@@ -168,45 +93,53 @@ export default async function PricingPage() {
       {/* eSIM Packages */}
       <section className="section-padding-md">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Globe className="w-5 h-5 text-lime-500" />
-            <h2 className="text-xl font-bold text-black">Pay-as-you-go eSIMs</h2>
-            <span className="text-xs text-gray ml-1">Subscribers save up to 50%</span>
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-lime-400/15 border border-lime-400/25 flex items-center justify-center">
+              <Globe className="w-5 h-5 text-lime-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-black">Pay-as-you-go eSIMs</h2>
+              <p className="text-xs text-gray mt-0.5">Subscribers save up to 50%</p>
+            </div>
           </div>
 
           {error ? (
-            <div className="glass-card p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-gray-light flex items-center justify-center mx-auto mb-4">
+            <div className="tech-card p-10 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-lime-400/10 border border-lime-400/20 flex items-center justify-center mx-auto mb-4">
                 <Globe className="w-8 h-8 text-gray" />
               </div>
               <div className="text-base font-semibold text-black">Catalog unavailable</div>
               <div className="mt-2 text-sm text-gray max-w-md mx-auto">{error}</div>
+              <Link href="/pricing" className="btn-secondary mt-4 inline-flex items-center gap-2 text-sm">
+                <RefreshCw className="w-4 h-4" /> Try again
+              </Link>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {featured.map((p) => (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featured.map((p, i) => (
                 <div
                   key={`${p.locationCode}-${p.packageCode}`}
-                  className="glass-card p-5 hover-lift group"
+                  className="tech-card p-6 hover-lift group"
+                  style={{ animationDelay: `${i * 0.05}s` }}
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
-                      <div className="text-base font-semibold text-black group-hover:text-lime-600 transition-colors">{p.location}</div>
-                      <div className="text-xs text-gray mt-0.5">{p.name}</div>
+                      <div className="text-base font-bold text-black group-hover:text-lime-600 transition-colors">{p.location}</div>
+                      <div className="text-xs text-gray mt-1">{p.name}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold text-black">${p.price.toFixed(2)}</div>
-                      <div className="text-[10px] text-lime-600 font-semibold">-50% with Black</div>
+                      <div className="text-2xl font-bold text-black">${p.price.toFixed(2)}</div>
+                      <div className="text-[10px] text-lime-600 font-bold mt-0.5">-50% with Black</div>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center gap-3 text-xs text-gray">
-                    <span className="px-2 py-1 rounded bg-gray-light">{p.volumeDisplay}</span>
-                    <span className="px-2 py-1 rounded bg-gray-light">{p.duration}d</span>
-                    <span className="px-2 py-1 rounded bg-gray-light">{p.speed}</span>
+                  <div className="flex items-center gap-2 text-xs text-gray">
+                    <span className="px-2.5 py-1 rounded-full bg-white border border-gray-200 font-medium">{p.volumeDisplay}</span>
+                    <span className="px-2.5 py-1 rounded-full bg-white border border-gray-200 font-medium">{p.duration}d</span>
+                    <span className="px-2.5 py-1 rounded-full bg-white border border-gray-200 font-medium">{p.speed}</span>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-light">
+                  <div className="mt-5 pt-5 border-t border-gray-200">
                     <Link href="/login" className="btn-premium w-full text-sm py-2.5">
                       Buy now <ArrowRight className="w-4 h-4" />
                     </Link>
@@ -217,10 +150,10 @@ export default async function PricingPage() {
           )}
 
           {/* Rewards teaser */}
-          <div className="mt-8 glass-card p-6 border-lime-400/30">
+          <div className="mt-8 glow-card p-6 sm:p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-lime-400/20 border border-lime-400/30 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-lime-400/20 border border-lime-400/30 flex items-center justify-center">
                   <Star className="w-6 h-6 text-lime-600" />
                 </div>
                 <div>

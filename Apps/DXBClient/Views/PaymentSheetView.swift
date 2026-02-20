@@ -14,14 +14,19 @@ struct PaymentSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showCryptoPayment = false
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingRadius = AppTheme.Banking.Radius
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     var body: some View {
         ZStack {
-            AppTheme.backgroundSecondary
+            BankingColors.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 RoundedRectangle(cornerRadius: 2.5)
-                    .fill(AppTheme.gray300)
+                    .fill(BankingColors.backgroundTertiary)
                     .frame(width: 40, height: 5)
                     .padding(.top, 10)
 
@@ -29,17 +34,17 @@ struct PaymentSheetView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(spacing: 6) {
                             Image(systemName: "lock.shield.fill")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(AppTheme.accent)
+                                .font(BankingTypo.label())
+                                .foregroundColor(BankingColors.accent)
                             Text("SECURE CHECKOUT")
-                                .font(.system(size: 11, weight: .bold))
+                                .font(BankingTypo.label())
                                 .tracking(1.5)
-                                .foregroundColor(AppTheme.textSecondary)
+                                .foregroundColor(BankingColors.textOnDarkMuted)
                         }
 
                         Text(plan.location)
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(BankingTypo.sectionTitle())
+                            .foregroundColor(BankingColors.textOnDarkPrimary)
                     }
 
                     Spacer()
@@ -48,21 +53,21 @@ struct PaymentSheetView: View {
                         onCancel()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(BankingTypo.button())
+                            .foregroundColor(BankingColors.textOnDarkPrimary)
                             .frame(width: 32, height: 32)
-                            .background(Circle().fill(AppTheme.gray100))
+                            .background(Circle().fill(BankingColors.backgroundTertiary))
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
+                .padding(.horizontal, BankingSpacing.xl)
+                .padding(.top, BankingSpacing.lg)
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
                         VStack(spacing: 14) {
                             HStack {
                                 Text("ORDER SUMMARY")
-                                    .font(.system(size: 10, weight: .bold))
+                                    .font(AppTheme.Typography.label())
                                     .tracking(2)
                                     .foregroundColor(AppTheme.textTertiary)
                                 Spacer()
@@ -72,18 +77,18 @@ struct PaymentSheetView: View {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 5) {
                                         Text(plan.name)
-                                            .font(.system(size: 16, weight: .semibold))
+                                            .font(AppTheme.Typography.bodyMedium())
                                             .foregroundColor(AppTheme.textPrimary)
 
                                         Text("\(plan.dataGB) GB · \(plan.durationDays) days")
-                                            .font(.system(size: 14, weight: .medium))
+                                            .font(AppTheme.Typography.tabLabel())
                                             .foregroundColor(AppTheme.textTertiary)
                                     }
 
                                     Spacer()
 
                                     Text(plan.priceUSD.formattedPrice)
-                                        .font(.system(size: 16, weight: .bold))
+                                        .font(AppTheme.Typography.bodyMedium())
                                         .foregroundColor(AppTheme.textPrimary)
                                 }
 
@@ -98,7 +103,7 @@ struct PaymentSheetView: View {
                                                 .font(.system(size: 12))
                                                 .foregroundColor(AppTheme.accent)
                                             Text("Plan discount")
-                                                .font(.system(size: 14, weight: .medium))
+                                                .font(AppTheme.Typography.tabLabel())
                                                 .foregroundColor(AppTheme.textSecondary)
                                         }
                                         Spacer()
@@ -110,7 +115,7 @@ struct PaymentSheetView: View {
 
                                 HStack {
                                     Text("Total")
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .font(AppTheme.Typography.bodyMedium())
                                         .foregroundColor(AppTheme.textPrimary)
 
                                     Spacer()
@@ -119,7 +124,7 @@ struct PaymentSheetView: View {
                                         let discounted = plan.priceUSD * (1 - Double(StoreKitManager.shared.activeDiscountPercent) / 100)
                                         VStack(alignment: .trailing, spacing: 2) {
                                             Text(plan.priceUSD.formattedPrice)
-                                                .font(.system(size: 14, weight: .medium))
+                                                .font(AppTheme.Typography.tabLabel())
                                                 .foregroundColor(AppTheme.textMuted)
                                                 .strikethrough()
                                             Text(discounted.formattedPrice)
@@ -175,7 +180,7 @@ struct PaymentSheetView: View {
                                     HStack(spacing: 16) {
                                         Rectangle().fill(AppTheme.gray200).frame(height: 1)
                                         Text("or")
-                                            .font(.system(size: 13, weight: .medium))
+                                            .font(AppTheme.Typography.captionMedium())
                                             .foregroundColor(AppTheme.textSecondary)
                                         Rectangle().fill(AppTheme.gray200).frame(height: 1)
                                     }
@@ -194,7 +199,7 @@ struct PaymentSheetView: View {
                                         Image(systemName: "creditcard.fill")
                                             .font(.system(size: 18))
                                         Text("Pay with Card")
-                                            .font(.system(size: 16, weight: .semibold))
+                                            .font(AppTheme.Typography.bodyMedium())
                                     }
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 56)
@@ -214,7 +219,7 @@ struct PaymentSheetView: View {
                                 Image(systemName: "bitcoinsign.circle.fill")
                                     .font(.system(size: 20))
                                 Text("Pay with Crypto")
-                                    .font(.system(size: 16, weight: .semibold))
+                                    .font(AppTheme.Typography.bodyMedium())
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
@@ -230,7 +235,7 @@ struct PaymentSheetView: View {
                                 .foregroundColor(AppTheme.accent)
 
                             Text("Secured by Stripe & Fireblocks. Payments are encrypted.")
-                                .font(.system(size: 12, weight: .medium))
+                                .font(AppTheme.Typography.navTitle())
                                 .foregroundColor(AppTheme.textSecondary)
 
                             Spacer()
@@ -261,7 +266,7 @@ struct PaymentSheetView: View {
                             }
                             .padding(32)
                             .background(
-                                RoundedRectangle(cornerRadius: 24)
+                                RoundedRectangle(cornerRadius: AppTheme.Radius.xxl)
                                     .fill(AppTheme.anthracite.opacity(0.9))
                             )
                         )

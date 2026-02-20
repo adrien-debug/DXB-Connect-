@@ -41,8 +41,8 @@ struct GeoPoint: Identifiable {
 struct WorldMapOutline: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        let w = rect.width
-        let h = rect.height
+        let _ = rect.width
+        let _ = rect.height
 
         // Simplified continent outlines (~100 points total)
         // North America

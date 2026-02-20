@@ -34,7 +34,7 @@ export default function SolutionsGrid() {
       {solutions.map((s) => {
         const Icon = s.icon
         return (
-          <Link key={s.title} href={s.href} className="glass-card p-6 hover-lift group">
+          <Link key={s.title} href={s.href} className="tech-card p-6 hover-lift group">
             <div className="w-12 h-12 rounded-2xl bg-lime-400/20 border border-lime-400/30 flex items-center justify-center group-hover:bg-lime-400/30 transition-colors">
               <Icon className="w-6 h-6 text-black" />
             </div>

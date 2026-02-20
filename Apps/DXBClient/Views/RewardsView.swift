@@ -11,10 +11,14 @@ struct RewardsView: View {
     @State private var isLoading = true
     @State private var wallet: UserWallet?
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundSecondary.ignoresSafeArea()
+                BankingColors.backgroundPrimary.ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
@@ -35,15 +39,15 @@ struct RewardsView: View {
     // MARK: - Wallet Header
 
     private var walletHeader: some View {
-        HStack(spacing: 16) {
-            WalletStat(icon: "star.fill", value: "\(wallet?.xp_total ?? 0)", label: "XP", color: AppTheme.accent)
-            WalletStat(icon: "circle.fill", value: "\(wallet?.points_balance ?? 0)", label: "Points", color: AppTheme.success)
+        HStack(spacing: BankingSpacing.base) {
+            WalletStat(icon: "star.fill", value: "\(wallet?.xp_total ?? 0)", label: "XP", color: BankingColors.accent)
+            WalletStat(icon: "circle.fill", value: "\(wallet?.points_balance ?? 0)", label: "Points", color: BankingColors.accentDark)
             WalletStat(icon: "ticket.fill", value: "\(wallet?.tickets_balance ?? 0)", label: "Tickets", color: AppTheme.warning)
             WalletStat(icon: "flame.fill", value: "\(wallet?.streak_days ?? 0)", label: "Streak", color: AppTheme.error)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-        .background(AppTheme.backgroundPrimary)
+        .padding(.horizontal, BankingSpacing.lg)
+        .padding(.vertical, BankingSpacing.base)
+        .background(BankingColors.backgroundSecondary)
     }
 
     // MARK: - Category Filter
@@ -211,7 +215,7 @@ struct WalletStat: View {
     var body: some View {
         VStack(spacing: 4) {
             Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
+                .font(AppTheme.Typography.tabLabel())
                 .foregroundColor(color)
             Text(value)
                 .font(.system(size: 18, weight: .bold, design: .rounded))
@@ -235,8 +239,8 @@ struct CategoryChip: View {
             action()
         }) {
             Text(title)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(isSelected ? Color(hex: "0F172A") : AppTheme.textSecondary)
+                .font(AppTheme.Typography.tabLabel())
+                .foregroundColor(isSelected ? AppTheme.anthracite : AppTheme.textSecondary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(
@@ -279,13 +283,13 @@ struct OfferCard: View {
                 }
 
                 Text(offer.title)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(AppTheme.Typography.bodyMedium())
                     .foregroundColor(AppTheme.textPrimary)
                     .lineLimit(2)
 
                 if let desc = offer.description {
                     Text(desc)
-                        .font(.system(size: 13, weight: .regular))
+                        .font(AppTheme.Typography.caption())
                         .foregroundColor(AppTheme.textSecondary)
                         .lineLimit(1)
                 }
@@ -300,7 +304,7 @@ struct OfferCard: View {
             }
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
+                .font(AppTheme.Typography.navTitle())
                 .foregroundColor(AppTheme.textMuted)
         }
         .padding(16)

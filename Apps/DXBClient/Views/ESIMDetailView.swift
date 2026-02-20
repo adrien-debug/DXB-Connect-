@@ -13,10 +13,15 @@ struct ESIMDetailView: View {
     @State private var actionInProgress = false
     @State private var actionResult: String?
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingRadius = AppTheme.Banking.Radius
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     private var statusColor: Color {
         switch order.status.uppercased() {
-        case "RELEASED", "IN_USE": return AppTheme.success
-        case "EXPIRED": return AppTheme.textSecondary
+        case "RELEASED", "IN_USE": return BankingColors.accentDark
+        case "EXPIRED": return BankingColors.textOnLightMuted
         default: return Color.orange
         }
     }
@@ -38,7 +43,7 @@ struct ESIMDetailView: View {
 
     var body: some View {
         ZStack {
-            AppTheme.backgroundSecondary
+            BankingColors.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -47,28 +52,28 @@ struct ESIMDetailView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(BankingTypo.button())
+                            .foregroundColor(BankingColors.textOnDarkPrimary)
                             .frame(width: 40, height: 40)
-                            .background(Circle().fill(AppTheme.gray100))
+                            .background(Circle().fill(BankingColors.backgroundTertiary))
                     }
 
                     Spacer()
 
                     Text("ESIM DETAILS")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(BankingTypo.label())
                         .tracking(1.5)
-                        .foregroundColor(AppTheme.textTertiary)
+                        .foregroundColor(BankingColors.textOnDarkMuted)
 
                     Spacer()
 
                     Color.clear.frame(width: 40, height: 40)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
+                .padding(.horizontal, BankingSpacing.lg)
+                .padding(.top, BankingSpacing.sm)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 20) {
+                    VStack(spacing: BankingSpacing.lg) {
                         if isPaymentConfirmed {
                             qrCodeSection
                         } else {
@@ -96,18 +101,18 @@ struct ESIMDetailView: View {
                 VStack {
                     Spacer()
 
-                    HStack(spacing: 8) {
+                    HStack(spacing: BankingSpacing.sm) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(BankingTypo.body())
                         Text("\(copiedText) copied")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(BankingTypo.button())
                     }
-                    .foregroundColor(Color(hex: "0F172A"))
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
+                    .foregroundColor(BankingColors.backgroundPrimary)
+                    .padding(.horizontal, BankingSpacing.lg)
+                    .padding(.vertical, BankingSpacing.md)
                     .background(
                         Capsule()
-                            .fill(AppTheme.accent)
+                            .fill(BankingColors.accent)
                     )
                     .padding(.bottom, 100)
                 }
@@ -164,31 +169,31 @@ struct ESIMDetailView: View {
     // MARK: - Manage Section
 
     private var manageSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: BankingSpacing.md) {
             Text("Manage")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(AppTheme.textPrimary)
+                .font(BankingTypo.sectionTitle())
+                .foregroundColor(BankingColors.textOnDarkPrimary)
 
-            VStack(spacing: 10) {
+            VStack(spacing: BankingSpacing.sm) {
                 if isActive {
                     Button {
                         showTopUp = true
                     } label: {
-                        HStack(spacing: 10) {
+                        HStack(spacing: BankingSpacing.sm) {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 18))
                             Text("Top Up Data")
-                                .font(.system(size: 15, weight: .semibold))
+                                .font(BankingTypo.button())
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 12, weight: .semibold))
                         }
-                        .foregroundColor(Color(hex: "0F172A"))
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 16)
+                        .foregroundColor(BankingColors.backgroundPrimary)
+                        .padding(.horizontal, BankingSpacing.lg)
+                        .padding(.vertical, BankingSpacing.base)
                         .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(AppTheme.accent)
+                            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
+                                .fill(BankingColors.accent)
                         )
                     }
                     .scaleOnPress()
@@ -196,21 +201,21 @@ struct ESIMDetailView: View {
                     Button {
                         showSuspendConfirm = true
                     } label: {
-                        HStack(spacing: 10) {
+                        HStack(spacing: BankingSpacing.sm) {
                             Image(systemName: "pause.circle")
                                 .font(.system(size: 18))
                             Text("Suspend eSIM")
-                                .font(.system(size: 15, weight: .semibold))
+                                .font(BankingTypo.button())
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 12, weight: .semibold))
                         }
-                        .foregroundColor(AppTheme.textPrimary)
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 16)
+                        .foregroundColor(BankingColors.textOnDarkPrimary)
+                        .padding(.horizontal, BankingSpacing.lg)
+                        .padding(.vertical, BankingSpacing.base)
                         .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(AppTheme.backgroundTertiary)
+                            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
+                                .fill(BankingColors.backgroundTertiary)
                         )
                     }
                 }
@@ -219,21 +224,21 @@ struct ESIMDetailView: View {
                     Button {
                         showSuspendConfirm = true
                     } label: {
-                        HStack(spacing: 10) {
+                        HStack(spacing: BankingSpacing.sm) {
                             Image(systemName: "play.circle.fill")
                                 .font(.system(size: 18))
                             Text("Resume eSIM")
-                                .font(.system(size: 15, weight: .semibold))
+                                .font(BankingTypo.button())
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 12, weight: .semibold))
                         }
-                        .foregroundColor(Color(hex: "0F172A"))
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 16)
+                        .foregroundColor(BankingColors.backgroundPrimary)
+                        .padding(.horizontal, BankingSpacing.lg)
+                        .padding(.vertical, BankingSpacing.base)
                         .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(AppTheme.accent)
+                            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
+                                .fill(BankingColors.accent)
                         )
                     }
                     .scaleOnPress()
@@ -242,35 +247,30 @@ struct ESIMDetailView: View {
                 Button {
                     showCancelConfirm = true
                 } label: {
-                    HStack(spacing: 10) {
+                    HStack(spacing: BankingSpacing.sm) {
                         Image(systemName: "xmark.circle")
                             .font(.system(size: 18))
                         Text("Cancel Order")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(BankingTypo.button())
                         Spacer()
                     }
                     .foregroundColor(AppTheme.error)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal, BankingSpacing.lg)
+                    .padding(.vertical, BankingSpacing.base)
                     .background(
-                        RoundedRectangle(cornerRadius: 14)
+                        RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
                             .fill(AppTheme.error.opacity(0.08))
                     )
                 }
             }
         }
-        .padding(22)
+        .padding(BankingSpacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.backgroundPrimary)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
-                )
-                .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
-                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                .fill(BankingColors.backgroundSecondary)
+                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
         )
-        .padding(.horizontal, 20)
+        .padding(.horizontal, BankingSpacing.lg)
         .slideIn(delay: 0.18)
     }
 
@@ -293,44 +293,39 @@ struct ESIMDetailView: View {
             .background(Capsule().fill(Color.orange.opacity(0.15)))
 
             ZStack {
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(AppTheme.gray100)
+                RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                    .fill(BankingColors.backgroundTertiary)
                     .frame(width: 200, height: 200)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(AppTheme.border, lineWidth: 1)
-                    )
 
-                VStack(spacing: 14) {
+                VStack(spacing: BankingSpacing.md) {
                     Image(systemName: "clock.fill")
                         .font(.system(size: 44, weight: .semibold))
                         .foregroundColor(.orange)
 
                     Text("Payment Processing")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(AppTheme.textPrimary)
+                        .font(BankingTypo.button())
+                        .foregroundColor(BankingColors.textOnDarkPrimary)
 
                     Text("Your QR code will appear\nonce payment is confirmed")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(AppTheme.textTertiary)
+                        .font(BankingTypo.caption())
+                        .foregroundColor(BankingColors.textOnDarkMuted)
                         .multilineTextAlignment(.center)
                 }
             }
 
             Text("This usually takes a few seconds")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(AppTheme.textTertiary)
+                .font(BankingTypo.caption())
+                .foregroundColor(BankingColors.textOnDarkMuted)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
+        .padding(.vertical, BankingSpacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(AppTheme.backgroundPrimary)
-                .shadow(color: Color.black.opacity(0.04), radius: 8, y: 2)
-                .overlay(RoundedRectangle(cornerRadius: 24).stroke(AppTheme.border, lineWidth: 1))
+            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                .fill(BankingColors.backgroundSecondary)
+                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
         )
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
+        .padding(.horizontal, BankingSpacing.lg)
+        .padding(.top, BankingSpacing.base)
         .slideIn(delay: 0)
     }
 
@@ -338,130 +333,146 @@ struct ESIMDetailView: View {
 
     private var qrCodeSection: some View {
         VStack(spacing: 24) {
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(statusColor)
-                    .frame(width: 8, height: 8)
-
-                Text(statusText)
-                    .font(.system(size: 11, weight: .bold))
-                    .tracking(1)
-                    .foregroundColor(statusColor)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(Capsule().fill(statusColor.opacity(0.1)))
-
-            // QR code with decorative frame + animated scan line
-            ZStack {
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.white)
-                    .frame(width: 250, height: 250)
-                    .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-                    .shadow(color: Color.black.opacity(0.08), radius: 20, x: 0, y: 8)
-
-                AsyncImage(url: URL(string: order.qrCodeUrl)) { image in
-                    ZStack {
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 200, height: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                        // Animated scan line overlay
-                        AnimatedScanLine(color: AppTheme.accent, height: 2)
-                            .frame(width: 200, height: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                    }
-                } placeholder: {
-                    VStack(spacing: 12) {
-                        ProgressView()
-                            .tint(AppTheme.accent)
-                        Text("Loading QR...")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(AppTheme.textTertiary)
-                    }
-                }
-
-                // Corner accents
-                ForEach(0..<4, id: \.self) { corner in
-                    CornerShape(corner: corner, length: 24)
-                        .stroke(AppTheme.accent, lineWidth: 3)
-                        .frame(width: 30, height: 30)
-                        .offset(
-                            x: (corner == 0 || corner == 2) ? -110 : 110,
-                            y: (corner == 0 || corner == 1) ? -110 : 110
-                        )
-                }
-            }
-
-            VStack(spacing: 8) {
-                Text("Scan to install")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(AppTheme.textPrimary)
-
-                Text("Open your Camera app and\npoint at the QR code")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(AppTheme.textTertiary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-            }
+            qrStatusBadge
+            qrCodeDisplay
+            qrInstructions
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 32)
-        .background(
-            RoundedRectangle(cornerRadius: 26)
-                .fill(AppTheme.backgroundPrimary)
-                .shadow(color: Color.black.opacity(0.04), radius: 2, x: 0, y: 1)
-                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
-        )
+        .background(qrBackground)
         .padding(.horizontal, 20)
         .padding(.top, 16)
         .slideIn(delay: 0)
     }
 
+    private var qrStatusBadge: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 8, height: 8)
+            Text(statusText)
+                .font(.system(size: 11, weight: .bold))
+                .tracking(1)
+                .foregroundColor(statusColor)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(Capsule().fill(statusColor.opacity(0.1)))
+    }
+
+    private var qrCodeDisplay: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                .fill(Color.white)
+                .frame(width: 250, height: 250)
+                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
+
+            qrImageLoader
+            qrCornerAccents
+        }
+    }
+
+    private var qrImageLoader: some View {
+        AsyncImage(url: URL(string: order.qrCodeUrl)) { image in
+            ZStack {
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 200, height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: CGFloat(BankingRadius.chartBar)))
+                AnimatedScanLine(color: BankingColors.accent, height: 2)
+                    .frame(width: 200, height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: CGFloat(BankingRadius.chartBar)))
+            }
+        } placeholder: {
+            VStack(spacing: BankingSpacing.md) {
+                ProgressView().tint(BankingColors.accent)
+                Text("Loading QR...")
+                    .font(BankingTypo.caption())
+                    .foregroundColor(BankingColors.textOnDarkMuted)
+            }
+        }
+    }
+
+    private var qrCornerAccents: some View {
+        Group {
+            singleCorner(0)
+            singleCorner(1)
+            singleCorner(2)
+            singleCorner(3)
+        }
+    }
+
+    private func singleCorner(_ corner: Int) -> some View {
+        let xOff: CGFloat = (corner == 0 || corner == 2) ? -110 : 110
+        let yOff: CGFloat = (corner == 0 || corner == 1) ? -110 : 110
+        return CornerShape(corner: corner, length: 24)
+            .stroke(BankingColors.accent, lineWidth: 3)
+            .frame(width: 30, height: 30)
+            .offset(x: xOff, y: yOff)
+    }
+
+    private var qrInstructions: some View {
+        VStack(spacing: BankingSpacing.sm) {
+            Text("Scan to install")
+                .font(BankingTypo.sectionTitle())
+                .foregroundColor(BankingColors.textOnDarkPrimary)
+            Text("Open your Camera app and\npoint at the QR code")
+                .font(BankingTypo.body())
+                .foregroundColor(BankingColors.textOnDarkMuted)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+        }
+    }
+
+    private var qrBackground: some View {
+        RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+            .fill(BankingColors.backgroundSecondary)
+            .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
+    }
+
     // MARK: - Package Info
 
     private var packageInfoSection: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: BankingSpacing.lg) {
             Text("Package details")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(AppTheme.textPrimary)
+                .font(BankingTypo.sectionTitle())
+                .foregroundColor(BankingColors.textOnDarkPrimary)
 
-            HStack(spacing: 14) {
+            HStack(spacing: BankingSpacing.md) {
                 Circle()
-                    .fill(AppTheme.accent.opacity(0.1))
+                    .fill(BankingColors.surfaceMedium)
                     .frame(width: 50, height: 50)
                     .overlay(
                         Image(systemName: "simcard.fill")
                             .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(AppTheme.accent)
+                            .foregroundColor(BankingColors.accentDark)
                     )
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(order.packageName)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(AppTheme.textPrimary)
+                        .font(BankingTypo.body())
+                        .foregroundColor(BankingColors.textOnLightPrimary)
 
                     Text(order.totalVolume)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(AppTheme.textSecondary)
+                        .font(BankingTypo.caption())
+                        .foregroundColor(BankingColors.textOnLightMuted)
                 }
 
                 Spacer()
             }
 
-            HStack(spacing: 10) {
+            HStack(spacing: BankingSpacing.sm) {
                 InfoMiniCard(label: "Expires", value: formatDate(order.expiredTime))
                 InfoMiniCard(label: "Order", value: "#\(String(order.orderNo.suffix(6)))")
             }
         }
-        .padding(22)
+        .padding(BankingSpacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.backgroundPrimary)
+            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                .fill(BankingColors.surfaceLight)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
                         .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
                 )
                 .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
@@ -484,67 +495,62 @@ struct ESIMDetailView: View {
     private var usageSection: some View {
         let usage = currentUsage
 
-        return VStack(alignment: .leading, spacing: 16) {
+        return VStack(alignment: .leading, spacing: BankingSpacing.base) {
             Text("Data usage")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(AppTheme.textPrimary)
+                .font(BankingTypo.sectionTitle())
+                .foregroundColor(BankingColors.textOnLightPrimary)
 
-            HStack(spacing: 24) {
+            HStack(spacing: BankingSpacing.xl) {
                 RadialGauge(
                     progress: usage.percentage,
                     size: 80,
-                    trackColor: AppTheme.backgroundTertiary,
-                    fillColor: AppTheme.accent,
+                    trackColor: BankingColors.surfaceMedium,
+                    fillColor: BankingColors.accent,
                     lineWidth: 6,
                     valueText: "\(Int(usage.percentage * 100))",
                     unitText: "%"
                 )
 
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: BankingSpacing.md) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Used")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(AppTheme.textTertiary)
+                            .font(BankingTypo.caption())
+                            .foregroundColor(BankingColors.textOnLightMuted)
                         Text(usage.used)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(BankingTypo.body())
+                            .foregroundColor(BankingColors.textOnLightPrimary)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Remaining")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(AppTheme.textTertiary)
+                            .font(BankingTypo.caption())
+                            .foregroundColor(BankingColors.textOnLightMuted)
                         Text(usage.remaining)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(AppTheme.accent)
+                            .font(BankingTypo.body())
+                            .foregroundColor(BankingColors.accentDark)
                     }
                 }
 
                 Spacer()
             }
         }
-        .padding(22)
+        .padding(BankingSpacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.backgroundPrimary)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
-                )
-                .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
-                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                .fill(BankingColors.surfaceLight)
+                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
         )
-        .padding(.horizontal, 20)
+        .padding(.horizontal, BankingSpacing.lg)
         .slideIn(delay: 0.12)
     }
 
     // MARK: - Technical Info
 
     private var technicalInfoSection: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: BankingSpacing.lg) {
             Text("Technical info")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(AppTheme.textPrimary)
+                .font(BankingTypo.sectionTitle())
+                .foregroundColor(BankingColors.textOnDarkPrimary)
 
             VStack(spacing: 0) {
                 TechInfoRow(label: "ICCID", value: order.iccid) {
@@ -552,76 +558,60 @@ struct ESIMDetailView: View {
                 }
 
                 Rectangle()
-                    .fill(AppTheme.border.opacity(0.5))
+                    .fill(BankingColors.borderDark)
                     .frame(height: 0.5)
-                    .padding(.leading, 16)
+                    .padding(.leading, BankingSpacing.base)
 
                 TechInfoRow(label: "LPA Code", value: order.lpaCode) {
                     copyToClipboard(order.lpaCode, label: "LPA Code")
                 }
 
                 Rectangle()
-                    .fill(AppTheme.border.opacity(0.5))
+                    .fill(BankingColors.borderDark)
                     .frame(height: 0.5)
-                    .padding(.leading, 16)
+                    .padding(.leading, BankingSpacing.base)
 
                 TechInfoRow(label: "Order No", value: order.orderNo) {
                     copyToClipboard(order.orderNo, label: "Order No")
                 }
             }
             .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(AppTheme.backgroundTertiary)
-
-                    // Tech grid pattern background
-                    TechGridPattern(dotSize: 2, spacing: 16, color: AppTheme.anthracite, opacity: 0.03)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                }
+                RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
+                    .fill(BankingColors.backgroundTertiary)
             )
         }
-        .padding(22)
+        .padding(BankingSpacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.backgroundPrimary)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
-                )
-                .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
-                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                .fill(BankingColors.backgroundSecondary)
+                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
         )
-        .padding(.horizontal, 20)
+        .padding(.horizontal, BankingSpacing.lg)
         .slideIn(delay: 0.15)
     }
 
     // MARK: - Installation Guide
 
     private var installationGuideSection: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: BankingSpacing.lg) {
             Text("How to install")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(AppTheme.textPrimary)
+                .font(BankingTypo.sectionTitle())
+                .foregroundColor(BankingColors.textOnDarkPrimary)
 
-            VStack(spacing: 16) {
+            VStack(spacing: BankingSpacing.base) {
                 InstallStepTech(number: 1, text: "Go to Settings → Cellular")
                 InstallStepTech(number: 2, text: "Tap 'Add eSIM' or 'Add Cellular Plan'")
                 InstallStepTech(number: 3, text: "Scan the QR code above")
                 InstallStepTech(number: 4, text: "Follow the on-screen instructions")
             }
         }
-        .padding(22)
+        .padding(BankingSpacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.backgroundPrimary)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
-                )
-                .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
-                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                .fill(BankingColors.backgroundSecondary)
+                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
         )
-        .padding(.horizontal, 20)
+        .padding(.horizontal, BankingSpacing.lg)
         .slideIn(delay: 0.2)
     }
 
@@ -663,20 +653,20 @@ struct TopUpSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundSecondary.ignoresSafeArea()
+                AppTheme.Banking.Colors.backgroundPrimary.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     HStack {
                         Button { dismiss() } label: {
                             Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .semibold))
+                                .font(AppTheme.Typography.tabLabel())
                                 .foregroundColor(AppTheme.textPrimary)
                                 .frame(width: 36, height: 36)
                                 .background(Circle().fill(AppTheme.gray100))
                         }
                         Spacer()
                         Text("TOP UP")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(AppTheme.Typography.navTitle())
                             .tracking(1.5)
                             .foregroundColor(AppTheme.textSecondary)
                         Spacer()
@@ -697,7 +687,7 @@ struct TopUpSheet: View {
                                 .font(.system(size: 36, weight: .medium))
                                 .foregroundColor(AppTheme.textTertiary)
                             Text("No top-up packages available")
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(AppTheme.Typography.bodyMedium())
                                 .foregroundColor(AppTheme.textPrimary)
                             Text("Try again later")
                                 .font(.system(size: 14))
@@ -711,7 +701,7 @@ struct TopUpSheet: View {
                                 .font(.system(size: 56, weight: .medium))
                                 .foregroundColor(AppTheme.success)
                             Text("Top-Up Successful!")
-                                .font(.system(size: 20, weight: .bold))
+                                .font(AppTheme.Typography.cardTitle())
                                 .foregroundColor(AppTheme.textPrimary)
                             Text("Your data has been added")
                                 .font(.system(size: 15))
@@ -720,8 +710,8 @@ struct TopUpSheet: View {
                                 dismiss()
                             } label: {
                                 Text("Done")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(Color(hex: "0F172A"))
+                                    .font(AppTheme.Typography.buttonMedium())
+                                    .foregroundColor(AppTheme.anthracite)
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 50)
                                     .background(RoundedRectangle(cornerRadius: 14).fill(AppTheme.accent))
@@ -741,10 +731,10 @@ struct TopUpSheet: View {
                                         HStack(spacing: 14) {
                                             VStack(alignment: .leading, spacing: 4) {
                                                 Text(pkg.name)
-                                                    .font(.system(size: 16, weight: .semibold))
+                                                    .font(AppTheme.Typography.bodyMedium())
                                                     .foregroundColor(AppTheme.textPrimary)
                                                 Text("\(pkg.dataGB) GB · \(pkg.durationDays) days")
-                                                    .font(.system(size: 13, weight: .medium))
+                                                    .font(AppTheme.Typography.captionMedium())
                                                     .foregroundColor(AppTheme.textSecondary)
                                             }
                                             Spacer()
@@ -754,10 +744,10 @@ struct TopUpSheet: View {
                                         }
                                         .padding(18)
                                         .background(
-                                            RoundedRectangle(cornerRadius: 16)
+                                            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                                                 .fill(AppTheme.backgroundPrimary)
                                                 .overlay(
-                                                    RoundedRectangle(cornerRadius: 16)
+                                                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                                                         .stroke(
                                                             selectedPackage?.id == pkg.id
                                                                 ? AppTheme.accent
@@ -794,18 +784,18 @@ struct TopUpSheet: View {
                                     HStack {
                                         if isPurchasing {
                                             ProgressView()
-                                                .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "0F172A")))
+                                                .progressViewStyle(CircularProgressViewStyle(tint: AppTheme.anthracite))
                                                 .scaleEffect(0.8)
                                         } else {
                                             Text("Top Up for \(selected.priceUSD.formattedPrice)")
-                                                .font(.system(size: 16, weight: .bold))
+                                                .font(AppTheme.Typography.bodyMedium())
                                         }
                                     }
-                                    .foregroundColor(Color(hex: "0F172A"))
+                                    .foregroundColor(AppTheme.anthracite)
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 56)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 16)
+                                        RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                                             .fill(AppTheme.accent)
                                     )
                                 }
@@ -840,11 +830,11 @@ struct InfoMiniCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
-                .font(.system(size: 12, weight: .medium))
+                .font(AppTheme.Typography.navTitle())
                 .foregroundColor(AppTheme.textTertiary)
 
             Text(value)
-                .font(.system(size: 15, weight: .semibold))
+                .font(AppTheme.Typography.buttonMedium())
                 .foregroundColor(AppTheme.textPrimary)
                 .lineLimit(1)
         }
@@ -873,7 +863,7 @@ struct TechInfoRow: View {
                     .foregroundColor(AppTheme.textTertiary)
 
                 Text(value)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(AppTheme.Typography.captionMedium())
                     .foregroundColor(AppTheme.textPrimary)
                     .lineLimit(1)
             }
@@ -882,7 +872,7 @@ struct TechInfoRow: View {
 
             Button(action: onCopy) {
                 Image(systemName: "doc.on.doc")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(AppTheme.Typography.tabLabel())
                     .foregroundColor(AppTheme.accent)
                     .frame(width: 32, height: 32)
                     .background(

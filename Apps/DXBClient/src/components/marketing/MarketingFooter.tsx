@@ -26,18 +26,18 @@ const footerLinks = {
 
 export default function MarketingFooter() {
   return (
-    <footer className="border-t border-gray-light bg-white">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+    <footer className="border-t border-gray-200 bg-white">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-14">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-lime-400 shadow-md shadow-lime-400/20">
+            <Link href="/" className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-lime-400 shadow-lg shadow-lime-400/25">
                 <Wifi className="w-5 h-5 text-black" />
               </div>
               <div className="leading-tight">
-                <div className="text-sm font-semibold text-black">SimPass</div>
-                <div className="text-[10px] text-gray uppercase tracking-wider">eSIM + Perks</div>
+                <div className="text-sm font-bold text-black">SimPass</div>
+                <div className="text-[10px] text-gray uppercase tracking-widest font-bold">eSIM + Perks</div>
               </div>
             </Link>
             <p className="text-sm text-gray leading-relaxed">
@@ -47,7 +47,7 @@ export default function MarketingFooter() {
 
           {/* Product */}
           <div>
-            <h4 className="text-xs font-semibold text-black uppercase tracking-wider mb-4">Product</h4>
+            <h4 className="text-xs font-bold text-black uppercase tracking-widest mb-5">Product</h4>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.href + link.label}>
@@ -61,7 +61,7 @@ export default function MarketingFooter() {
 
           {/* Perks */}
           <div>
-            <h4 className="text-xs font-semibold text-black uppercase tracking-wider mb-4">Perks</h4>
+            <h4 className="text-xs font-bold text-black uppercase tracking-widest mb-5">Perks</h4>
             <ul className="space-y-3">
               {footerLinks.perks.map((link) => (
                 <li key={link.href + link.label}>
@@ -75,7 +75,7 @@ export default function MarketingFooter() {
 
           {/* Resources */}
           <div>
-            <h4 className="text-xs font-semibold text-black uppercase tracking-wider mb-4">Resources</h4>
+            <h4 className="text-xs font-bold text-black uppercase tracking-widest mb-5">Resources</h4>
             <ul className="space-y-3">
               {footerLinks.resources.map((link) => (
                 <li key={link.href + link.label}>
@@ -89,7 +89,7 @@ export default function MarketingFooter() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-xs font-semibold text-black uppercase tracking-wider mb-4">Legal</h4>
+            <h4 className="text-xs font-bold text-black uppercase tracking-widest mb-5">Legal</h4>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.href + link.label}>
@@ -102,13 +102,11 @@ export default function MarketingFooter() {
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-gray-light flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-gray">
+        <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-gray">
           <div>&copy; {new Date().getFullYear()} SimPass. All rights reserved.</div>
-          <div>
-            <a href="mailto:support@simpass.io" className="hover:text-black transition-colors">
-              support@simpass.io
-            </a>
-          </div>
+          <a href="mailto:support@simpass.io" className="hover:text-black transition-colors">
+            support@simpass.io
+          </a>
         </div>
       </div>
     </footer>

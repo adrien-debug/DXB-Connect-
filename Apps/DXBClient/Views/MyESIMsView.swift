@@ -6,6 +6,11 @@ struct MyESIMsView: View {
     @State private var selectedFilter = "All"
     @State private var pollingTask: Task<Void, Never>?
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingRadius = AppTheme.Banking.Radius
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     let filters = ["Active", "All", "Expired"]
 
     var filteredOrders: [ESIMOrder] {
@@ -29,7 +34,7 @@ struct MyESIMsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.backgroundSecondary
+                BankingColors.backgroundPrimary
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -97,14 +102,13 @@ struct MyESIMsView: View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("My eSIMs")
-                    .font(.system(size: 30, weight: .bold))
-                    .tracking(-0.5)
-                    .foregroundColor(AppTheme.textPrimary)
+                    .font(BankingTypo.heroAmount())
+                    .foregroundColor(BankingColors.textOnDarkPrimary)
 
                 if !coordinator.esimOrders.isEmpty {
                     Text("\(coordinator.esimOrders.count) plan\(coordinator.esimOrders.count > 1 ? "s" : "")")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(AppTheme.textTertiary)
+                        .font(BankingTypo.caption())
+                        .foregroundColor(BankingColors.textOnDarkMuted)
                 }
             }
 
@@ -115,24 +119,24 @@ struct MyESIMsView: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "plus")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(BankingTypo.label())
                     Text("New")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(BankingTypo.button())
                 }
-                .foregroundColor(Color(hex: "0F172A"))
-                .padding(.horizontal, 18)
-                .padding(.vertical, 11)
+                .foregroundColor(BankingColors.backgroundPrimary)
+                .padding(.horizontal, BankingSpacing.lg)
+                .padding(.vertical, BankingSpacing.md)
                 .background(
                     Capsule()
-                        .fill(AppTheme.accent)
+                        .fill(BankingColors.accent)
                 )
             }
             .scaleOnPress()
             .accessibilityLabel("Acheter un nouveau plan")
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, BankingSpacing.lg)
         .padding(.top, 56)
-        .padding(.bottom, AppTheme.Spacing.base)
+        .padding(.bottom, BankingSpacing.base)
     }
 
     // MARK: - Filter
@@ -203,29 +207,29 @@ struct MyESIMsView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: 32) {
+            VStack(spacing: BankingSpacing.xxl) {
                 ZStack {
                     Circle()
-                        .fill(AppTheme.accent.opacity(0.06))
+                        .fill(BankingColors.accent.opacity(0.08))
                         .frame(width: 120, height: 120)
 
                     Circle()
-                        .fill(AppTheme.accent.opacity(0.1))
+                        .fill(BankingColors.accent.opacity(0.15))
                         .frame(width: 88, height: 88)
 
                     Image(systemName: "simcard")
                         .font(.system(size: 36, weight: .medium))
-                        .foregroundColor(AppTheme.accent)
+                        .foregroundColor(BankingColors.accent)
                 }
 
-                VStack(spacing: 12) {
+                VStack(spacing: BankingSpacing.md) {
                     Text("No eSIMs yet")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(AppTheme.textPrimary)
+                        .font(BankingTypo.detailAmount())
+                        .foregroundColor(BankingColors.textOnDarkPrimary)
 
                     Text("Get your first eSIM and stay\nconnected in 190+ countries")
-                        .font(.system(size: 16, weight: .regular))
-                        .foregroundColor(AppTheme.textSecondary)
+                        .font(BankingTypo.body())
+                        .foregroundColor(BankingColors.textOnDarkMuted)
                         .multilineTextAlignment(.center)
                         .lineSpacing(5)
                 }
@@ -235,17 +239,17 @@ struct MyESIMsView: View {
                 } label: {
                     HStack(spacing: 8) {
                         Text("Browse plans")
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(BankingTypo.button())
                         Image(systemName: "arrow.right")
                             .font(.system(size: 13, weight: .bold))
                     }
-                    .foregroundColor(Color(hex: "0F172A"))
-                    .padding(.horizontal, 36)
-                    .padding(.vertical, 16)
+                    .foregroundColor(BankingColors.backgroundPrimary)
+                    .padding(.horizontal, BankingSpacing.xxl)
+                    .padding(.vertical, BankingSpacing.base)
                     .background(
                         Capsule()
-                            .fill(AppTheme.accent)
-                            .shadow(color: AppTheme.accent.opacity(0.3), radius: 12, x: 0, y: 4)
+                            .fill(BankingColors.accent)
+                            .shadow(color: BankingColors.accentDark.opacity(0.4), radius: 12, x: 0, y: 4)
                     )
                 }
                 .accessibilityLabel("Voir les plans disponibles")
@@ -258,18 +262,23 @@ struct MyESIMsView: View {
     }
 }
 
-// MARK: - eSIM Card
+// MARK: - eSIM Card (Banking Style)
 
 struct EsimCardTech: View {
     let order: ESIMOrder
     @EnvironmentObject private var coordinator: AppCoordinator
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingRadius = AppTheme.Banking.Radius
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     private var statusColor: Color {
         switch order.status.uppercased() {
-        case "RELEASED", "IN_USE": return AppTheme.success
-        case "EXPIRED": return AppTheme.textSecondary
+        case "RELEASED", "IN_USE": return BankingColors.accentDark
+        case "EXPIRED": return BankingColors.textOnLightMuted
         case "PENDING", "PENDING_PAYMENT", "PROCESSING": return AppTheme.warning
-        default: return AppTheme.textSecondary
+        default: return BankingColors.textOnLightMuted
         }
     }
 
@@ -320,100 +329,65 @@ struct EsimCardTech: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Left status bar
-            RoundedRectangle(cornerRadius: 3)
-                .fill(statusColor)
-                .frame(width: 4)
-                .padding(.vertical, 12)
+        HStack(spacing: BankingSpacing.md) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(BankingColors.surfaceMedium)
+                    .frame(width: 44, height: 44)
 
-            VStack(spacing: 14) {
-                HStack(spacing: 14) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(isActive ? AppTheme.accent.opacity(0.1) : AppTheme.backgroundTertiary)
-                            .frame(width: 50, height: 50)
+                Image(systemName: "simcard.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(isActive ? BankingColors.accentDark : BankingColors.textOnLightMuted)
+            }
 
-                        Image(systemName: "simcard.fill")
-                            .font(.system(size: 19, weight: .semibold))
-                            .foregroundColor(isActive ? AppTheme.accent : AppTheme.textTertiary)
-                    }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(order.packageName)
+                    .font(BankingTypo.body())
+                    .foregroundColor(BankingColors.textOnLightPrimary)
+                    .lineLimit(1)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(order.packageName)
-                            .font(.system(size: 17, weight: .bold))
-                            .foregroundColor(AppTheme.textPrimary)
-                            .lineLimit(1)
+                HStack(spacing: 6) {
+                    Text(order.totalVolume)
+                        .font(BankingTypo.caption())
+                        .foregroundColor(BankingColors.textOnLightMuted)
 
-                        HStack(spacing: 6) {
-                            Text(order.totalVolume)
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(AppTheme.textSecondary)
+                    Text("·")
+                        .foregroundColor(BankingColors.textOnLightMuted)
 
-                            Text("·")
-                                .foregroundColor(AppTheme.textMuted)
-
-                            Text(daysRemainingText)
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(isActive ? AppTheme.textSecondary : AppTheme.textTertiary)
-                        }
-                    }
-
-                    Spacer()
-
-                    VStack(alignment: .trailing, spacing: 6) {
-                        Text(statusText)
-                            .font(.system(size: 11, weight: .bold))
-                            .tracking(0.5)
-                            .foregroundColor(statusColor)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(
-                                Capsule().fill(statusColor.opacity(0.1))
-                            )
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(AppTheme.textMuted)
-                    }
-                }
-
-                // Progress bar
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(AppTheme.backgroundTertiary)
-
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(
-                                LinearGradient(
-                                    colors: [AppTheme.accent, AppTheme.accent.opacity(0.7)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .frame(width: geo.size.width * usagePercentage)
-                    }
-                }
-                .frame(height: 6)
-
-                HStack {
-                    Text("\(Int(usagePercentage * 100))% used")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(AppTheme.textTertiary)
-
-                    Spacer()
+                    Text(daysRemainingText)
+                        .font(BankingTypo.caption())
+                        .foregroundColor(BankingColors.textOnLightMuted)
                 }
             }
-            .padding(.leading, 14)
-            .padding(.trailing, 18)
-            .padding(.vertical, 18)
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(statusText)
+                    .font(BankingTypo.label())
+                    .foregroundColor(isActive ? BankingColors.backgroundPrimary : statusColor)
+                    .padding(.horizontal, BankingSpacing.sm)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule().fill(isActive ? BankingColors.accent : statusColor.opacity(0.15))
+                    )
+
+                Text("\(Int(usagePercentage * 100))% used")
+                    .font(BankingTypo.caption())
+                    .foregroundColor(BankingColors.textOnLightMuted)
+            }
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(BankingColors.textOnLightMuted)
         }
+        .padding(.horizontal, BankingSpacing.base)
+        .padding(.vertical, BankingSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.backgroundPrimary)
-                .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
-                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                .fill(BankingColors.surfaceLight)
+                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(order.packageName), \(statusText), \(order.totalVolume)")
@@ -440,8 +414,8 @@ struct MiniStat: View {
     let label: String
     var body: some View {
         Label(label, systemImage: icon)
-            .font(.caption)
-            .foregroundColor(AppTheme.textSecondary)
+            .font(AppTheme.Banking.Typography.caption())
+            .foregroundColor(AppTheme.Banking.Colors.textOnLightMuted)
     }
 }
 

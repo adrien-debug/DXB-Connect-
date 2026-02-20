@@ -11,7 +11,7 @@ enum AppearanceMode: String {
 // MARK: - Dynamic Theme with Dark Mode Support
 
 struct AppTheme {
-    // MARK: - Spacing Scale (Pulse Token System)
+    // MARK: - Spacing Scale (8pt Grid System)
 
     enum Spacing {
         static let xs: CGFloat = 4
@@ -27,113 +27,222 @@ struct AppTheme {
     // MARK: - Corner Radius Scale
 
     enum Radius {
-        static let xs: CGFloat = 6
-        static let sm: CGFloat = 10
-        static let md: CGFloat = 14
-        static let lg: CGFloat = 18
-        static let xl: CGFloat = 22
+        static let xs: CGFloat = 8
+        static let sm: CGFloat = 12
+        static let md: CGFloat = 16
+        static let lg: CGFloat = 20
+        static let xl: CGFloat = 24
         static let xxl: CGFloat = 28
         static let full: CGFloat = 9999
     }
 
-    // MARK: - Typography Presets
+    // MARK: - Typography Presets (Aurora)
 
     enum Typography {
-        static func display() -> Font { .system(size: 56, weight: .bold, design: .default) }
-        static func heroAmount() -> Font { .system(size: 48, weight: .bold, design: .default) }
-        static func detailAmount() -> Font { .system(size: 40, weight: .bold, design: .default) }
-        static func headline() -> Font { .system(size: 32, weight: .bold, design: .default) }
-        static func sectionTitle() -> Font { .system(size: 22, weight: .semibold) }
-        static func cardAmount() -> Font { .system(size: 18, weight: .semibold) }
+        static func display() -> Font { .system(size: 52, weight: .bold, design: .rounded) }
+        static func heroStat() -> Font { .system(size: 44, weight: .bold, design: .rounded) }
+        static func heroAmount() -> Font { .system(size: 42, weight: .bold, design: .rounded) }
+        static func detailAmount() -> Font { .system(size: 32, weight: .bold, design: .rounded) }
+        static func headline() -> Font { .system(size: 26, weight: .semibold, design: .rounded) }
+
+        static func title1() -> Font { .system(size: 22, weight: .semibold, design: .rounded) }
+        static func title2() -> Font { .system(size: 18, weight: .semibold, design: .rounded) }
+        static func sectionTitle() -> Font { .system(size: 20, weight: .semibold, design: .rounded) }
+        static func cardAmount() -> Font { .system(size: 18, weight: .semibold, design: .rounded) }
+        static func cardTitle() -> Font { .system(size: 20, weight: .bold, design: .rounded) }
+
         static func bodyLarge() -> Font { .system(size: 17, weight: .regular) }
         static func body() -> Font { .system(size: 15, weight: .regular) }
-        static func caption() -> Font { .system(size: 13, weight: .medium) }
-        static func small() -> Font { .system(size: 11, weight: .medium) }
+        static func bodyMedium() -> Font { .system(size: 15, weight: .medium) }
+        static func bodySemibold() -> Font { .system(size: 15, weight: .semibold) }
+
+        static func caption() -> Font { .system(size: 13, weight: .regular) }
+        static func captionMedium() -> Font { .system(size: 13, weight: .medium) }
+        static func captionSemibold() -> Font { .system(size: 13, weight: .semibold) }
+        static func small() -> Font { .system(size: 11, weight: .regular) }
+        static func smallMedium() -> Font { .system(size: 11, weight: .medium) }
+        static func smallBold() -> Font { .system(size: 11, weight: .bold) }
+
         static func navTitle() -> Font { .system(size: 12, weight: .bold) }
-        static func tabLabel() -> Font { .system(size: 14, weight: .medium) }
-        static func button() -> Font { .system(size: 15, weight: .semibold) }
+        static func tabLabel() -> Font { .system(size: 10, weight: .medium) }
+        static func button() -> Font { .system(size: 14, weight: .semibold) }
+        static func buttonLarge() -> Font { .system(size: 17, weight: .semibold) }
+        static func buttonMedium() -> Font { .system(size: 15, weight: .semibold) }
         static func buttonSmall() -> Font { .system(size: 13, weight: .semibold) }
         static func label() -> Font { .system(size: 10, weight: .bold) }
-        static func overline() -> Font { .system(size: 11, weight: .semibold) }
+        static func overline() -> Font { .system(size: 11, weight: .bold) }
+        static func mono() -> Font { .system(size: 13, weight: .medium, design: .monospaced) }
+
+        static func icon(size: CGFloat) -> Font { .system(size: size, weight: .medium) }
+        static func iconBold(size: CGFloat) -> Font { .system(size: size, weight: .bold) }
+        static func iconSemibold(size: CGFloat) -> Font { .system(size: size, weight: .semibold) }
     }
 
-    // MARK: - Deep Navy (replaces pure black in UI elements)
+    // MARK: - Banking UI Tokens
 
-    static var anthracite: Color { Color(hex: "0F172A") }
-    static var anthraciteLight: Color { Color(hex: "1E293B") }
+    enum Banking {
+        enum Spacing {
+            static let xs: CGFloat = AppTheme.Spacing.xs
+            static let sm: CGFloat = AppTheme.Spacing.sm
+            static let md: CGFloat = AppTheme.Spacing.md
+            static let base: CGFloat = AppTheme.Spacing.base
+            static let lg: CGFloat = AppTheme.Spacing.lg
+            static let xl: CGFloat = AppTheme.Spacing.xl
+            static let xxl: CGFloat = AppTheme.Spacing.xxl
+            static let xxxl: CGFloat = AppTheme.Spacing.xxxl
+        }
 
-    // MARK: - Accent Color (Lime — Pulse #CDFF00)
+        enum Radius {
+            static let chartBar: CGFloat = 8
+            static let small: CGFloat = 10
+            static let medium: CGFloat = 14
+            static let card: CGFloat = 18
+            static let pill: CGFloat = 9999
+        }
 
-    static var accent: Color { adaptiveColor(light: "CDFF00", dark: "CDFF00") }
-    static var accentLight: Color { adaptiveColor(light: "E8FF80", dark: "3A4A00") }
-    static var accentSoft: Color { adaptiveColor(light: "F5FFD6", dark: "1A2000") }
+        enum Typography {
+            static func heroAmount() -> Font { .system(size: 36, weight: .bold) }
+            static func detailAmount() -> Font { .system(size: 32, weight: .bold) }
+            static func sectionTitle() -> Font { .system(size: 16, weight: .semibold) }
+            static func cardAmount() -> Font { .system(size: 18, weight: .semibold) }
+            static func body() -> Font { .system(size: 14, weight: .regular) }
+            static func caption() -> Font { .system(size: 12, weight: .regular) }
+            static func small() -> Font { .system(size: 11, weight: .regular) }
+            static func navTitle() -> Font { .system(size: 12, weight: .semibold) }
+            static func tabLabel() -> Font { .system(size: 13, weight: .medium) }
+            static func button() -> Font { .system(size: 14, weight: .semibold) }
+            static func label() -> Font { .system(size: 10, weight: .semibold) }
+        }
 
-    // MARK: - Primary colors
+        enum Colors {
+            static var accent: Color { Color(hex: "D6FB51") }
+            static var accentLight: Color { Color(hex: "E0FC7C") }
+            static var accentSoft: Color { Color(hex: "EAFDA8") }
+            static var accentDark: Color { Color(hex: "B0CE46") }
+            static var accentDeep: Color { Color(hex: "8AA13B") }
 
-    static var primary: Color { adaptiveColor(light: "0F172A", dark: "F1F5F9") }
-    static var primaryLight: Color { adaptiveColor(light: "334155", dark: "94A3B8") }
-    static var primaryDark: Color { adaptiveColor(light: "020617", dark: "F8FAFC") }
-    static var primarySoft: Color { adaptiveColor(light: "F1F5F9", dark: "1E293B") }
+            static var backgroundPrimary: Color { Color(hex: "191919") }
+            static var backgroundSecondary: Color { Color(hex: "2A2A2A") }
+            static var backgroundTertiary: Color { Color(hex: "404040") }
 
-    // MARK: - Grayscale Spectrum (Slate)
+            static var surfaceLight: Color { Color(hex: "F3F3F2") }
+            static var surfaceMedium: Color { Color(hex: "E2E2E1") }
+            static var surfaceHeavy: Color { Color(hex: "D0D0CF") }
 
-    static var gray50: Color { adaptiveColor(light: "F8FAFC", dark: "0F172A") }
-    static var gray100: Color { adaptiveColor(light: "F1F5F9", dark: "1E293B") }
-    static var gray200: Color { adaptiveColor(light: "E2E8F0", dark: "334155") }
-    static var gray300: Color { adaptiveColor(light: "CBD5E1", dark: "475569") }
-    static var gray400: Color { adaptiveColor(light: "94A3B8", dark: "64748B") }
-    static var gray500: Color { adaptiveColor(light: "64748B", dark: "94A3B8") }
-    static var gray600: Color { adaptiveColor(light: "475569", dark: "CBD5E1") }
-    static var gray700: Color { adaptiveColor(light: "334155", dark: "E2E8F0") }
-    static var gray800: Color { adaptiveColor(light: "1E293B", dark: "F1F5F9") }
-    static var gray900: Color { adaptiveColor(light: "0F172A", dark: "F8FAFC") }
+            static var textOnDarkPrimary: Color { Color(hex: "FFFFFF") }
+            static var textOnDarkSecondary: Color { Color(hex: "D0D0CF") }
+            static var textOnDarkMuted: Color { Color(hex: "9C9C9B") }
+
+            static var textOnLightPrimary: Color { Color(hex: "191919") }
+            static var textOnLightSecondary: Color { Color(hex: "656463") }
+            static var textOnLightMuted: Color { Color(hex: "A09F9D") }
+
+            static var border: Color { Color(hex: "D0D0CF") }
+            static var borderLight: Color { Color(hex: "E2E2E1") }
+            static var borderDark: Color { Color(hex: "404040") }
+        }
+
+        enum Shadow {
+            static let card = (color: Color.black.opacity(0.12), radius: CGFloat(16), x: CGFloat(0), y: CGFloat(6))
+        }
+    }
+
+    // MARK: - Core Brand Colors
+    // Accent #BAFF39, Ink #0B0F1A, White #FFFFFF
+
+    static var neonGreen: Color { Color(hex: "BAFF39") }
+    static var darkGray: Color { Color(hex: "0B0F1A") }
+    static var pureWhite: Color { Color(hex: "FFFFFF") }
+
+    // MARK: - Premium Dark Surfaces (Aurora)
+
+    static var surface1: Color { Color(hex: "0F172A") }
+    static var surface2: Color { Color(hex: "111C2F") }
+    static var surface3: Color { Color(hex: "16233D") }
+    static var surfaceGlass: Color { Color.white.opacity(0.06) }
+
+    // MARK: - Brand Ink
+
+    static var anthracite: Color { Color(hex: "0B0F1A") }
+    static var anthraciteLight: Color { Color(hex: "1F2937") }
+    static var anthraciteDark: Color { Color(hex: "06090F") }
+
+    // MARK: - Color Helpers
+
+    static func color(_ hex: String) -> Color { Color(hex: hex) }
+
+    // MARK: - Accent Color (#BAFF39)
+
+    static var accent: Color { Color(hex: "BAFF39") }
+    static var accentLight: Color { Color(hex: "BAFF39").opacity(0.7) }
+    static var accentSoft: Color { Color(hex: "BAFF39").opacity(0.18) }
+
+    // MARK: - Primary colors (Ink / white)
+
+    static var primary: Color { adaptiveColor(light: "0B0F1A", dark: "F8FAFC") }
+    static var primaryLight: Color { adaptiveColor(light: "1F2937", dark: "F8FAFC") }
+    static var primaryDark: Color { adaptiveColor(light: "06090F", dark: "E2E8F0") }
+    static var primarySoft: Color { adaptiveColor(light: "F1F5F9", dark: "1F2937") }
+
+    // MARK: - Grayscale (slate)
+
+    static var gray50: Color { Color(hex: "F8FAFC") }
+    static var gray100: Color { Color(hex: "F1F5F9") }
+    static var gray200: Color { Color(hex: "E2E8F0") }
+    static var gray300: Color { Color(hex: "CBD5E1") }
+    static var gray400: Color { Color(hex: "94A3B8") }
+    static var gray500: Color { Color(hex: "64748B") }
+    static var gray600: Color { Color(hex: "475569") }
+    static var gray700: Color { Color(hex: "334155") }
+    static var gray800: Color { Color(hex: "1F2937") }
+    static var gray900: Color { Color(hex: "0F172A") }
 
     // MARK: - Semantic Colors
 
-    static var success: Color { adaptiveColor(light: "16A34A", dark: "4ADE80") }
-    static var successLight: Color { adaptiveColor(light: "F0FDF4", dark: "14532D") }
-    static var warning: Color { adaptiveColor(light: "D97706", dark: "FBBF24") }
-    static var warningLight: Color { adaptiveColor(light: "FFFBEB", dark: "451A03") }
-    static var error: Color { adaptiveColor(light: "DC2626", dark: "F87171") }
-    static var errorLight: Color { adaptiveColor(light: "FEF2F2", dark: "450A0A") }
-    static var info: Color { adaptiveColor(light: "2563EB", dark: "60A5FA") }
+    static var success: Color { Color(hex: "34D399") }
+    static var successLight: Color { Color(hex: "34D399").opacity(0.15) }
+    static var warning: Color { Color(hex: "F59E0B") }
+    static var warningLight: Color { Color(hex: "F59E0B").opacity(0.12) }
+    static var error: Color { Color(hex: "F87171") }
+    static var errorLight: Color { Color(hex: "F87171").opacity(0.15) }
+    static var info: Color { Color(hex: "60A5FA") }
 
     // MARK: - Backgrounds
 
-    static var backgroundPrimary: Color { adaptiveColor(light: "FFFFFF", dark: "0C1425") }
-    static var backgroundSecondary: Color { adaptiveColor(light: "F8FAFC", dark: "0F172A") }
-    static var backgroundTertiary: Color { adaptiveColor(light: "F1F5F9", dark: "1E293B") }
+    static var backgroundPrimary: Color { adaptiveColor(light: "F8FAFC", dark: "0B0F1A") }
+    static var backgroundSecondary: Color { adaptiveColor(light: "F1F5F9", dark: "111827") }
+    static var backgroundTertiary: Color { adaptiveColor(light: "E2E8F0", dark: "1F2937") }
 
     // MARK: - Surfaces
 
-    static var surfaceLight: Color { adaptiveColor(light: "FFFFFF", dark: "0F172A") }
-    static var surfaceMedium: Color { adaptiveColor(light: "F8FAFC", dark: "1E293B") }
-    static var surfaceHeavy: Color { adaptiveColor(light: "F1F5F9", dark: "334155") }
+    static var surfaceLight: Color { adaptiveColor(light: "FFFFFF", dark: "16233D") }
+    static var surfaceMedium: Color { adaptiveColor(light: "F8FAFC", dark: "1B2A44") }
+    static var surfaceHeavy: Color { adaptiveColor(light: "E2E8F0", dark: "0F172A") }
 
     // MARK: - Text
 
-    static var textPrimary: Color { adaptiveColor(light: "0F172A", dark: "F1F5F9") }
+    static var textPrimary: Color { adaptiveColor(light: "0B0F1A", dark: "F8FAFC") }
     static var textSecondary: Color { adaptiveColor(light: "475569", dark: "94A3B8") }
-    static var textTertiary: Color { adaptiveColor(light: "94A3B8", dark: "64748B") }
-    static var textMuted: Color { adaptiveColor(light: "CBD5E1", dark: "475569") }
+    static var textTertiary: Color { adaptiveColor(light: "64748B", dark: "64748B") }
+    static var textMuted: Color { adaptiveColor(light: "94A3B8", dark: "64748B") }
 
     // MARK: - Borders
 
-    static var border: Color { adaptiveColor(light: "E2E8F0", dark: "1E293B") }
-    static var borderLight: Color { adaptiveColor(light: "F1F5F9", dark: "162032") }
-    static var borderDark: Color { adaptiveColor(light: "CBD5E1", dark: "475569") }
+    static var border: Color { adaptiveColor(light: "E2E8F0", dark: "23304A") }
+    static var borderLight: Color { adaptiveColor(light: "F1F5F9", dark: "1B2A44") }
+    static var borderDark: Color { adaptiveColor(light: "CBD5E1", dark: "0F172A") }
 
     // MARK: - Gradient helpers
 
-    static var accentGradientStart: Color { adaptiveColor(light: "CDFF00", dark: "CDFF00") }
-    static var accentGradientEnd: Color { adaptiveColor(light: "B8F000", dark: "B8F000") }
+    static var accentGradientStart: Color { Color(hex: "BAFF39") }
+    static var accentGradientEnd: Color { Color(hex: "BAFF39").opacity(0.6) }
     static var heroGradient: Color { backgroundPrimary }
 
     // MARK: - Glass surfaces
 
-    static var glassLight: Color { adaptiveColor(light: "FFFFFF", dark: "0F172A") }
-    static var glassMedium: Color { adaptiveColor(light: "FFFFFF", dark: "1E293B") }
-    static var glassDark: Color { adaptiveColor(light: "F1F5F9", dark: "334155") }
+    static var glassLight: Color { Color.white.opacity(0.08) }
+    static var glassMedium: Color { Color.white.opacity(0.06) }
+    static var glassDark: Color { Color.white.opacity(0.04) }
 
     // Compatibility aliases
     static var brand: Color { accent }
@@ -143,8 +252,8 @@ struct AppTheme {
     static var cardGradient: Color { backgroundPrimary }
     static var glassViolet: Color { backgroundPrimary }
     static var accent1: Color { accent }
-    static var accent2: Color { adaptiveColor(light: "3F3F46", dark: "A1A1AA") }
-    static var accent3: Color { adaptiveColor(light: "71717A", dark: "71717A") }
+    static var accent2: Color { Color(hex: "1F2937") }
+    static var accent3: Color { Color(hex: "334155") }
     static var accent4: Color { accent }
     static var accent5: Color { accent }
     static var violet50: Color { gray50 }
@@ -223,14 +332,19 @@ struct TechCard: ViewModifier {
             .padding(padding)
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(AppTheme.surfaceLight)
+                    .fill(
+                        LinearGradient(
+                            colors: [AppTheme.surfaceLight, AppTheme.surfaceMedium],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(AppTheme.border.opacity(0.6), lineWidth: 0.5)
+                            .stroke(AppTheme.border.opacity(0.6), lineWidth: 0.8)
                     )
-                    .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
-                    .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 3)
-                    .shadow(color: Color.black.opacity(0.03), radius: 16, x: 0, y: 8)
+                    .shadow(color: AppTheme.surface1.opacity(0.6), radius: 12, x: 0, y: 8)
+                    .shadow(color: Color.black.opacity(0.15), radius: 24, x: 0, y: 18)
             )
     }
 }
@@ -245,14 +359,16 @@ struct GlassCard: ViewModifier {
             .padding(padding)
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(AppTheme.surfaceLight)
+                    .fill(.ultraThinMaterial)
                     .overlay(
                         RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
+                            .fill(AppTheme.surfaceGlass.opacity(opacity))
                     )
-                    .shadow(color: Color.black.opacity(0.02), radius: 1, x: 0, y: 1)
-                    .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
-                    .shadow(color: Color.black.opacity(0.02), radius: 20, x: 0, y: 10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .stroke(AppTheme.border.opacity(0.4), lineWidth: 0.8)
+                    )
+                    .shadow(color: Color.black.opacity(0.2), radius: 16, x: 0, y: 12)
             )
     }
 }
@@ -266,14 +382,26 @@ struct PremiumCard: ViewModifier {
             .padding(padding)
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(AppTheme.surfaceLight)
+                    .fill(
+                        LinearGradient(
+                            colors: [AppTheme.surfaceLight, AppTheme.surfaceHeavy],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [AppTheme.accent.opacity(0.35), AppTheme.border.opacity(0.6)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
                     )
-                    .shadow(color: Color.black.opacity(0.02), radius: 1, x: 0, y: 1)
-                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-                    .shadow(color: Color.black.opacity(0.03), radius: 24, x: 0, y: 12)
+                    .shadow(color: AppTheme.surface1.opacity(0.6), radius: 14, x: 0, y: 10)
+                    .shadow(color: Color.black.opacity(0.2), radius: 26, x: 0, y: 20)
             )
     }
 }
@@ -719,10 +847,10 @@ struct AnimatedMeshGradient: View {
 
     private func gradientColor(for index: Int) -> Color {
         let colors: [Color] = [
-            AppTheme.accent,
-            AppTheme.accent.opacity(0.7),
-            Color(hex: "1E3A5F"),
-            Color(hex: "0A1628")
+            AppTheme.accent.opacity(0.3),
+            AppTheme.accent.opacity(0.15),
+            Color(hex: "E5E5E5"),
+            Color(hex: "F5F5F5")
         ]
         return colors[index % colors.count]
     }
@@ -839,5 +967,21 @@ struct PremiumGlowCard: ViewModifier {
 extension View {
     func premiumGlowCard(glowColor: Color = AppTheme.accent, cornerRadius: CGFloat = 24) -> some View {
         modifier(PremiumGlowCard(glowColor: glowColor, cornerRadius: cornerRadius))
+    }
+}
+
+// MARK: - Rounded Corner Shape
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
     }
 }

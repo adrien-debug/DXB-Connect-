@@ -67,16 +67,39 @@ final class AppCoordinator: ObservableObject {
 
     func checkAuthentication() async {
         isLoading = true
+        appLog("[AUTH] Checking authentication...", category: .auth)
+        
+        // Timeout de 15 secondes pour éviter de bloquer indéfiniment
+        let timeoutTask = Task {
+            try? await Task.sleep(nanoseconds: 15_000_000_000) // 15 secondes
+            if !Task.isCancelled {
+                appLog("[AUTH] Timeout reached, stopping loading", category: .auth)
+                await MainActor.run {
+                    self.isLoading = false
+                }
+            }
+        }
+        
         isAuthenticated = await authService.isAuthenticated()
+        appLog("[AUTH] Is authenticated: \(isAuthenticated)", category: .auth)
+        
         if isAuthenticated {
             loadUserFromStorage()
+            appLog("[AUTH] Loading all data...", category: .data)
             await loadAllData()
+            appLog("[AUTH] Data loaded successfully", category: .data)
         } else {
-            #if DEBUG
-            await devAutoLogin()
-            #endif
+            // Auto-login désactivé temporairement pour debug
+            appLog("[AUTH] Not authenticated, showing auth screen", category: .auth)
+            // #if DEBUG
+            // appLog("[AUTH] Not authenticated, attempting auto-login...", category: .auth)
+            // await devAutoLogin()
+            // #endif
         }
+        
+        timeoutTask.cancel()
         isLoading = false
+        appLog("[AUTH] Check authentication complete", category: .auth)
     }
 
     #if DEBUG
@@ -185,11 +208,14 @@ final class AppCoordinator: ObservableObject {
     // MARK: - Data Loading
 
     func loadAllData() async {
+        appLog("[DATA] Starting to load all data...", category: .data)
         async let esims: () = loadESIMs()
         async let plansData: () = loadPlans()
         _ = await (esims, plansData)
+        appLog("[DATA] eSIMs and plans loaded, loading usage...", category: .data)
         await loadUsageForActiveESIMs()
         hasLoadedInitialData = true
+        appLog("[DATA] All data loaded successfully", category: .data)
     }
 
     func loadESIMs() async {
@@ -209,9 +235,12 @@ final class AppCoordinator: ObservableObject {
 
     func loadPlans() async {
         isLoadingPlans = true
+        appLog("[PLANS] Starting to fetch plans...", category: .data)
         do {
             plans = try await apiService.fetchPlans(locale: "en")
+            appLog("[PLANS] Successfully fetched \(plans.count) plans", category: .data)
         } catch is CancellationError {
+            appLog("[PLANS] Fetch cancelled", category: .data)
         } catch APIError.unauthorized {
             appLogError(APIError.unauthorized, message: "Unauthorized loading plans - signing out", category: .auth)
             await signOut()
@@ -242,8 +271,14 @@ final class AppCoordinator: ObservableObject {
         do {
             if let usage = try await apiService.fetchUsage(iccid: order.iccid) {
                 usageCache[order.iccid] = usage
+            } else {
+                // Usage non disponible (eSIM pas encore activée ou pas trouvée)
+                // Ce n'est pas une erreur, on ne log rien
             }
+        } catch APIError.httpError(let statusCode) where statusCode == 404 {
+            // eSIM non trouvée - comportement normal, pas d'erreur à logger
         } catch {
+            // Autres erreurs (réseau, etc.)
             appLogError(error, message: "Error loading usage for \(order.iccid)", category: .data)
         }
     }
@@ -497,33 +532,47 @@ struct SplashView: View {
     @State private var logoScale: CGFloat = 0.9
     @State private var logoOpacity: Double = 0
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+    private typealias BankingRadius = AppTheme.Banking.Radius
+
     var body: some View {
         ZStack {
-            AppTheme.backgroundPrimary
+            BankingColors.backgroundPrimary
                 .ignoresSafeArea()
 
-            VStack(spacing: 32) {
+            RadialGradient(
+                colors: [BankingColors.accent.opacity(0.1), .clear],
+                center: .top,
+                startRadius: 0,
+                endRadius: 280
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: BankingSpacing.xxl) {
                 Spacer()
 
-                VStack(spacing: 20) {
-                    RoundedRectangle(cornerRadius: 22)
-                        .fill(AppTheme.accent)
+                VStack(spacing: BankingSpacing.lg) {
+                    RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                        .fill(BankingColors.accent)
                         .frame(width: 68, height: 68)
                         .overlay(
                             Image(systemName: "antenna.radiowaves.left.and.right")
                                 .font(.system(size: 30, weight: .medium))
-                                .foregroundColor(Color(hex: "0F172A"))
+                                .foregroundColor(BankingColors.backgroundPrimary)
                         )
+                        .shadow(color: BankingColors.accentDark.opacity(0.5), radius: 16, x: 0, y: 8)
 
                     Text("SIMPASS")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(BankingTypo.label())
                         .tracking(3)
-                        .foregroundColor(AppTheme.textSecondary)
+                        .foregroundColor(BankingColors.textOnDarkSecondary)
 
                     Text("Not just data—benefits in every destination.")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(AppTheme.textTertiary)
-                        .padding(.top, 4)
+                        .font(BankingTypo.caption())
+                        .foregroundColor(BankingColors.textOnDarkMuted)
+                        .padding(.top, BankingSpacing.xs)
                 }
                 .scaleEffect(logoScale)
                 .opacity(logoOpacity)
@@ -531,7 +580,7 @@ struct SplashView: View {
                 Spacer()
 
                 ProgressView()
-                    .tint(AppTheme.textTertiary)
+                    .tint(BankingColors.accent)
                     .opacity(logoOpacity)
                     .padding(.bottom, 60)
             }
@@ -582,9 +631,13 @@ struct MainTabView: View {
 struct NotificationsSheet: View {
     @Environment(\.dismiss) private var dismiss
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     var body: some View {
         ZStack {
-            AppTheme.backgroundSecondary
+            BankingColors.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -593,51 +646,51 @@ struct NotificationsSheet: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(BankingTypo.button())
+                            .foregroundColor(BankingColors.textOnDarkPrimary)
                             .frame(width: 36, height: 36)
                             .background(
                                 Circle()
-                                    .fill(AppTheme.gray100)
+                                    .fill(BankingColors.backgroundTertiary)
                             )
                     }
 
                     Spacer()
 
                     Text("NOTIFICATIONS")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(BankingTypo.label())
                         .tracking(1.5)
-                        .foregroundColor(AppTheme.textSecondary)
+                        .foregroundColor(BankingColors.textOnDarkMuted)
 
                     Spacer()
 
                     Color.clear
                         .frame(width: 36, height: 36)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
+                .padding(.horizontal, BankingSpacing.xl)
+                .padding(.top, BankingSpacing.lg)
 
                 Spacer()
 
-                VStack(spacing: 16) {
+                VStack(spacing: BankingSpacing.base) {
                     ZStack {
                         Circle()
-                            .fill(AppTheme.gray100)
+                            .fill(BankingColors.backgroundTertiary)
                             .frame(width: 72, height: 72)
 
                         Image(systemName: "bell.slash")
                             .font(.system(size: 30, weight: .semibold))
-                            .foregroundColor(AppTheme.textSecondary)
+                            .foregroundColor(BankingColors.textOnDarkMuted)
                     }
 
-                    VStack(spacing: 6) {
+                    VStack(spacing: BankingSpacing.sm) {
                         Text("No notifications")
-                            .font(.system(size: 17, weight: .bold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(BankingTypo.sectionTitle())
+                            .foregroundColor(BankingColors.textOnDarkPrimary)
 
                         Text("You're all caught up!")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(AppTheme.textSecondary)
+                            .font(BankingTypo.body())
+                            .foregroundColor(BankingColors.textOnDarkMuted)
                     }
                 }
 
@@ -647,11 +700,15 @@ struct NotificationsSheet: View {
     }
 }
 
-// MARK: - Premium Tab Bar
+// MARK: - Banking Dark Tab Bar
 
 struct CustomTabBar: View {
     @Binding var selectedTab: Int
     @State private var bounceStates: [Bool] = [false, false, false, false, false]
+
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
 
     private let tabs: [(icon: String, activeIcon: String, label: String)] = [
         ("house", "house.fill", "Home"),
@@ -662,68 +719,65 @@ struct CustomTabBar: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                ForEach(0..<tabs.count, id: \.self) { index in
-                    Button {
-                        guard selectedTab != index else { return }
-                        HapticFeedback.selection()
-                        triggerBounce(at: index)
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
-                            selectedTab = index
-                        }
-                    } label: {
-                        VStack(spacing: 5) {
-                            ZStack {
-                                if selectedTab == index {
-                                    Circle()
-                                        .fill(AppTheme.accent.opacity(0.15))
-                                        .frame(width: 44, height: 44)
-                                        .scaleEffect(bounceStates[index] ? 1.2 : 1.0)
-                                }
-
-                                Image(systemName: selectedTab == index ? tabs[index].activeIcon : tabs[index].icon)
-                                    .font(.system(size: 22, weight: selectedTab == index ? .semibold : .regular))
-                                    .foregroundColor(selectedTab == index ? AppTheme.accent : AppTheme.textTertiary)
-                                    .scaleEffect(bounceStates[index] ? 1.25 : 1.0)
-                                    .shadow(
-                                        color: selectedTab == index ? AppTheme.accent.opacity(0.4) : .clear,
-                                        radius: 8, x: 0, y: 4
-                                    )
-                            }
-                            .frame(height: 44)
-
-                            Text(tabs[index].label)
-                                .font(.system(size: 10, weight: selectedTab == index ? .semibold : .regular))
-                                .foregroundColor(selectedTab == index ? AppTheme.accent : AppTheme.textMuted)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .contentShape(Rectangle())
+        HStack(spacing: 0) {
+            ForEach(0..<tabs.count, id: \.self) { index in
+                Button {
+                    guard selectedTab != index else { return }
+                    HapticFeedback.selection()
+                    triggerBounce(at: index)
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                        selectedTab = index
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(tabs[index].label)
+                } label: {
+                    VStack(spacing: 4) {
+                        ZStack {
+                            if selectedTab == index {
+                                Capsule()
+                                    .fill(BankingColors.accent.opacity(0.18))
+                                    .frame(width: 48, height: 32)
+                                    .scaleEffect(bounceStates[index] ? 1.15 : 1.0)
+                            }
+
+                            Image(systemName: selectedTab == index ? tabs[index].activeIcon : tabs[index].icon)
+                                .font(.system(size: 20, weight: selectedTab == index ? .semibold : .regular))
+                                .foregroundColor(selectedTab == index ? BankingColors.accent : BankingColors.textOnDarkMuted)
+                                .scaleEffect(bounceStates[index] ? 1.2 : 1.0)
+                                .shadow(
+                                    color: selectedTab == index ? BankingColors.accentDark.opacity(0.5) : .clear,
+                                    radius: 12, x: 0, y: 4
+                                )
+                        }
+                        .frame(height: 36)
+
+                        if selectedTab == index {
+                            Text(tabs[index].label)
+                                .font(BankingTypo.tabLabel())
+                                .foregroundColor(BankingColors.accent)
+                                .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(tabs[index].label)
             }
-            .padding(.top, 12)
-            .padding(.bottom, 24)
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
         .background(
             ZStack {
-                BlurView(style: .systemThinMaterialDark)
-                AppTheme.backgroundPrimary.opacity(0.85)
+                BlurView(style: .systemUltraThinMaterialDark)
+                    .clipShape(Capsule())
+                Capsule()
+                    .fill(BankingColors.backgroundSecondary.opacity(0.95))
+                Capsule()
+                    .stroke(BankingColors.borderDark.opacity(0.6), lineWidth: 1)
             }
         )
-        .overlay(alignment: .top) {
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        colors: [AppTheme.border.opacity(0.4), AppTheme.border.opacity(0.1)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .frame(height: 0.5)
-        }
+        .shadow(color: Color.black.opacity(0.3), radius: 16, x: 0, y: 8)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 16)
     }
 
     private func triggerBounce(at index: Int) {

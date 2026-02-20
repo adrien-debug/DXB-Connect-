@@ -58,7 +58,21 @@ export async function GET(request: Request) {
     return NextResponse.json(data)
   } catch (error) {
     if (error instanceof ESIMAccessError) {
-      console.error('[esim/usage] eSIM API error %d:', error.status, error.body)
+      console.error('[esim/usage] eSIM API error:', {
+        status: error.status,
+        endpoint: error.endpoint,
+        iccid: iccid?.slice(0, 8) + '...',
+      })
+      
+      // Si l'eSIM n'existe pas (404), retourner une réponse vide au lieu d'une erreur
+      if (error.status === 404) {
+        return NextResponse.json({
+          success: false,
+          error: 'eSIM not found or not yet activated',
+          data: null,
+        }, { status: 200 }) // 200 pour éviter les erreurs côté client
+      }
+      
       return NextResponse.json(
         { success: false, error: 'eSIM provider error' },
         { status: error.status }

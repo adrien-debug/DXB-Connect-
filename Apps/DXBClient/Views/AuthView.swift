@@ -5,22 +5,26 @@ struct AuthView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @StateObject private var viewModel = AuthViewModel()
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingRadius = AppTheme.Banking.Radius
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     private let connectionCities = ["GB", "US", "JP", "AU", "SG", "FR"]
 
     var body: some View {
         ZStack {
-            AppTheme.backgroundPrimary
+            BankingColors.backgroundPrimary
                 .ignoresSafeArea()
 
-            // Background world map with connections
             WorldMapView(
                 highlightedCodes: connectionCities,
                 showConnections: true,
                 accentDots: false,
                 connectionCodes: connectionCities,
-                strokeColor: AppTheme.anthracite,
-                strokeOpacity: 0.05,
-                dotColor: AppTheme.accent,
+                strokeColor: BankingColors.textOnDarkMuted,
+                strokeOpacity: 0.15,
+                dotColor: BankingColors.accent,
                 showDubaiPulse: true
             )
             .ignoresSafeArea()
@@ -29,43 +33,42 @@ struct AuthView: View {
                 Spacer()
                     .frame(height: 100)
 
-                VStack(spacing: 44) {
+                VStack(spacing: BankingSpacing.xxxl) {
                     ZStack {
                         Circle()
-                            .fill(AppTheme.accent.opacity(0.08))
+                            .fill(BankingColors.accent.opacity(0.08))
                             .frame(width: 120, height: 120)
 
                         Circle()
-                            .fill(AppTheme.accent.opacity(0.12))
+                            .fill(BankingColors.accent.opacity(0.15))
                             .frame(width: 92, height: 92)
 
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(AppTheme.accent)
+                        RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                            .fill(BankingColors.accent)
                             .frame(width: 72, height: 72)
                             .overlay(
                                 Image(systemName: "antenna.radiowaves.left.and.right")
                                     .font(.system(size: 30, weight: .medium))
-                                    .foregroundColor(Color(hex: "0F172A"))
+                                    .foregroundColor(BankingColors.backgroundPrimary)
                             )
-                            .pulse(color: AppTheme.accent, radius: 30)
+                            .pulse(color: BankingColors.accent, radius: 30)
                     }
-                    .floating(duration: 3, distance: 8)
+                    .floating(duration: 3, distance: BankingSpacing.sm)
 
-                    VStack(spacing: 18) {
+                    VStack(spacing: BankingSpacing.lg) {
                         Text("Global connectivity\nat your fingertips")
-                            .font(.system(size: 34, weight: .bold))
-                            .tracking(-1)
+                            .font(BankingTypo.heroAmount())
                             .multilineTextAlignment(.center)
-                            .foregroundColor(AppTheme.textPrimary)
-                            .lineSpacing(4)
+                            .foregroundColor(BankingColors.textOnDarkPrimary)
+                            .lineSpacing(BankingSpacing.xs)
 
                         Text("190+ countries. Instant activation.\nNo physical SIM.")
-                            .font(.system(size: 15, weight: .regular))
+                            .font(BankingTypo.body())
                             .multilineTextAlignment(.center)
-                            .foregroundColor(AppTheme.textSecondary)
+                            .foregroundColor(BankingColors.textOnDarkMuted)
                             .lineSpacing(5)
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, BankingSpacing.lg)
 
                     HStack(spacing: 0) {
                         TrustPill(icon: "bolt.fill", text: "Instant")
@@ -74,61 +77,80 @@ struct AuthView: View {
                         Spacer()
                         TrustPill(icon: "globe", text: "190+")
                     }
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, BankingSpacing.xxl)
                 }
 
                 Spacer()
 
-                VStack(spacing: 12) {
+                VStack(spacing: BankingSpacing.lg) {
                     Button {
                         viewModel.showRegisterModal = true
                     } label: {
-                        HStack(spacing: 8) {
+                        HStack(spacing: BankingSpacing.sm) {
                             Text("Get Started")
-                                .font(.system(size: 17, weight: .semibold))
+                                .font(BankingTypo.button())
                             Image(systemName: "arrow.right")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(BankingTypo.button())
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 58)
-                        .foregroundColor(Color(hex: "0F172A"))
+                        .foregroundColor(BankingColors.backgroundPrimary)
                         .background(
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(AppTheme.accent)
+                            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
+                                .fill(
+                                    LinearGradient(
+                                        colors: [BankingColors.accent, BankingColors.accentLight],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
                         )
                     }
-                    .pulse(color: AppTheme.accent, radius: 20)
+                    .pulse(color: AppTheme.accent, radius: AppTheme.Spacing.lg)
                     .scaleOnPress()
 
                     Button {
                         viewModel.showLoginModal = true
                     } label: {
                         Text("I already have an account")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(AppTheme.textSecondary)
+                            .font(AppTheme.Typography.buttonMedium())
+                            .foregroundColor(AppTheme.textPrimary)
                             .frame(maxWidth: .infinity)
                             .frame(height: 52)
                             .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(AppTheme.backgroundTertiary)
+                                RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
+                                    .fill(AppTheme.surface2)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
+                                            .stroke(AppTheme.border.opacity(0.6), lineWidth: 1)
+                                    )
                             )
                     }
                     .scaleOnPress()
-                }
-                .padding(.horizontal, 24)
 
-                HStack(spacing: 4) {
-                    Text("Terms of Service")
-                        .underline()
-                        .onTapGesture { viewModel.showTerms = true }
-                    Text("&")
-                    Text("Privacy Policy")
-                        .underline()
-                        .onTapGesture { viewModel.showPrivacy = true }
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        Text("Terms of Service")
+                            .underline()
+                            .onTapGesture { viewModel.showTerms = true }
+                        Text("&")
+                        Text("Privacy Policy")
+                            .underline()
+                            .onTapGesture { viewModel.showPrivacy = true }
+                    }
+                    .font(AppTheme.Typography.navTitle())
+                    .foregroundColor(AppTheme.textSecondary)
                 }
-                .font(.system(size: 12, weight: .regular))
-                .foregroundColor(AppTheme.textMuted)
-                .padding(.top, 20)
+                .padding(.horizontal, AppTheme.Spacing.xl)
+                .padding(.vertical, AppTheme.Spacing.xl)
+                .background(
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
+                        .fill(AppTheme.surface2.opacity(0.9))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppTheme.Radius.xl)
+                                .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.8)
+                        )
+                )
+                .padding(.horizontal, AppTheme.Spacing.xl)
                 .padding(.bottom, 40)
             }
         }
@@ -183,12 +205,12 @@ struct LoginModalView: View {
                                     .frame(width: 88, height: 88)
 
                                 Image(systemName: "person.circle.fill")
-                                    .font(.system(size: 42, weight: .medium))
+                                    .font(AppTheme.Typography.icon(size: 42))
                                     .foregroundColor(AppTheme.accent)
                             }
 
                             Text("Welcome Back")
-                                .font(.system(size: 28, weight: .bold))
+                                .font(AppTheme.Typography.sectionTitle())
                                 .tracking(-0.3)
                                 .foregroundColor(AppTheme.textPrimary)
 
@@ -233,12 +255,12 @@ struct LoginModalView: View {
                                         .font(AppTheme.Typography.button())
                                         .tracking(1)
                                     Image(systemName: "arrow.right")
-                                        .font(.system(size: 14, weight: .bold))
+                                        .font(AppTheme.Typography.button())
                                 }
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
-                            .foregroundColor(Color(hex: "0F172A"))
+                            .foregroundColor(AppTheme.anthracite)
                             .background(
                                 RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                                     .fill(viewModel.isFormValid ? AppTheme.accent : AppTheme.border)
@@ -251,7 +273,7 @@ struct LoginModalView: View {
                             viewModel.showForgotPassword = true
                         } label: {
                             Text("Forgot password?")
-                                .font(.system(size: 14, weight: .medium))
+                                .font(AppTheme.Typography.tabLabel())
                                 .foregroundColor(AppTheme.accent)
                         }
 
@@ -266,7 +288,7 @@ struct LoginModalView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(AppTheme.Typography.button())
                             .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 36, height: 36)
                             .background(Circle().fill(AppTheme.gray100))
@@ -310,42 +332,42 @@ struct ForgotPasswordSheet: View {
                 HStack {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(AppTheme.Typography.button())
                             .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 36, height: 36)
                             .background(Circle().fill(AppTheme.gray100))
                     }
                     Spacer()
                     Text("RESET PASSWORD")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(AppTheme.Typography.navTitle())
                         .tracking(1.5)
                         .foregroundColor(AppTheme.textSecondary)
                     Spacer()
                     Color.clear.frame(width: 36, height: 36)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
+                .padding(.horizontal, AppTheme.Spacing.lg)
+                .padding(.top, AppTheme.Spacing.lg)
 
                 Spacer()
 
                 if sent {
-                    VStack(spacing: 16) {
+                    VStack(spacing: AppTheme.Spacing.base) {
                         Image(systemName: "envelope.circle.fill")
-                            .font(.system(size: 56, weight: .medium))
+                            .font(AppTheme.Typography.display())
                             .foregroundColor(AppTheme.success)
                         Text("Check your email")
-                            .font(.system(size: 22, weight: .bold))
+                            .font(AppTheme.Typography.sectionTitle())
                             .foregroundColor(AppTheme.textPrimary)
                         Text("We sent a password reset link to\n\(email)")
-                            .font(.system(size: 15))
+                            .font(AppTheme.Typography.body())
                             .foregroundColor(AppTheme.textSecondary)
                             .multilineTextAlignment(.center)
                         Button {
                             dismiss()
                         } label: {
                             Text("Done")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(Color(hex: "0F172A"))
+                                .font(AppTheme.Typography.buttonMedium())
+                                .foregroundColor(AppTheme.anthracite)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 50)
                                 .background(RoundedRectangle(cornerRadius: 14).fill(AppTheme.accent))
@@ -355,12 +377,12 @@ struct ForgotPasswordSheet: View {
                     }
                 } else {
                     VStack(spacing: 24) {
-                        VStack(spacing: 8) {
+                        VStack(spacing: AppTheme.Spacing.sm) {
                             Text("Forgot your password?")
-                                .font(.system(size: 22, weight: .bold))
+                                .font(AppTheme.Typography.sectionTitle())
                                 .foregroundColor(AppTheme.textPrimary)
                             Text("Enter your email and we'll send\nyou a reset link")
-                                .font(.system(size: 15))
+                                .font(AppTheme.Typography.body())
                                 .foregroundColor(AppTheme.textSecondary)
                                 .multilineTextAlignment(.center)
                         }
@@ -391,18 +413,18 @@ struct ForgotPasswordSheet: View {
                         } label: {
                             HStack {
                                 if isSending {
-                                    ProgressView().tint(Color(hex: "0F172A"))
+                                    ProgressView().tint(AppTheme.anthracite)
                                 } else {
                                     Text("SEND RESET LINK")
-                                        .font(.system(size: 14, weight: .bold))
+                                        .font(AppTheme.Typography.button())
                                         .tracking(1)
                                 }
                             }
-                            .foregroundColor(Color(hex: "0F172A"))
+                            .foregroundColor(AppTheme.anthracite)
                             .frame(maxWidth: .infinity)
                             .frame(height: 54)
                             .background(
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                                     .fill(isValidEmail ? AppTheme.accent : AppTheme.border)
                             )
                         }
@@ -447,12 +469,12 @@ struct RegisterModalView: View {
                                     .frame(width: 88, height: 88)
 
                                 Image(systemName: "person.badge.plus.fill")
-                                    .font(.system(size: 38, weight: .medium))
+                                    .font(AppTheme.Typography.icon(size: 38))
                                     .foregroundColor(AppTheme.accent)
                             }
 
                             Text("Create Account")
-                                .font(.system(size: 28, weight: .bold))
+                                .font(AppTheme.Typography.sectionTitle())
                                 .tracking(-0.3)
                                 .foregroundColor(AppTheme.textPrimary)
 
@@ -524,12 +546,12 @@ struct RegisterModalView: View {
                                         .font(AppTheme.Typography.button())
                                         .tracking(1)
                                     Image(systemName: "arrow.right")
-                                        .font(.system(size: 14, weight: .bold))
+                                        .font(AppTheme.Typography.button())
                                 }
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
-                            .foregroundColor(Color(hex: "0F172A"))
+                            .foregroundColor(AppTheme.anthracite)
                             .background(
                                 RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                                     .fill(viewModel.isFormValid ? AppTheme.accent : AppTheme.border)
@@ -549,7 +571,7 @@ struct RegisterModalView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(AppTheme.Typography.button())
                             .foregroundColor(AppTheme.textPrimary)
                             .frame(width: 36, height: 36)
                             .background(Circle().fill(AppTheme.gray100))
@@ -583,7 +605,7 @@ struct AuthTextField: View {
                 .foregroundColor(AppTheme.textSecondary)
 
             TextField(placeholder, text: $text)
-                .font(.system(size: 16, weight: .medium))
+                .font(AppTheme.Typography.bodyMedium())
                 .foregroundColor(AppTheme.textPrimary)
                 .textContentType(textContentType)
                 .autocapitalization(.none)
@@ -617,7 +639,7 @@ struct AuthSecureField: View {
                 .foregroundColor(AppTheme.textSecondary)
 
             SecureField(placeholder, text: $text)
-                .font(.system(size: 16, weight: .medium))
+                .font(AppTheme.Typography.bodyMedium())
                 .foregroundColor(AppTheme.textPrimary)
                 .textContentType(isNew ? .newPassword : .password)
                 .padding(AppTheme.Spacing.base)
@@ -643,18 +665,22 @@ struct TrustPill: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.system(size: 10, weight: .semibold))
+                .font(AppTheme.Typography.label())
                 .foregroundColor(AppTheme.accent)
 
             Text(text)
-                .font(.system(size: 12, weight: .medium))
+                .font(AppTheme.Typography.navTitle())
                 .foregroundColor(AppTheme.textSecondary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, AppTheme.Spacing.md)
+        .padding(.vertical, AppTheme.Spacing.sm)
         .background(
             Capsule()
-                .fill(AppTheme.backgroundTertiary)
+                .fill(AppTheme.surface2.opacity(0.9))
+                .overlay(
+                    Capsule()
+                        .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.6)
+                )
         )
     }
 }

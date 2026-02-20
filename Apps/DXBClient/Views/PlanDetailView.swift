@@ -7,6 +7,11 @@ struct PlanDetailView: View {
     @EnvironmentObject private var coordinator: AppCoordinator
     @StateObject private var viewModel = PlanDetailViewModel()
 
+    private typealias BankingColors = AppTheme.Banking.Colors
+    private typealias BankingTypo = AppTheme.Banking.Typography
+    private typealias BankingRadius = AppTheme.Banking.Radius
+    private typealias BankingSpacing = AppTheme.Banking.Spacing
+
     private var flagEmoji: String {
         let base: UInt32 = 127397
         var emoji = ""
@@ -20,49 +25,46 @@ struct PlanDetailView: View {
 
     var body: some View {
         ZStack {
-            AppTheme.backgroundSecondary
+            BankingColors.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Nav Bar
                 HStack {
                     Button {
                         dismiss()
                     } label: {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(AppTheme.textPrimary)
+                            .font(BankingTypo.button())
+                            .foregroundColor(BankingColors.textOnDarkPrimary)
                             .frame(width: 40, height: 40)
-                            .background(Circle().fill(AppTheme.gray100))
+                            .background(Circle().fill(BankingColors.backgroundTertiary))
                     }
 
                     Spacer()
 
                     Text("PLAN DETAILS")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(BankingTypo.label())
                         .tracking(1.5)
-                        .foregroundColor(AppTheme.textSecondary)
+                        .foregroundColor(BankingColors.textOnDarkMuted)
 
                     Spacer()
 
                     Color.clear.frame(width: 40, height: 40)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
+                .padding(.horizontal, BankingSpacing.lg)
+                .padding(.top, BankingSpacing.sm)
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
-                        // Hero with world map background + connection line
                         ZStack {
-                            // World map background
                             WorldMapView(
                                 highlightedCodes: [plan.locationCode],
                                 showConnections: true,
                                 accentDots: false,
                                 connectionCodes: [plan.locationCode],
-                                strokeColor: AppTheme.anthracite,
-                                strokeOpacity: 0.04,
-                                dotColor: AppTheme.accent,
+                                strokeColor: BankingColors.textOnDarkMuted,
+                                strokeOpacity: 0.2,
+                                dotColor: BankingColors.accent,
                                 showDubaiPulse: true
                             )
                             .frame(height: 200)
@@ -71,63 +73,63 @@ struct PlanDetailView: View {
                                 Text(flagEmoji)
                                     .font(.system(size: 72))
                                     .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 6)
-                                    .padding(.top, 24)
+                                    .padding(.top, BankingSpacing.xl)
                                     .slideIn(delay: 0)
 
-                                VStack(spacing: 8) {
+                                VStack(spacing: BankingSpacing.sm) {
                                     Text(plan.location)
-                                        .font(.system(size: 30, weight: .bold))
-                                        .tracking(-0.8)
-                                        .foregroundColor(AppTheme.textPrimary)
+                                        .font(BankingTypo.detailAmount())
+                                        .foregroundColor(BankingColors.textOnDarkPrimary)
 
                                     Text(plan.name)
-                                        .font(.system(size: 15, weight: .medium))
-                                        .foregroundColor(AppTheme.textTertiary)
+                                        .font(BankingTypo.body())
+                                        .foregroundColor(BankingColors.textOnDarkMuted)
                                 }
-                                .padding(.top, 16)
+                                .padding(.top, BankingSpacing.base)
                                 .slideIn(delay: 0.05)
-
                             }
                         }
-                        .padding(.bottom, 20)
+                        .padding(.bottom, BankingSpacing.lg)
 
                         HStack(spacing: 0) {
                             VStack(spacing: 4) {
                                 Text("\(plan.dataGB)")
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .font(BankingTypo.detailAmount())
+                                    .foregroundColor(BankingColors.textOnDarkPrimary)
                                 Text("GB")
-                                    .font(.system(size: 12, weight: .bold))
-                                    .opacity(0.6)
+                                    .font(BankingTypo.caption())
+                                    .foregroundColor(BankingColors.textOnDarkMuted)
                             }
                             .frame(maxWidth: .infinity)
 
                             Rectangle()
-                                .fill(Color(hex: "0F172A").opacity(0.12))
+                                .fill(BankingColors.backgroundTertiary)
                                 .frame(width: 1, height: 36)
 
                             VStack(spacing: 4) {
                                 Text("\(plan.durationDays)")
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .font(BankingTypo.detailAmount())
+                                    .foregroundColor(BankingColors.textOnDarkPrimary)
                                 Text("days")
-                                    .font(.system(size: 12, weight: .bold))
-                                    .opacity(0.6)
+                                    .font(BankingTypo.caption())
+                                    .foregroundColor(BankingColors.textOnDarkMuted)
                             }
                             .frame(maxWidth: .infinity)
 
                             Rectangle()
-                                .fill(Color(hex: "0F172A").opacity(0.12))
+                                .fill(BankingColors.backgroundTertiary)
                                 .frame(width: 1, height: 36)
 
                             VStack(spacing: 4) {
                                 Text(plan.priceUSD.formattedPrice)
                                     .font(.system(size: 28, weight: .bold, design: .rounded))
                                 Text("one-time")
-                                    .font(.system(size: 12, weight: .bold))
+                                    .font(AppTheme.Typography.navTitle())
                                     .opacity(0.6)
                             }
                             .frame(maxWidth: .infinity)
                         }
-                        .foregroundColor(Color(hex: "0F172A"))
+                        .foregroundColor(AppTheme.anthracite)
                         .padding(.vertical, 22)
                         .padding(.horizontal, 16)
                         .background(
@@ -150,7 +152,7 @@ struct PlanDetailView: View {
 
                         VStack(alignment: .leading, spacing: 20) {
                             Text("What's included")
-                                .font(.system(size: 20, weight: .bold))
+                                .font(AppTheme.Typography.cardTitle())
                                 .foregroundColor(AppTheme.textPrimary)
 
                             VStack(spacing: 0) {
@@ -185,7 +187,7 @@ struct PlanDetailView: View {
                     HStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("TOTAL")
-                                .font(.system(size: 10, weight: .bold))
+                                .font(AppTheme.Typography.label())
                                 .tracking(1.5)
                                 .foregroundColor(AppTheme.textTertiary)
 
@@ -201,17 +203,17 @@ struct PlanDetailView: View {
                             HStack(spacing: 10) {
                                 if viewModel.isLoading {
                                     ProgressView()
-                                        .tint(Color(hex: "0F172A"))
+                                        .tint(AppTheme.anthracite)
                                 } else {
                                     Text("Continue")
-                                        .font(.system(size: 17, weight: .semibold))
+                                        .font(AppTheme.Typography.buttonLarge())
                                     Image(systemName: "arrow.right")
-                                        .font(.system(size: 14, weight: .bold))
+                                        .font(AppTheme.Typography.button())
                                 }
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: 58)
-                            .foregroundColor(Color(hex: "0F172A"))
+                            .foregroundColor(AppTheme.anthracite)
                             .background(
                                 RoundedRectangle(cornerRadius: 18)
                                     .fill(AppTheme.accent)
@@ -285,14 +287,14 @@ struct PlanSpecCard: View {
 
                 if !unit.isEmpty {
                     Text(unit)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(AppTheme.Typography.navTitle())
                         .foregroundColor(AppTheme.textSecondary)
                         .padding(.top, 3)
                 }
             }
 
             Text(label.uppercased())
-                .font(.system(size: 10, weight: .bold))
+                .font(AppTheme.Typography.label())
                 .tracking(1)
                 .foregroundColor(AppTheme.textTertiary)
         }
@@ -321,14 +323,14 @@ struct PlanSpecItem: View {
 
                 if !unit.isEmpty {
                     Text(unit)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(AppTheme.Typography.captionSemibold())
                         .foregroundColor(AppTheme.textSecondary)
                         .padding(.top, 4)
                 }
             }
 
             Text(label.uppercased())
-                .font(.system(size: 10, weight: .semibold))
+                .font(AppTheme.Typography.label())
                 .tracking(0.8)
                 .foregroundColor(AppTheme.textTertiary)
         }
@@ -369,18 +371,18 @@ struct FeatureTechCard: View {
                     .frame(width: 36, height: 36)
 
                 Image(systemName: icon)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(AppTheme.Typography.buttonMedium())
                     .foregroundColor(AppTheme.accent)
             }
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(label)
-                    .font(.system(size: 10, weight: .bold))
+                    .font(AppTheme.Typography.label())
                     .tracking(1)
                     .foregroundColor(AppTheme.textSecondary)
 
                 Text(value)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(AppTheme.Typography.bodyMedium())
                     .foregroundColor(AppTheme.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -389,11 +391,11 @@ struct FeatureTechCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                 .fill(AppTheme.backgroundPrimary)
                 .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
                         .stroke(AppTheme.border, lineWidth: 1)
                 )
         )
@@ -413,7 +415,7 @@ struct IncludedFeatureRow: View {
                 .frame(width: 36, height: 36)
                 .overlay(
                     Image(systemName: icon)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(AppTheme.Typography.tabLabel())
                         .foregroundColor(AppTheme.accent)
                 )
 

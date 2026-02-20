@@ -174,19 +174,19 @@
     },
     "colors": {
       "accent": {
-        "value": "#CDFF00",
+        "value": "#BAFF39",
         "type": "color"
       },
       "accentLight": {
-        "value": "#E8FF80",
+        "value": "#D4FF85",
         "type": "color"
       },
       "accentSoft": {
-        "value": "#F5FFD6",
+        "value": "#EDFFC4",
         "type": "color"
       },
-      "black": {
-        "value": "#000000",
+      "brandGray": {
+        "value": "#6E6E6E",
         "type": "color"
       },
       "white": {
@@ -198,15 +198,15 @@
   "light": {
     "colors": {
       "primary": {
-        "value": "#09090B",
+        "value": "#6E6E6E",
         "type": "color"
       },
       "primaryLight": {
-        "value": "#3F3F46",
+        "value": "#A3A3A3",
         "type": "color"
       },
       "primarySoft": {
-        "value": "#F4F4F5",
+        "value": "#F5F5F5",
         "type": "color"
       },
       "gray": {
@@ -215,39 +215,39 @@
           "type": "color"
         },
         "100": {
-          "value": "#F4F4F5",
+          "value": "#F5F5F5",
           "type": "color"
         },
         "200": {
-          "value": "#E4E4E7",
+          "value": "#E5E5E5",
           "type": "color"
         },
         "300": {
-          "value": "#D4D4D8",
+          "value": "#D4D4D4",
           "type": "color"
         },
         "400": {
-          "value": "#A1A1AA",
+          "value": "#A3A3A3",
           "type": "color"
         },
         "500": {
-          "value": "#71717A",
+          "value": "#6E6E6E",
           "type": "color"
         },
         "600": {
-          "value": "#52525B",
+          "value": "#525252",
           "type": "color"
         },
         "700": {
-          "value": "#3F3F46",
+          "value": "#6E6E6E",
           "type": "color"
         },
         "800": {
-          "value": "#27272A",
+          "value": "#525252",
           "type": "color"
         },
         "900": {
-          "value": "#18181B",
+          "value": "#404040",
           "type": "color"
         }
       },
@@ -291,7 +291,7 @@
           "type": "color"
         },
         "tertiary": {
-          "value": "#F4F4F5",
+          "value": "#F5F5F5",
           "type": "color"
         }
       },
@@ -305,39 +305,39 @@
           "type": "color"
         },
         "heavy": {
-          "value": "#F4F4F5",
+          "value": "#F5F5F5",
           "type": "color"
         }
       },
       "text": {
         "primary": {
-          "value": "#09090B",
+          "value": "#6E6E6E",
           "type": "color"
         },
         "secondary": {
-          "value": "#52525B",
+          "value": "#A3A3A3",
           "type": "color"
         },
         "tertiary": {
-          "value": "#A1A1AA",
+          "value": "#D4D4D4",
           "type": "color"
         },
         "muted": {
-          "value": "#D4D4D8",
+          "value": "#E5E5E5",
           "type": "color"
         }
       },
       "border": {
         "default": {
-          "value": "#E4E4E7",
+          "value": "#E5E5E5",
           "type": "color"
         },
         "light": {
-          "value": "#F4F4F5",
+          "value": "#F5F5F5",
           "type": "color"
         },
         "dark": {
-          "value": "#D4D4D8",
+          "value": "#D4D4D4",
           "type": "color"
         }
       }
@@ -350,52 +350,52 @@
         "type": "color"
       },
       "primaryLight": {
-        "value": "#A1A1AA",
+        "value": "#D4D4D4",
         "type": "color"
       },
       "primarySoft": {
-        "value": "#27272A",
+        "value": "#525252",
         "type": "color"
       },
       "gray": {
         "50": {
-          "value": "#18181B",
+          "value": "#525252",
           "type": "color"
         },
         "100": {
-          "value": "#27272A",
+          "value": "#5C5C5C",
           "type": "color"
         },
         "200": {
-          "value": "#3F3F46",
+          "value": "#6E6E6E",
           "type": "color"
         },
         "300": {
-          "value": "#52525B",
+          "value": "#808080",
           "type": "color"
         },
         "400": {
-          "value": "#71717A",
+          "value": "#A3A3A3",
           "type": "color"
         },
         "500": {
-          "value": "#A1A1AA",
+          "value": "#D4D4D4",
           "type": "color"
         },
         "600": {
-          "value": "#D4D4D8",
+          "value": "#E5E5E5",
           "type": "color"
         },
         "700": {
-          "value": "#E4E4E7",
+          "value": "#F5F5F5",
           "type": "color"
         },
         "800": {
-          "value": "#F4F4F5",
+          "value": "#FAFAFA",
           "type": "color"
         },
         "900": {
-          "value": "#FAFAFA",
+          "value": "#FFFFFF",
           "type": "color"
         }
       },
@@ -405,7 +405,7 @@
           "type": "color"
         },
         "successLight": {
-          "value": "#14532D",
+          "value": "#2D4A2D",
           "type": "color"
         },
         "warning": {
@@ -413,7 +413,7 @@
           "type": "color"
         },
         "warningLight": {
-          "value": "#451A03",
+          "value": "#4A3D03",
           "type": "color"
         },
         "error": {
@@ -421,7 +421,7 @@
           "type": "color"
         },
         "errorLight": {
-          "value": "#450A0A",
+          "value": "#4A1A1A",
           "type": "color"
         },
         "info": {
@@ -431,61 +431,61 @@
       },
       "background": {
         "primary": {
-          "value": "#09090B",
+          "value": "#404040",
           "type": "color"
         },
         "secondary": {
-          "value": "#18181B",
+          "value": "#4A4A4A",
           "type": "color"
         },
         "tertiary": {
-          "value": "#27272A",
+          "value": "#525252",
           "type": "color"
         }
       },
       "surface": {
         "light": {
-          "value": "#18181B",
+          "value": "#4A4A4A",
           "type": "color"
         },
         "medium": {
-          "value": "#27272A",
+          "value": "#525252",
           "type": "color"
         },
         "heavy": {
-          "value": "#3F3F46",
+          "value": "#5C5C5C",
           "type": "color"
         }
       },
       "text": {
         "primary": {
-          "value": "#FAFAFA",
+          "value": "#FFFFFF",
           "type": "color"
         },
         "secondary": {
-          "value": "#A1A1AA",
+          "value": "#D4D4D4",
           "type": "color"
         },
         "tertiary": {
-          "value": "#71717A",
+          "value": "#A3A3A3",
           "type": "color"
         },
         "muted": {
-          "value": "#52525B",
+          "value": "#808080",
           "type": "color"
         }
       },
       "border": {
         "default": {
-          "value": "#27272A",
+          "value": "#5C5C5C",
           "type": "color"
         },
         "light": {
-          "value": "#1C1C1E",
+          "value": "#525252",
           "type": "color"
         },
         "dark": {
-          "value": "#52525B",
+          "value": "#6E6E6E",
           "type": "color"
         }
       }
@@ -498,8 +498,13 @@
       "dark"
     ],
     "projectName": "DXB Connect",
-    "version": "1.0.0",
-    "generatedAt": "2026-02-19",
-    "description": "Design tokens for DXB Connect iOS app - Compatible with Figma Tokens Studio plugin"
+    "version": "3.0.0",
+    "generatedAt": "2026-02-20",
+    "description": "Palette stricte: #BAFF39 (accent) / #6E6E6E (gris) / #FFFFFF (blanc) — ZERO NOIR",
+    "brandColors": [
+      "#BAFF39",
+      "#6E6E6E",
+      "#FFFFFF"
+    ]
   }
 }

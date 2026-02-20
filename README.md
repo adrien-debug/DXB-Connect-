@@ -19,7 +19,7 @@ Next.js Web ──┘
 
 | Component | Technologies |
 |-----------|-------------|
-| iOS App | SwiftUI, DXBCore (Swift Package), StoreKit 2 |
+| iOS App | SwiftUI, DXBCore (Swift Package), StoreKit 2, Aurora UI (AppTheme), Banking tokens (AppTheme.Banking) |
 | Admin Web | Next.js 14, TailwindCSS, React Query |
 | Backend | Railway (Next.js API), Supabase (Auth + PostgreSQL) |
 | eSIM Provider | eSIM Access API |

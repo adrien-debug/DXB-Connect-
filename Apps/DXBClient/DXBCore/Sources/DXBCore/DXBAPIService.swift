@@ -153,7 +153,7 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
             requiresAuth: true
         )
 
-        let plans: [Plan] = response.obj?.packageList?.compactMap { pkg -> Plan? in
+        let allPlans: [Plan] = response.obj?.packageList?.compactMap { pkg -> Plan? in
             // L'API retourne volume en MB et price en dollars directement
             let volumeMB = pkg.volume ?? 0
             let volumeGB = volumeMB >= 1024 ? volumeMB / 1024 : 0
@@ -172,7 +172,19 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
             )
         } ?? []
 
-        await AppLogger.shared.logData("Fetched \(plans.count) plans")
+        await AppLogger.shared.logData("Fetched \(allPlans.count) plans from API")
+        
+        // Optimisation: Limiter le nombre de plans pour éviter les problèmes de performance
+        // Grouper par destination et garder les 5 meilleurs plans par destination
+        let plansByLocation = Dictionary(grouping: allPlans) { $0.locationCode }
+        let filteredPlans = plansByLocation.values.flatMap { locationPlans in
+            // Trier par prix et garder les 5 moins chers
+            locationPlans.sorted { $0.priceUSD < $1.priceUSD }.prefix(5)
+        }
+        
+        let plans = Array(filteredPlans).sorted { $0.priceUSD < $1.priceUSD }
+        await AppLogger.shared.logData("Filtered to \(plans.count) plans for better performance")
+        
         return plans
     }
 
@@ -330,22 +342,31 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
             await apiClient.setAccessToken(token)
         }
 
-        let response: UsageAPIResponse = try await apiClient.request(
-            endpoint: "esim/usage?iccid=\(iccid)",
-            requiresAuth: true
-        )
+        do {
+            let response: UsageAPIResponse = try await apiClient.request(
+                endpoint: "esim/usage?iccid=\(iccid)",
+                requiresAuth: true
+            )
 
-        guard response.success == true, let d = response.data else { return nil }
+            guard response.success == true, let d = response.data else { 
+                // eSIM non trouvée ou pas encore activée
+                return nil 
+            }
 
-        return ESIMUsage(
-            id: d.iccid ?? iccid,
-            iccid: d.iccid ?? iccid,
-            totalBytes: Int64(d.totalVolume ?? 0),
-            usedBytes: Int64(d.orderUsage ?? 0),
-            remainingBytes: Int64(d.remainingData ?? 0),
-            status: d.smdpStatus ?? "UNKNOWN",
-            expiredTime: d.expiredTime ?? ""
-        )
+            return ESIMUsage(
+                id: d.iccid ?? iccid,
+                iccid: d.iccid ?? iccid,
+                totalBytes: Int64(d.totalVolume ?? 0),
+                usedBytes: Int64(d.orderUsage ?? 0),
+                remainingBytes: Int64(d.remainingData ?? 0),
+                status: d.smdpStatus ?? "UNKNOWN",
+                expiredTime: d.expiredTime ?? ""
+            )
+        } catch APIError.httpError(let statusCode) where statusCode == 404 {
+            // eSIM non trouvée - comportement normal pour certaines eSIM
+            await AppLogger.shared.logData("Usage not available for iccid: \(iccid)")
+            return nil
+        }
     }
 
     // MARK: - Top-Up
