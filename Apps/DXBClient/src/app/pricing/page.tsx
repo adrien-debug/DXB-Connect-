@@ -1,11 +1,25 @@
 import Link from 'next/link'
-import { ArrowRight, Globe, Zap } from 'lucide-react'
+import { ArrowRight, Globe, MapPin, Zap } from 'lucide-react'
 import MarketingShell from '@/components/marketing/MarketingShell'
 import CTASection from '@/components/marketing/CTASection'
-import SectionHeader from '@/components/marketing/SectionHeader'
 import { listEsimPackagesForUI, type EsimPackageForUI } from '@/lib/esim-packages-service'
 
 export const revalidate = 60 * 60
+
+const popularDestinations = [
+  { name: 'France', flag: '🇫🇷' },
+  { name: 'États-Unis', flag: '🇺🇸' },
+  { name: 'Royaume-Uni', flag: '🇬🇧' },
+  { name: 'Japon', flag: '🇯🇵' },
+  { name: 'Allemagne', flag: '🇩🇪' },
+  { name: 'Espagne', flag: '🇪🇸' },
+  { name: 'Italie', flag: '🇮🇹' },
+  { name: 'Thaïlande', flag: '🇹🇭' },
+  { name: 'Australie', flag: '🇦🇺' },
+  { name: 'Canada', flag: '🇨🇦' },
+  { name: 'Émirats', flag: '🇦🇪' },
+  { name: 'Singapour', flag: '🇸🇬' },
+]
 
 function pickCheapestPerLocation(packages: EsimPackageForUI[]) {
   const byCode = new Map<string, EsimPackageForUI>()
@@ -22,7 +36,7 @@ export default async function PricingPage() {
 
   try {
     const all = await listEsimPackagesForUI({ type: 'BASE', revalidateSeconds: 60 * 60 })
-    featured = pickCheapestPerLocation(all).slice(0, 24)
+    featured = pickCheapestPerLocation(all).slice(0, 12)
   } catch {
     error = 'Impossible de charger le catalogue pour le moment.'
   }
@@ -33,19 +47,42 @@ export default async function PricingPage() {
       <section className="section-padding-lg">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="relative">
-            <div className="absolute -inset-8 bg-lime-400/5 blur-3xl opacity-50 rounded-full" />
+            <div className="absolute -inset-8 bg-lime-400/10 blur-3xl opacity-50 rounded-full" />
             <div className="relative max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-lime-400/20 bg-lime-400/5 text-lime-400 text-xs font-semibold tracking-wide mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-lime-400/40 bg-lime-400/10 text-black text-xs font-semibold tracking-wide mb-6">
                 <Zap className="w-3 h-3" />
-                Tarifs transparents
+                Tarifs & Couverture
               </div>
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-black">
                 Offres eSIM
-                <span className="block text-lime-400">alignées sur l&apos;app.</span>
+                <span className="block">transparentes.</span>
               </h1>
-              <p className="mt-5 text-base sm:text-lg text-zinc-400 max-w-xl">
-                Extrait en temps réel du catalogue. Sélection ci-dessous: le meilleur prix par destination.
+              <p className="mt-5 text-base sm:text-lg text-gray max-w-xl">
+                120+ pays couverts. Prix clairs. Activation en minutes.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Coverage Strip */}
+      <section className="section-padding-sm">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="glass-card p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <MapPin className="w-5 h-5 text-black" />
+              <h2 className="text-sm font-semibold text-black">Destinations populaires</h2>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {popularDestinations.map((dest) => (
+                <span key={dest.name} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-gray-light text-sm text-black">
+                  <span>{dest.flag}</span>
+                  {dest.name}
+                </span>
+              ))}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-lime-400/20 border border-lime-400/30 text-sm text-black font-semibold">
+                +110 pays
+              </span>
             </div>
           </div>
         </div>
@@ -54,19 +91,18 @@ export default async function PricingPage() {
       {/* Packages Grid */}
       <section className="section-padding-md">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="text-xl font-semibold text-black mb-6">Meilleures offres par destination</h2>
+          
           {error ? (
             <div className="glass-card p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-zinc-800 flex items-center justify-center mx-auto mb-4">
-                <Globe className="w-8 h-8 text-zinc-600" />
+              <div className="w-16 h-16 rounded-2xl bg-gray-light flex items-center justify-center mx-auto mb-4">
+                <Globe className="w-8 h-8 text-gray" />
               </div>
-              <div className="text-base font-semibold text-white">Catalogue indisponible</div>
-              <div className="mt-2 text-sm text-zinc-400 max-w-md mx-auto">{error}</div>
-              <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="text-base font-semibold text-black">Catalogue indisponible</div>
+              <div className="mt-2 text-sm text-gray max-w-md mx-auto">{error}</div>
+              <div className="mt-6">
                 <Link href="/contact" className="btn-premium">
                   Contacter l&apos;équipe <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link href="/blog" className="btn-secondary">
-                  Lire le blog
                 </Link>
               </div>
             </div>
@@ -75,39 +111,29 @@ export default async function PricingPage() {
               {featured.map((p) => (
                 <div 
                   key={`${p.locationCode}-${p.packageCode}`} 
-                  className="glass-card p-6 hover-lift group"
+                  className="glass-card p-5 hover-lift group"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-base font-semibold text-white group-hover:text-lime-400 transition-colors">{p.location}</div>
-                      <div className="text-xs text-zinc-400 mt-1">{p.name}</div>
+                      <div className="text-base font-semibold text-black group-hover:text-lime-600 transition-colors">{p.location}</div>
+                      <div className="text-xs text-gray mt-0.5">{p.name}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-lime-400">
-                        {p.currencyCode === 'USD' ? '$' : ''}{p.price.toFixed(2)}
+                      <div className="text-xl font-bold text-black">
+                        ${p.price.toFixed(2)}
                       </div>
-                      <div className="text-[10px] text-zinc-500 uppercase tracking-wide">à partir de</div>
                     </div>
                   </div>
 
-                  <div className="mt-5 grid grid-cols-3 gap-2">
-                    <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/30">
-                      <div className="text-[10px] text-zinc-500 uppercase tracking-wide">Data</div>
-                      <div className="mt-1 text-sm font-semibold text-white">{p.volumeDisplay}</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/30">
-                      <div className="text-[10px] text-zinc-500 uppercase tracking-wide">Durée</div>
-                      <div className="mt-1 text-sm font-semibold text-white">{p.duration} j</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/30">
-                      <div className="text-[10px] text-zinc-500 uppercase tracking-wide">Réseau</div>
-                      <div className="mt-1 text-sm font-semibold text-white">{p.speed}</div>
-                    </div>
+                  <div className="mt-4 flex items-center gap-3 text-xs text-gray">
+                    <span className="px-2 py-1 rounded bg-gray-light">{p.volumeDisplay}</span>
+                    <span className="px-2 py-1 rounded bg-gray-light">{p.duration}j</span>
+                    <span className="px-2 py-1 rounded bg-gray-light">{p.speed}</span>
                   </div>
 
-                  <div className="mt-5 pt-4 border-t border-zinc-800/50">
-                    <Link href="/login" className="btn-premium w-full text-sm">
-                      Voir cette offre <ArrowRight className="w-4 h-4" />
+                  <div className="mt-4 pt-4 border-t border-gray-light">
+                    <Link href="/login" className="btn-premium w-full text-sm py-2.5">
+                      Acheter <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
                 </div>
@@ -117,11 +143,9 @@ export default async function PricingPage() {
 
           <CTASection
             title="Besoin d'un plan sur mesure ?"
-            subtitle="Dis-nous tes pays, ta durée et ton volume."
+            subtitle="Contactez notre équipe pour des offres personnalisées."
             primaryHref="/contact"
-            primaryLabel="Parler à l'équipe"
-            secondaryHref="/features"
-            secondaryLabel="Voir les fonctionnalités"
+            primaryLabel="Nous contacter"
           />
         </div>
       </section>

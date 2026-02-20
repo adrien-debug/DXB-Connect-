@@ -726,6 +726,234 @@
     .tab-item.on svg {
       stroke-width: 2;
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       ANIMATIONS
+    ═══════════════════════════════════════════════════════════════ */
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes slideRight {
+      from { opacity: 0; transform: translateX(-20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes progressGrow {
+      from { width: 0; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @keyframes cardShine {
+      0%   { transform: translateX(-120%) rotate(25deg); }
+      100% { transform: translateX(200%) rotate(25deg); }
+    }
+
+    @keyframes tabBounce {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(0.9); }
+      100% { transform: scale(1); }
+    }
+
+    .nav {
+      animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+    }
+
+    .membership {
+      animation: scaleIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+      cursor: pointer;
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+    }
+
+    .membership:hover {
+      transform: scale(1.015);
+      box-shadow:
+        0 2px 4px rgba(186, 255, 57, 0.2),
+        0 20px 48px -8px rgba(186, 255, 57, 0.4);
+    }
+
+    .membership:active {
+      transform: scale(0.985);
+    }
+
+    .membership .card-shine {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      transform: translateX(-120%) rotate(25deg);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .membership:hover .card-shine {
+      animation: cardShine 0.8s ease forwards;
+    }
+
+    .act {
+      animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+    }
+    .act:nth-child(1) { animation-delay: 0.3s; }
+    .act:nth-child(2) { animation-delay: 0.36s; }
+    .act:nth-child(3) { animation-delay: 0.42s; }
+    .act:nth-child(4) { animation-delay: 0.48s; }
+
+    .act:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .act:active {
+      transform: scale(0.95);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+
+    .act:hover .act-icon {
+      transition: transform 0.25s ease;
+      transform: scale(1.1);
+    }
+
+    .esim {
+      animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.55s both;
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+    }
+
+    .esim:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    }
+
+    .esim:active {
+      transform: scale(0.98);
+    }
+
+    .progress-fill {
+      animation: progressGrow 1.2s cubic-bezier(0.22, 1, 0.36, 1) 1s both;
+    }
+
+    .esim-badge::before {
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .sec-head {
+      animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+    }
+
+    .offer-card {
+      animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+    }
+    .offer-card:nth-child(1) { animation-delay: 0.65s; }
+    .offer-card:nth-child(2) { animation-delay: 0.75s; }
+
+    .offer-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+    }
+
+    .offer-card:active {
+      transform: scale(0.97);
+    }
+
+    .offer-cta {
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .offer-cta:hover {
+      transform: scale(1.04);
+      background: #C8FF5C;
+    }
+
+    .offer-cta:active {
+      transform: scale(0.96);
+    }
+
+    .priv-list {
+      animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.8s both;
+    }
+
+    .priv {
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .priv:hover {
+      background: rgba(186, 255, 57, 0.06);
+    }
+
+    .priv:active {
+      background: rgba(186, 255, 57, 0.12);
+    }
+
+    .priv:hover .priv-arrow {
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      transform: translateX(3px);
+      opacity: 0.7;
+    }
+
+    .priv:hover .priv-ic {
+      transition: transform 0.2s ease;
+      transform: scale(1.08);
+    }
+
+    .tab-item {
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .tab-item:active {
+      animation: tabBounce 0.3s ease;
+    }
+
+    .tab-bar {
+      animation: fadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.9s both;
+    }
+
+    .nav-avatar {
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+    }
+
+    .nav-avatar:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 18px rgba(186, 255, 57, 0.4);
+    }
+
+    .nav-avatar:active {
+      transform: scale(0.92);
+    }
+
+    .sec-more {
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .sec-more:hover {
+      color: var(--gray);
+    }
   </style>
 </head>
 <body>
@@ -755,6 +983,7 @@
 
     <!-- Membership -->
     <div class="membership">
+      <div class="card-shine"></div>
       <div class="m-row">
         <div class="m-chip"></div>
         <div class="m-logo">DXB</div>
@@ -955,6 +1184,55 @@
 
   <div class="home-bar"></div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Animated counter for points
+  const ptsEl = document.querySelector('.m-pts-val');
+  const target = 24850;
+  const duration = 1800;
+  const start = performance.now();
+  
+  function tick(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 4);
+    const current = Math.round(target * eased);
+    ptsEl.textContent = current.toLocaleString('en-US');
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  
+  setTimeout(() => requestAnimationFrame(tick), 600);
+
+  // Animated data counter
+  const dataEl = document.querySelector('.esim-val');
+  const dataTarget = 47.2;
+  const dataStart = performance.now();
+
+  function dataTick(now) {
+    const elapsed = now - dataStart;
+    const progress = Math.min(elapsed / 1200, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = (dataTarget * eased).toFixed(1);
+    dataEl.innerHTML = current + ' <small>GB</small>';
+    if (progress < 1) requestAnimationFrame(dataTick);
+  }
+
+  setTimeout(() => requestAnimationFrame(dataTick), 1000);
+
+  // Tab bar interaction
+  document.querySelectorAll('.tab-item').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab-item').forEach(t => {
+        t.classList.remove('on');
+        t.classList.add('off');
+      });
+      tab.classList.remove('off');
+      tab.classList.add('on');
+    });
+  });
+});
+</script>
 
 </body>
 </html>

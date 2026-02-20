@@ -44,10 +44,10 @@ export default function LoginPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="relative">
-          <div className="w-16 h-16 rounded-3xl bg-lime-400 flex items-center justify-center animate-pulse">
-            <Wifi className="w-8 h-8 text-zinc-950" />
+          <div className="w-16 h-16 rounded-3xl bg-lime-400 flex items-center justify-center animate-pulse shadow-lg shadow-lime-400/20">
+            <Wifi className="w-8 h-8 text-black" />
           </div>
         </div>
       </div>
@@ -55,40 +55,40 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="w-full max-w-md px-4 sm:px-6 animate-fade-in-up">
-        <div className="bg-zinc-900 rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/40 border border-zinc-800">
+        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/5 border border-gray-light">
           {/* Logo */}
           <div className="flex justify-center mb-6 sm:mb-8">
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-lime-400 flex items-center justify-center flex-shrink-0">
-                <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-950" />
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-lime-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-lime-400/20">
+                <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-lg sm:text-xl font-semibold text-white truncate">SimPass</h1>
-                <p className="text-xs text-zinc-500 truncate">Premium Dashboard</p>
+                <h1 className="text-lg sm:text-xl font-semibold text-black truncate">SimPass</h1>
+                <p className="text-xs text-gray truncate">Premium Dashboard</p>
               </div>
             </div>
           </div>
 
-          <h2 className="text-base sm:text-lg font-semibold text-center text-white mb-1">
+          <h2 className="text-base sm:text-lg font-semibold text-center text-black mb-1">
             Bon retour
           </h2>
-          <p className="text-sm text-zinc-500 text-center mb-6 sm:mb-8">
+          <p className="text-sm text-gray text-center mb-6 sm:mb-8">
             Connectez-vous pour accéder à votre espace
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-zinc-400">
+              <label className="block text-sm font-medium text-gray">
                 Email
               </label>
               <div className="relative">
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'email' ? 'text-lime-400' : 'text-zinc-600'}
+                  ${focused === 'email' ? 'text-lime-500' : 'text-gray'}
                 `}>
                   <Mail size={18} />
                 </div>
@@ -101,22 +101,22 @@ export default function LoginPage() {
                   placeholder="votre@email.com"
                   className={`
                     w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-zinc-800 border rounded-xl text-zinc-100
+                    bg-white border rounded-xl text-black
                     focus:outline-none
                     transition-all ease-hearst duration-300
-                    placeholder:text-zinc-600
+                    placeholder:text-gray
                     ${errors.email
-                      ? 'border-red-500/50 bg-red-500/5'
+                      ? 'border-red-400 bg-red-50'
                       : focused === 'email'
-                        ? 'border-lime-400/50 ring-[3px] ring-lime-400/10'
-                        : 'border-zinc-700 hover:border-zinc-600'
+                        ? 'border-lime-400 ring-[3px] ring-lime-400/20'
+                        : 'border-gray-light hover:border-gray'
                     }
                   `}
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-red-400 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-red-400" />
+                <p className="text-sm text-red-500 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-red-500" />
                   {errors.email}
                 </p>
               )}
@@ -124,14 +124,14 @@ export default function LoginPage() {
 
             {/* Password */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-zinc-400">
+              <label className="block text-sm font-medium text-gray">
                 Mot de passe
               </label>
               <div className="relative">
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'password' ? 'text-lime-400' : 'text-zinc-600'}
+                  ${focused === 'password' ? 'text-lime-500' : 'text-gray'}
                 `}>
                   <Lock size={18} />
                 </div>
@@ -144,22 +144,22 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   className={`
                     w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-zinc-800 border rounded-xl text-zinc-100
+                    bg-white border rounded-xl text-black
                     focus:outline-none
                     transition-all ease-hearst duration-300
-                    placeholder:text-zinc-600
+                    placeholder:text-gray
                     ${errors.password
-                      ? 'border-red-500/50 bg-red-500/5'
+                      ? 'border-red-400 bg-red-50'
                       : focused === 'password'
-                        ? 'border-lime-400/50 ring-[3px] ring-lime-400/10'
-                        : 'border-zinc-700 hover:border-zinc-600'
+                        ? 'border-lime-400 ring-[3px] ring-lime-400/20'
+                        : 'border-gray-light hover:border-gray'
                     }
                   `}
                 />
               </div>
               {errors.password && (
-                <p className="text-sm text-red-400 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-red-400" />
+                <p className="text-sm text-red-500 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-red-500" />
                   {errors.password}
                 </p>
               )}
@@ -173,7 +173,7 @@ export default function LoginPage() {
                 className="
                   w-full h-12 rounded-full
                   bg-lime-400 hover:bg-lime-300
-                  text-zinc-950 font-semibold text-sm
+                  text-black font-semibold text-sm
                   shadow-md shadow-lime-400/20 hover:shadow-lg hover:shadow-lime-400/30
                   transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
@@ -200,16 +200,16 @@ export default function LoginPage() {
           <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-zinc-800" />
+                <div className="w-full border-t border-gray-light" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-zinc-900 px-3 text-zinc-600 font-medium">ou</span>
+                <span className="bg-white px-3 text-gray font-medium">ou</span>
               </div>
             </div>
 
             {process.env.NODE_ENV === 'development' && (
               <div className="mt-6 space-y-3">
-                <p className="text-center text-xs text-zinc-600 mb-3">Accès rapide (dev)</p>
+                <p className="text-center text-xs text-gray mb-3">Accès rapide (dev)</p>
                 <div className="flex gap-3">
                   <button
                     type="button"
@@ -222,7 +222,7 @@ export default function LoginPage() {
                       }
                       setForm(DEV_ACCOUNTS.client)
                     }}
-                    className="flex-1 py-2.5 px-4 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 transition-all flex items-center justify-center gap-2 text-sm text-zinc-300"
+                    className="flex-1 py-2.5 px-4 rounded-xl border border-gray-light bg-white hover:bg-gray-light/50 transition-all flex items-center justify-center gap-2 text-sm text-gray"
                   >
                     <User size={16} />
                     Client
@@ -238,7 +238,7 @@ export default function LoginPage() {
                       }
                       setForm(DEV_ACCOUNTS.admin)
                     }}
-                    className="flex-1 py-2.5 px-4 rounded-xl border border-lime-400/30 bg-lime-400/10 hover:bg-lime-400/15 transition-all flex items-center justify-center gap-2 text-sm text-lime-400"
+                    className="flex-1 py-2.5 px-4 rounded-xl border border-lime-400/40 bg-lime-400/10 hover:bg-lime-400/20 transition-all flex items-center justify-center gap-2 text-sm text-black"
                   >
                     <Shield size={16} />
                     Admin
@@ -247,16 +247,16 @@ export default function LoginPage() {
               </div>
             )}
 
-            <p className="mt-6 text-center text-sm text-zinc-500">
+            <p className="mt-6 text-center text-sm text-gray">
               Pas encore de compte ?{' '}
-              <a href="/register" className="font-medium text-lime-400 hover:text-lime-300 transition-colors">
+              <a href="/register" className="font-medium text-black hover:underline transition-colors">
                 Créer un compte
               </a>
             </p>
           </div>
         </div>
 
-        <p className="mt-8 text-center text-xs text-zinc-600">
+        <p className="mt-8 text-center text-xs text-gray">
           © 2026 SimPass. Tous droits réservés.
         </p>
       </div>

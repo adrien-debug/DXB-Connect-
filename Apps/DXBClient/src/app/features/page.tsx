@@ -42,17 +42,17 @@ export default function FeaturesPage() {
       <section className="section-padding-lg">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="relative">
-            <div className="absolute -inset-8 bg-lime-400/5 blur-3xl opacity-50 rounded-full" />
+            <div className="absolute -inset-8 bg-lime-400/10 blur-3xl opacity-50 rounded-full" />
             <div className="relative max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-lime-400/20 bg-lime-400/5 text-lime-400 text-xs font-semibold tracking-wide mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-lime-400/40 bg-lime-400/10 text-black text-xs font-semibold tracking-wide mb-6">
                 <Sparkles className="w-3 h-3" />
                 Fonctionnalités
               </div>
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-black">
                 Tout ce qu&apos;il faut pour
-                <span className="block text-lime-400">voyager connecté.</span>
+                <span className="block">voyager connecté.</span>
               </h1>
-              <p className="mt-5 text-base sm:text-lg text-zinc-400 max-w-xl">
+              <p className="mt-5 text-base sm:text-lg text-gray max-w-xl">
                 Achat simplifié, activation instantanée, support premium. Une expérience eSIM sans friction.
               </p>
             </div>
@@ -71,11 +71,11 @@ export default function FeaturesPage() {
                   key={f.title} 
                   className="glass-card p-6 hover-lift group"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-lime-400/10 border border-lime-400/15 flex items-center justify-center group-hover:bg-lime-400/15 group-hover:border-lime-400/25 transition-all">
-                    <Icon className="w-6 h-6 text-lime-400" />
+                  <div className="w-12 h-12 rounded-2xl bg-lime-400/20 border border-lime-400/30 flex items-center justify-center group-hover:bg-lime-400/30 transition-all">
+                    <Icon className="w-6 h-6 text-black" />
                   </div>
-                  <div className="mt-4 text-base font-semibold text-white">{f.title}</div>
-                  <div className="mt-2 text-sm text-zinc-400 leading-relaxed">{f.description}</div>
+                  <div className="mt-4 text-base font-semibold text-black">{f.title}</div>
+                  <div className="mt-2 text-sm text-gray leading-relaxed">{f.description}</div>
                 </div>
               )
             })}

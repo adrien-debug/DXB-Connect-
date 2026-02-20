@@ -6,14 +6,14 @@ export default function StatsStrip({ stats }: { stats: Stat[] }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {stats.map((s, i) => (
           <div key={s.label} className="relative">
-            <div className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            <div className="text-2xl sm:text-3xl font-bold text-black tracking-tight">
               {s.value}
             </div>
-            <div className="mt-1 text-xs sm:text-sm text-zinc-400">
+            <div className="mt-1 text-xs sm:text-sm text-gray">
               {s.label}
             </div>
             {i < stats.length - 1 && (
-              <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 w-px h-8 bg-zinc-800" />
+              <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 w-px h-8 bg-gray-light" />
             )}
           </div>
         ))}
@@ -21,4 +21,3 @@ export default function StatsStrip({ stats }: { stats: Stat[] }) {
     </div>
   )
 }
-

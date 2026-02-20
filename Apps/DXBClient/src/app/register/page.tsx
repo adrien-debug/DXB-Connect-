@@ -19,7 +19,6 @@ export default function RegisterPage() {
     e.preventDefault()
     setErrors({})
 
-    // Validation du mot de passe de confirmation
     if (form.password !== confirmPassword) {
       setErrors({ confirmPassword: 'Les mots de passe ne correspondent pas' })
       return
@@ -42,7 +41,6 @@ export default function RegisterPage() {
       setSuccess(true)
     } catch (error) {
       console.error('[RegisterPage] signUp error:', error)
-      // Error handled in useAuth
     } finally {
       setSubmitting(false)
     }
@@ -50,10 +48,10 @@ export default function RegisterPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="relative">
-          <div className="w-16 h-16 rounded-3xl bg-lime-400 flex items-center justify-center animate-pulse">
-            <Wifi className="w-8 h-8 text-zinc-950" />
+          <div className="w-16 h-16 rounded-3xl bg-lime-400 flex items-center justify-center animate-pulse shadow-lg shadow-lime-400/20">
+            <Wifi className="w-8 h-8 text-black" />
           </div>
         </div>
       </div>
@@ -62,23 +60,22 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-800">
-        {/* Success card */}
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="w-full max-w-md px-4 sm:px-6 animate-fade-in-up">
-          <div className="bg-zinc-900 rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/40 border border-zinc-700 text-center">
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/5 border border-gray-light text-center">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-xl bg-emerald-500 flex items-center justify-center">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 rounded-xl bg-lime-400 flex items-center justify-center shadow-md shadow-lime-400/20">
+                <svg className="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
             </div>
 
-            <h2 className="text-xl font-semibold text-white mb-2">
+            <h2 className="text-xl font-semibold text-black mb-2">
               Compte créé avec succès !
             </h2>
-            <p className="text-sm text-zinc-400 mb-6">
-              Un email de confirmation a été envoyé à <strong>{form.email}</strong>.
+            <p className="text-sm text-gray mb-6">
+              Un email de confirmation a été envoyé à <strong className="text-black">{form.email}</strong>.
               Vérifiez votre boîte de réception pour activer votre compte.
             </p>
 
@@ -88,8 +85,8 @@ export default function RegisterPage() {
                 inline-flex items-center justify-center gap-2
                 w-full h-12 rounded-full
                 bg-lime-400 hover:bg-lime-300
-                text-zinc-950 font-medium text-sm
-                shadow-md hover:shadow-lg
+                text-black font-medium text-sm
+                shadow-md shadow-lime-400/20 hover:shadow-lg hover:shadow-lime-400/30
                 transition-all duration-200
               "
             >
@@ -103,41 +100,40 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-800">
-      {/* Register card */}
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="w-full max-w-md px-4 sm:px-6 animate-fade-in-up">
-        <div className="bg-zinc-900 rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/40 border border-zinc-700">
+        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/5 border border-gray-light">
           {/* Logo */}
           <div className="flex justify-center mb-6 sm:mb-8">
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-lime-400 flex items-center justify-center flex-shrink-0">
-                <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-950" />
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-lime-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-lime-400/20">
+                <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-lg sm:text-xl font-semibold text-white truncate">SimPass</h1>
-                <p className="text-xs text-zinc-500 truncate">Premium Dashboard</p>
+                <h1 className="text-lg sm:text-xl font-semibold text-black truncate">SimPass</h1>
+                <p className="text-xs text-gray truncate">Premium Dashboard</p>
               </div>
             </div>
           </div>
 
-          <h2 className="text-base sm:text-lg font-semibold text-center text-white mb-1">
+          <h2 className="text-base sm:text-lg font-semibold text-center text-black mb-1">
             Créer un compte
           </h2>
-          <p className="text-sm text-zinc-500 text-center mb-6 sm:mb-8">
+          <p className="text-sm text-gray text-center mb-6 sm:mb-8">
             Rejoignez SimPass dès maintenant
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-zinc-300">
+              <label className="block text-sm font-medium text-gray">
                 Email
               </label>
               <div className="relative">
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'email' ? 'text-lime-400' : 'text-zinc-600'}
+                  ${focused === 'email' ? 'text-lime-500' : 'text-gray'}
                 `}>
                   <Mail size={18} />
                 </div>
@@ -150,21 +146,22 @@ export default function RegisterPage() {
                   placeholder="votre@email.com"
                   className={`
                     w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-zinc-900 border rounded-xl
-                    focus:outline-none focus:bg-zinc-900
+                    bg-white border rounded-xl text-black
+                    focus:outline-none
                     transition-all ease-hearst duration-300
+                    placeholder:text-gray
                     ${errors.email
-                      ? 'border-rose-400 bg-rose-500/10'
+                      ? 'border-red-400 bg-red-50'
                       : focused === 'email'
-                        ? 'border-lime-400/50 ring-[3px] ring-lime-400/10'
-                        : 'border-zinc-800 hover:border-zinc-700'
+                        ? 'border-lime-400 ring-[3px] ring-lime-400/20'
+                        : 'border-gray-light hover:border-gray'
                     }
                   `}
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-rose-400 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-rose-400" />
+                <p className="text-sm text-red-500 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-red-500" />
                   {errors.email}
                 </p>
               )}
@@ -172,14 +169,14 @@ export default function RegisterPage() {
 
             {/* Password */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-zinc-300">
+              <label className="block text-sm font-medium text-gray">
                 Mot de passe
               </label>
               <div className="relative">
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'password' ? 'text-lime-400' : 'text-zinc-600'}
+                  ${focused === 'password' ? 'text-lime-500' : 'text-gray'}
                 `}>
                   <Lock size={18} />
                 </div>
@@ -192,21 +189,22 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   className={`
                     w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-zinc-900 border rounded-xl
-                    focus:outline-none focus:bg-zinc-900
+                    bg-white border rounded-xl text-black
+                    focus:outline-none
                     transition-all ease-hearst duration-300
+                    placeholder:text-gray
                     ${errors.password
-                      ? 'border-rose-400 bg-rose-500/10'
+                      ? 'border-red-400 bg-red-50'
                       : focused === 'password'
-                        ? 'border-lime-400/50 ring-[3px] ring-lime-400/10'
-                        : 'border-zinc-800 hover:border-zinc-700'
+                        ? 'border-lime-400 ring-[3px] ring-lime-400/20'
+                        : 'border-gray-light hover:border-gray'
                     }
                   `}
                 />
               </div>
               {errors.password && (
-                <p className="text-sm text-rose-400 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-rose-400" />
+                <p className="text-sm text-red-500 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-red-500" />
                   {errors.password}
                 </p>
               )}
@@ -214,14 +212,14 @@ export default function RegisterPage() {
 
             {/* Confirm Password */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-zinc-300">
+              <label className="block text-sm font-medium text-gray">
                 Confirmer le mot de passe
               </label>
               <div className="relative">
                 <div className={`
                   absolute left-4 top-1/2 -translate-y-1/2
                   transition-colors duration-300
-                  ${focused === 'confirmPassword' ? 'text-lime-400' : 'text-zinc-600'}
+                  ${focused === 'confirmPassword' ? 'text-lime-500' : 'text-gray'}
                 `}>
                   <Lock size={18} />
                 </div>
@@ -234,21 +232,22 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   className={`
                     w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-zinc-900 border rounded-xl
-                    focus:outline-none focus:bg-zinc-900
+                    bg-white border rounded-xl text-black
+                    focus:outline-none
                     transition-all ease-hearst duration-300
+                    placeholder:text-gray
                     ${errors.confirmPassword
-                      ? 'border-rose-400 bg-rose-500/10'
+                      ? 'border-red-400 bg-red-50'
                       : focused === 'confirmPassword'
-                        ? 'border-lime-400/50 ring-[3px] ring-lime-400/10'
-                        : 'border-zinc-800 hover:border-zinc-700'
+                        ? 'border-lime-400 ring-[3px] ring-lime-400/20'
+                        : 'border-gray-light hover:border-gray'
                     }
                   `}
                 />
               </div>
               {errors.confirmPassword && (
-                <p className="text-sm text-rose-400 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-rose-400" />
+                <p className="text-sm text-red-500 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-red-500" />
                   {errors.confirmPassword}
                 </p>
               )}
@@ -262,8 +261,8 @@ export default function RegisterPage() {
                 className="
                   w-full h-12 rounded-full
                   bg-lime-400 hover:bg-lime-300
-                  text-zinc-950 font-medium text-sm
-                  shadow-md hover:shadow-lg
+                  text-black font-semibold text-sm
+                  shadow-md shadow-lime-400/20 hover:shadow-lg hover:shadow-lime-400/30
                   transition-all duration-200
                   disabled:opacity-50 disabled:cursor-not-allowed
                   flex items-center justify-center
@@ -289,23 +288,23 @@ export default function RegisterPage() {
           <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-zinc-800" />
+                <div className="w-full border-t border-gray-light" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-zinc-900 px-3 text-zinc-600 font-medium">ou</span>
+                <span className="bg-white px-3 text-gray font-medium">ou</span>
               </div>
             </div>
 
-            <p className="mt-6 text-center text-sm text-zinc-400">
+            <p className="mt-6 text-center text-sm text-gray">
               Vous avez déjà un compte ?{' '}
-              <Link href="/login" className="font-medium text-lime-400 hover:text-lime-300 transition-colors">
+              <Link href="/login" className="font-medium text-black hover:underline transition-colors">
                 Se connecter
               </Link>
             </p>
           </div>
         </div>
 
-        <p className="mt-8 text-center text-xs text-zinc-500">
+        <p className="mt-8 text-center text-xs text-gray">
           © 2026 SimPass. Tous droits réservés.
         </p>
       </div>

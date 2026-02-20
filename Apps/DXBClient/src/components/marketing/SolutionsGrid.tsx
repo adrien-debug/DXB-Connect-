@@ -35,12 +35,12 @@ export default function SolutionsGrid() {
         const Icon = s.icon
         return (
           <Link key={s.title} href={s.href} className="glass-card p-6 hover-lift group">
-            <div className="w-12 h-12 rounded-2xl bg-lime-400/10 border border-lime-400/15 flex items-center justify-center group-hover:bg-lime-400/15 transition-colors">
-              <Icon className="w-6 h-6 text-lime-400" />
+            <div className="w-12 h-12 rounded-2xl bg-lime-400/20 border border-lime-400/30 flex items-center justify-center group-hover:bg-lime-400/30 transition-colors">
+              <Icon className="w-6 h-6 text-black" />
             </div>
-            <div className="mt-4 text-sm font-semibold text-white">{s.title}</div>
-            <div className="mt-2 text-sm text-zinc-400">{s.description}</div>
-            <div className="mt-5 inline-flex items-center gap-2 text-sm text-lime-400 group-hover:gap-3 transition-all">
+            <div className="mt-4 text-sm font-semibold text-black">{s.title}</div>
+            <div className="mt-2 text-sm text-gray">{s.description}</div>
+            <div className="mt-5 inline-flex items-center gap-2 text-sm text-black group-hover:gap-3 transition-all">
               En savoir plus <ArrowRight className="w-4 h-4" />
             </div>
           </Link>
@@ -49,4 +49,3 @@ export default function SolutionsGrid() {
     </div>
   )
 }
-

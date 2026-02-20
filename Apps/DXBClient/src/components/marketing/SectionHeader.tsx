@@ -8,19 +8,18 @@ export default function SectionHeader({ eyebrow, title, subtitle }: Props) {
   return (
     <div className="max-w-3xl">
       {eyebrow && (
-        <div className="text-xs font-semibold tracking-widest uppercase text-lime-400 mb-2">
+        <div className="text-xs font-semibold tracking-widest uppercase text-gray mb-2">
           {eyebrow}
         </div>
       )}
-      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-black">
         {title}
       </h2>
       {subtitle && (
-        <p className="mt-3 text-sm sm:text-base text-zinc-400 leading-relaxed">
+        <p className="mt-3 text-sm sm:text-base text-gray leading-relaxed">
           {subtitle}
         </p>
       )}
     </div>
   )
 }
-

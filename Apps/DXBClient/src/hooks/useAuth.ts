@@ -51,28 +51,47 @@ export function useAuth() {
   }, [])
 
   useEffect(() => {
+    let mounted = true
+
     // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      let profile: Profile | null = null
-      if (session?.user) {
-        profile = await fetchProfile(session.user.id)
+    const initSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!mounted) return
+
+        let profile: Profile | null = null
+        if (session?.user) {
+          profile = await fetchProfile(session.user.id)
+        }
+        if (!mounted) return
+
+        setState({
+          user: session?.user ?? null,
+          session,
+          profile,
+          loading: false,
+        })
+      } catch (error) {
+        if (!mounted) return
+        console.warn('[useAuth] Init session error:', error)
+        setState(prev => ({ ...prev, loading: false }))
       }
-      setState({
-        user: session?.user ?? null,
-        session,
-        profile,
-        loading: false,
-      })
-    })
+    }
+
+    initSession()
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return
+
       let profile: Profile | null = null
       if (session?.user) {
         profile = await fetchProfile(session.user.id)
       }
+      if (!mounted) return
+
       setState({
         user: session?.user ?? null,
         session,
@@ -81,7 +100,10 @@ export function useAuth() {
       })
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [fetchProfile])
 
   const signIn = useCallback(async (email: string, password: string) => {
