@@ -20,6 +20,7 @@ public protocol DXBAPIServiceProtocol: Sendable {
     func suspendESIM(orderNo: String) async throws -> Bool
     func resumeESIM(orderNo: String) async throws -> Bool
     func refreshAccessToken() async throws -> AuthResponse
+    func requestPasswordReset(email: String) async throws
 
     // MARK: - Offers (SimPass)
     func fetchOffers(country: String?, category: String?) async throws -> [PartnerOfferResponse]
@@ -127,6 +128,16 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
         await apiClient.setAccessToken(response.accessToken)
 
         return response
+    }
+
+    public func requestPasswordReset(email: String) async throws {
+        let body: [String: Any] = ["email": email]
+        let _: [String: String] = try await apiClient.request(
+            endpoint: APIEndpoint.authResetPassword.path,
+            method: "POST",
+            body: body,
+            requiresAuth: false
+        )
     }
 
     public func fetchPlans(locale: String) async throws -> [Plan] {

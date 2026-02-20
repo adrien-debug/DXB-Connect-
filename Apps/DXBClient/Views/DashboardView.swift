@@ -137,10 +137,12 @@ struct DashboardView: View {
                                             .fill(Color.white.opacity(0.1))
                                     )
 
-                                Circle()
-                                    .fill(AppTheme.accent)
-                                    .frame(width: 8, height: 8)
-                                    .offset(x: 0, y: 2)
+                                if !coordinator.notifications.isEmpty {
+                                    Circle()
+                                        .fill(AppTheme.accent)
+                                        .frame(width: 8, height: 8)
+                                        .offset(x: 0, y: 2)
+                                }
                             }
                         }
                         .accessibilityLabel("Notifications")

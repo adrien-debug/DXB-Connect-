@@ -3,19 +3,24 @@ import { Wifi } from 'lucide-react'
 
 const footerLinks = {
   product: [
-    { href: '/features', label: 'Fonctionnalités' },
-    { href: '/pricing', label: 'Tarifs' },
-    { href: '/how-it-works', label: 'Comment ça marche' },
+    { href: '/features', label: 'Features' },
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/how-it-works', label: 'How it works' },
+  ],
+  perks: [
+    { href: '/partners', label: 'Travel Partners' },
+    { href: '/pricing', label: 'Membership Plans' },
+    { href: '/features', label: 'Rewards Program' },
   ],
   resources: [
     { href: '/blog', label: 'Blog' },
     { href: '/faq', label: 'FAQ' },
-    { href: '/partners', label: 'Partenaires' },
+    { href: '/contact', label: 'Contact' },
   ],
   legal: [
-    { href: '/legal/terms', label: 'CGU' },
-    { href: '/legal/privacy', label: 'Confidentialité' },
-    { href: '/contact', label: 'Contact' },
+    { href: '/legal/terms', label: 'Terms' },
+    { href: '/legal/privacy', label: 'Privacy' },
+    { href: '/contact', label: 'Support' },
   ],
 }
 
@@ -23,7 +28,7 @@ export default function MarketingFooter() {
   return (
     <footer className="border-t border-gray-light bg-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-3 mb-4">
@@ -32,20 +37,34 @@ export default function MarketingFooter() {
               </div>
               <div className="leading-tight">
                 <div className="text-sm font-semibold text-black">SimPass</div>
-                <div className="text-[10px] text-gray uppercase tracking-wider">eSIM premium</div>
+                <div className="text-[10px] text-gray uppercase tracking-wider">eSIM + Perks</div>
               </div>
             </Link>
             <p className="text-sm text-gray leading-relaxed">
-              Connectivité mobile internationale. Activation rapide. Support premium.
+              eSIM connectivity with travel perks, membership discounts, and a rewards program.
             </p>
           </div>
 
           {/* Product */}
           <div>
-            <h4 className="text-xs font-semibold text-black uppercase tracking-wider mb-4">Produit</h4>
+            <h4 className="text-xs font-semibold text-black uppercase tracking-wider mb-4">Product</h4>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
-                <li key={link.href}>
+                <li key={link.href + link.label}>
+                  <Link href={link.href} className="text-sm text-gray hover:text-black transition-colors">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Perks */}
+          <div>
+            <h4 className="text-xs font-semibold text-black uppercase tracking-wider mb-4">Perks</h4>
+            <ul className="space-y-3">
+              {footerLinks.perks.map((link) => (
+                <li key={link.href + link.label}>
                   <Link href={link.href} className="text-sm text-gray hover:text-black transition-colors">
                     {link.label}
                   </Link>
@@ -56,10 +75,10 @@ export default function MarketingFooter() {
 
           {/* Resources */}
           <div>
-            <h4 className="text-xs font-semibold text-black uppercase tracking-wider mb-4">Ressources</h4>
+            <h4 className="text-xs font-semibold text-black uppercase tracking-wider mb-4">Resources</h4>
             <ul className="space-y-3">
               {footerLinks.resources.map((link) => (
-                <li key={link.href}>
+                <li key={link.href + link.label}>
                   <Link href={link.href} className="text-sm text-gray hover:text-black transition-colors">
                     {link.label}
                   </Link>
@@ -70,10 +89,10 @@ export default function MarketingFooter() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-xs font-semibold text-black uppercase tracking-wider mb-4">Légal</h4>
+            <h4 className="text-xs font-semibold text-black uppercase tracking-wider mb-4">Legal</h4>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
-                <li key={link.href}>
+                <li key={link.href + link.label}>
                   <Link href={link.href} className="text-sm text-gray hover:text-black transition-colors">
                     {link.label}
                   </Link>
@@ -84,7 +103,7 @@ export default function MarketingFooter() {
         </div>
 
         <div className="mt-10 pt-6 border-t border-gray-light flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-gray">
-          <div>© {new Date().getFullYear()} SimPass. Tous droits réservés.</div>
+          <div>&copy; {new Date().getFullYear()} SimPass. All rights reserved.</div>
           <div>
             <a href="mailto:support@simpass.io" className="hover:text-black transition-colors">
               support@simpass.io

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { loginSchema, type LoginInput } from '@/lib/validations/schemas'
-import { Loader2, Mail, Lock, Wifi, ArrowRight, ArrowLeft } from 'lucide-react'
+import { Check, Gift, Loader2, Mail, Lock, Wifi, ArrowRight, ArrowLeft, Star } from 'lucide-react'
 import Link from 'next/link'
 
 export default function RegisterPage() {
@@ -20,7 +20,7 @@ export default function RegisterPage() {
     setErrors({})
 
     if (form.password !== confirmPassword) {
-      setErrors({ confirmPassword: 'Les mots de passe ne correspondent pas' })
+      setErrors({ confirmPassword: 'Passwords do not match' })
       return
     }
 
@@ -65,18 +65,16 @@ export default function RegisterPage() {
           <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/5 border border-gray-light text-center">
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 rounded-xl bg-lime-400 flex items-center justify-center shadow-md shadow-lime-400/20">
-                <svg className="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                <Check className="w-8 h-8 text-black" />
               </div>
             </div>
 
             <h2 className="text-xl font-semibold text-black mb-2">
-              Compte créé avec succès !
+              Account created!
             </h2>
             <p className="text-sm text-gray mb-6">
-              Un email de confirmation a été envoyé à <strong className="text-black">{form.email}</strong>.
-              Vérifiez votre boîte de réception pour activer votre compte.
+              A confirmation email has been sent to <strong className="text-black">{form.email}</strong>.
+              Check your inbox to activate your account and start unlocking travel perks.
             </p>
 
             <Link
@@ -91,7 +89,7 @@ export default function RegisterPage() {
               "
             >
               <ArrowLeft className="w-4 h-4" />
-              Retour à la connexion
+              Back to sign in
             </Link>
           </div>
         </div>
@@ -100,213 +98,189 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="w-full max-w-md px-4 sm:px-6 animate-fade-in-up">
-        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/5 border border-gray-light">
-          {/* Logo */}
-          <div className="flex justify-center mb-6 sm:mb-8">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-lime-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-lime-400/20">
-                <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
+    <div className="min-h-screen flex bg-white">
+      {/* Left: Register form */}
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6">
+        <div className="w-full max-w-md animate-fade-in-up">
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/5 border border-gray-light">
+            {/* Logo */}
+            <div className="flex justify-center mb-6 sm:mb-8">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-lime-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-lime-400/20">
+                  <Wifi className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
+                </div>
+                <div className="min-w-0">
+                  <h1 className="text-lg sm:text-xl font-semibold text-black truncate">SimPass</h1>
+                  <p className="text-xs text-gray truncate">eSIM + Travel Perks</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h1 className="text-lg sm:text-xl font-semibold text-black truncate">SimPass</h1>
-                <p className="text-xs text-gray truncate">Premium Dashboard</p>
+            </div>
+
+            <h2 className="text-base sm:text-lg font-semibold text-center text-black mb-1">
+              Create your account
+            </h2>
+            <p className="text-sm text-gray text-center mb-6 sm:mb-8">
+              Join SimPass and unlock travel benefits
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Email */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray">Email</label>
+                <div className="relative">
+                  <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focused === 'email' ? 'text-lime-500' : 'text-gray'}`}>
+                    <Mail size={18} />
+                  </div>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
+                    onFocus={() => setFocused('email')}
+                    onBlur={() => setFocused(null)}
+                    placeholder="you@example.com"
+                    className={`w-full pl-12 pr-4 py-3 min-h-[2.75rem] bg-white border rounded-xl text-black focus:outline-none transition-all ease-hearst duration-300 placeholder:text-gray ${errors.email ? 'border-red-400 bg-red-50' : focused === 'email' ? 'border-lime-400 ring-[3px] ring-lime-400/20' : 'border-gray-light hover:border-gray'}`}
+                  />
+                </div>
+                {errors.email && (
+                  <p className="text-sm text-red-500 flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-red-500" />
+                    {errors.email}
+                  </p>
+                )}
               </div>
+
+              {/* Password */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray">Password</label>
+                <div className="relative">
+                  <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focused === 'password' ? 'text-lime-500' : 'text-gray'}`}>
+                    <Lock size={18} />
+                  </div>
+                  <input
+                    type="password"
+                    value={form.password}
+                    onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
+                    onFocus={() => setFocused('password')}
+                    onBlur={() => setFocused(null)}
+                    placeholder="••••••••"
+                    className={`w-full pl-12 pr-4 py-3 min-h-[2.75rem] bg-white border rounded-xl text-black focus:outline-none transition-all ease-hearst duration-300 placeholder:text-gray ${errors.password ? 'border-red-400 bg-red-50' : focused === 'password' ? 'border-lime-400 ring-[3px] ring-lime-400/20' : 'border-gray-light hover:border-gray'}`}
+                  />
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-red-500 flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-red-500" />
+                    {errors.password}
+                  </p>
+                )}
+              </div>
+
+              {/* Confirm Password */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray">Confirm password</label>
+                <div className="relative">
+                  <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${focused === 'confirmPassword' ? 'text-lime-500' : 'text-gray'}`}>
+                    <Lock size={18} />
+                  </div>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onFocus={() => setFocused('confirmPassword')}
+                    onBlur={() => setFocused(null)}
+                    placeholder="••••••••"
+                    className={`w-full pl-12 pr-4 py-3 min-h-[2.75rem] bg-white border rounded-xl text-black focus:outline-none transition-all ease-hearst duration-300 placeholder:text-gray ${errors.confirmPassword ? 'border-red-400 bg-red-50' : focused === 'confirmPassword' ? 'border-lime-400 ring-[3px] ring-lime-400/20' : 'border-gray-light hover:border-gray'}`}
+                  />
+                </div>
+                {errors.confirmPassword && (
+                  <p className="text-sm text-red-500 flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-red-500" />
+                    {errors.confirmPassword}
+                  </p>
+                )}
+              </div>
+
+              {/* Submit */}
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full h-12 rounded-full bg-lime-400 hover:bg-lime-300 text-black font-semibold text-sm shadow-md shadow-lime-400/20 hover:shadow-lg hover:shadow-lime-400/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    {submitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Creating account...
+                      </>
+                    ) : (
+                      <>
+                        Create account
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </span>
+                </button>
+              </div>
+            </form>
+
+            <div className="mt-8">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-light" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-3 text-gray font-medium">or</span>
+                </div>
+              </div>
+
+              <p className="mt-6 text-center text-sm text-gray">
+                Already have an account?{' '}
+                <Link href="/login" className="font-medium text-black hover:underline transition-colors">
+                  Sign in
+                </Link>
+              </p>
             </div>
           </div>
 
-          <h2 className="text-base sm:text-lg font-semibold text-center text-black mb-1">
-            Créer un compte
-          </h2>
-          <p className="text-sm text-gray text-center mb-6 sm:mb-8">
-            Rejoignez SimPass dès maintenant
+          <p className="mt-8 text-center text-xs text-gray">
+            &copy; 2026 SimPass. All rights reserved.
           </p>
+        </div>
+      </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray">
-                Email
-              </label>
-              <div className="relative">
-                <div className={`
-                  absolute left-4 top-1/2 -translate-y-1/2
-                  transition-colors duration-300
-                  ${focused === 'email' ? 'text-lime-500' : 'text-gray'}
-                `}>
-                  <Mail size={18} />
+      {/* Right: Benefits panel (hidden on mobile) */}
+      <div className="hidden lg:flex flex-1 items-center justify-center bg-gray-light/30 border-l border-gray-light px-12">
+        <div className="max-w-sm space-y-6">
+          <h2 className="text-2xl font-bold text-black">
+            Join 10,000+ travelers.
+          </h2>
+          <p className="text-sm text-gray leading-relaxed">
+            Create your free account and instantly unlock eSIM connectivity, travel perks, and rewards.
+          </p>
+          <div className="space-y-4">
+            {[
+              { icon: Wifi, label: 'Instant eSIM activation in 120+ countries' },
+              { icon: Gift, label: 'Partner discounts on activities, lounges & insurance' },
+              { icon: Star, label: 'Earn XP, complete missions, enter raffles' },
+            ].map((item) => {
+              const Icon = item.icon
+              return (
+                <div key={item.label} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-lime-400/20 border border-lime-400/30 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-4 h-4 text-lime-600" />
+                  </div>
+                  <span className="text-sm text-black">{item.label}</span>
                 </div>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
-                  onFocus={() => setFocused('email')}
-                  onBlur={() => setFocused(null)}
-                  placeholder="votre@email.com"
-                  className={`
-                    w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-white border rounded-xl text-black
-                    focus:outline-none
-                    transition-all ease-hearst duration-300
-                    placeholder:text-gray
-                    ${errors.email
-                      ? 'border-red-400 bg-red-50'
-                      : focused === 'email'
-                        ? 'border-lime-400 ring-[3px] ring-lime-400/20'
-                        : 'border-gray-light hover:border-gray'
-                    }
-                  `}
-                />
-              </div>
-              {errors.email && (
-                <p className="text-sm text-red-500 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-red-500" />
-                  {errors.email}
-                </p>
-              )}
-            </div>
+              )
+            })}
+          </div>
 
-            {/* Password */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray">
-                Mot de passe
-              </label>
-              <div className="relative">
-                <div className={`
-                  absolute left-4 top-1/2 -translate-y-1/2
-                  transition-colors duration-300
-                  ${focused === 'password' ? 'text-lime-500' : 'text-gray'}
-                `}>
-                  <Lock size={18} />
-                </div>
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
-                  onFocus={() => setFocused('password')}
-                  onBlur={() => setFocused(null)}
-                  placeholder="••••••••"
-                  className={`
-                    w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-white border rounded-xl text-black
-                    focus:outline-none
-                    transition-all ease-hearst duration-300
-                    placeholder:text-gray
-                    ${errors.password
-                      ? 'border-red-400 bg-red-50'
-                      : focused === 'password'
-                        ? 'border-lime-400 ring-[3px] ring-lime-400/20'
-                        : 'border-gray-light hover:border-gray'
-                    }
-                  `}
-                />
-              </div>
-              {errors.password && (
-                <p className="text-sm text-red-500 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-red-500" />
-                  {errors.password}
-                </p>
-              )}
-            </div>
-
-            {/* Confirm Password */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray">
-                Confirmer le mot de passe
-              </label>
-              <div className="relative">
-                <div className={`
-                  absolute left-4 top-1/2 -translate-y-1/2
-                  transition-colors duration-300
-                  ${focused === 'confirmPassword' ? 'text-lime-500' : 'text-gray'}
-                `}>
-                  <Lock size={18} />
-                </div>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  onFocus={() => setFocused('confirmPassword')}
-                  onBlur={() => setFocused(null)}
-                  placeholder="••••••••"
-                  className={`
-                    w-full pl-12 pr-4 py-3 min-h-[2.75rem]
-                    bg-white border rounded-xl text-black
-                    focus:outline-none
-                    transition-all ease-hearst duration-300
-                    placeholder:text-gray
-                    ${errors.confirmPassword
-                      ? 'border-red-400 bg-red-50'
-                      : focused === 'confirmPassword'
-                        ? 'border-lime-400 ring-[3px] ring-lime-400/20'
-                        : 'border-gray-light hover:border-gray'
-                    }
-                  `}
-                />
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-500 flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-red-500" />
-                  {errors.confirmPassword}
-                </p>
-              )}
-            </div>
-
-            {/* Submit */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="
-                  w-full h-12 rounded-full
-                  bg-lime-400 hover:bg-lime-300
-                  text-black font-semibold text-sm
-                  shadow-md shadow-lime-400/20 hover:shadow-lg hover:shadow-lime-400/30
-                  transition-all duration-200
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  flex items-center justify-center
-                "
-              >
-                <span className="flex items-center justify-center gap-2">
-                  {submitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Création en cours...
-                    </>
-                  ) : (
-                    <>
-                      Créer mon compte
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </span>
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-8">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-light" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-gray font-medium">ou</span>
-              </div>
-            </div>
-
-            <p className="mt-6 text-center text-sm text-gray">
-              Vous avez déjà un compte ?{' '}
-              <Link href="/login" className="font-medium text-black hover:underline transition-colors">
-                Se connecter
-              </Link>
-            </p>
+          <div className="p-4 rounded-xl bg-white border border-gray-light">
+            <div className="text-xs text-gray mb-1">Membership plans from</div>
+            <div className="text-lg font-bold text-black">$9.99<span className="text-sm font-normal text-gray">/mo</span></div>
+            <div className="text-xs text-lime-600 font-semibold">Save up to 50% on every eSIM</div>
           </div>
         </div>
-
-        <p className="mt-8 text-center text-xs text-gray">
-          © 2026 SimPass. Tous droits réservés.
-        </p>
       </div>
     </div>
   )

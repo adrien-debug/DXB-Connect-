@@ -4,33 +4,57 @@ import MarketingShell from '@/components/marketing/MarketingShell'
 
 const posts = [
   {
-    slug: 'esim-vs-sim-physique',
-    title: 'eSIM vs SIM physique : avantages et inconvénients',
-    excerpt: 'Comprendre les différences entre eSIM et SIM traditionnelle pour faire le bon choix.',
-    date: '2024-01-15',
-    readTime: '5 min',
-    tags: ['Guide', 'Comparatif'],
+    slug: 'simpass-travel-perks-explained',
+    title: 'SimPass Travel Perks: how to save on every trip',
+    excerpt: 'Discover how SimPass connects you to partner discounts on activities, lounges, insurance, and more.',
+    date: '2026-02-18',
+    readTime: '4 min',
+    tags: ['Perks', 'Travel'],
   },
   {
-    slug: 'activer-esim-iphone',
-    title: 'Comment activer une eSIM sur iPhone',
-    excerpt: 'Guide étape par étape pour configurer votre eSIM sur les derniers modèles iPhone.',
-    date: '2024-01-10',
+    slug: 'membership-plans-guide',
+    title: 'Privilege, Elite, or Black? Choosing your plan',
+    excerpt: 'A breakdown of SimPass membership tiers, their benefits, and which one suits your travel style.',
+    date: '2026-02-15',
+    readTime: '5 min',
+    tags: ['Plans', 'Guide'],
+  },
+  {
+    slug: 'rewards-program-how-it-works',
+    title: 'Earn XP, level up, win prizes: the rewards program',
+    excerpt: 'How to earn XP and points through daily check-ins, missions, referrals, and raffle entries.',
+    date: '2026-02-10',
+    readTime: '4 min',
+    tags: ['Rewards', 'Guide'],
+  },
+  {
+    slug: 'esim-vs-physical-sim',
+    title: 'eSIM vs physical SIM: pros and cons',
+    excerpt: 'Understanding the differences between eSIM and traditional SIM to make the right choice.',
+    date: '2026-01-25',
+    readTime: '5 min',
+    tags: ['Guide', 'Comparison'],
+  },
+  {
+    slug: 'activate-esim-iphone',
+    title: 'How to activate an eSIM on iPhone',
+    excerpt: 'Step-by-step guide to set up your eSIM on the latest iPhone models.',
+    date: '2026-01-20',
     readTime: '3 min',
     tags: ['Tutorial', 'iOS'],
   },
   {
-    slug: 'voyager-avec-esim',
-    title: 'Voyager connecté : pourquoi choisir une eSIM',
-    excerpt: 'Les avantages d\'une eSIM pour les voyageurs fréquents et occasionnels.',
-    date: '2024-01-05',
-    readTime: '4 min',
-    tags: ['Voyage', 'Tips'],
+    slug: 'crypto-payments-esim',
+    title: 'Buy eSIMs with crypto: USDC & USDT accepted',
+    excerpt: 'SimPass now supports cryptocurrency payments. Here\'s how to pay with USDC or USDT.',
+    date: '2026-01-15',
+    readTime: '3 min',
+    tags: ['Crypto', 'Payments'],
   },
 ]
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('fr-FR', {
+  return new Date(dateString).toLocaleDateString('en-US', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -51,10 +75,10 @@ export default function BlogPage() {
                 Blog
               </div>
               <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-black">
-                Actualités & Guides
+                News & Guides
               </h1>
               <p className="mt-5 text-base sm:text-lg text-gray max-w-xl">
-                Conseils, tutoriels et actualités sur le monde de la connectivité mobile.
+                Tips, tutorials, and updates on eSIM connectivity, travel perks, and rewards.
               </p>
             </div>
           </div>

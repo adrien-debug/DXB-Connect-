@@ -1,25 +1,38 @@
-import { QrCode, ShoppingBag, Smartphone, Check } from 'lucide-react'
+import { Check, Gift, QrCode, ShoppingBag, Smartphone, Star } from 'lucide-react'
 import MarketingShell from '@/components/marketing/MarketingShell'
 import CTASection from '@/components/marketing/CTASection'
 
 const steps = [
   {
-    title: 'Choisis une offre',
-    description: 'Sélectionne une destination et une durée qui correspond à ton voyage.',
+    title: 'Choose your plan',
+    description: 'Pick a destination and data package, or subscribe for automatic discounts.',
     icon: ShoppingBag,
-    details: ['120+ pays disponibles', 'Plans flexibles', 'Prix transparents'],
+    details: ['120+ countries', 'Flexible plans', 'Subscriber discounts up to -50%'],
   },
   {
-    title: 'Reçois un QR code',
-    description: 'Une fois la commande validée, tu obtiens un QR code d\'activation.',
+    title: 'Get your QR code',
+    description: 'Instantly receive your activation QR code via app and email.',
     icon: QrCode,
-    details: ['Livraison instantanée', 'Email + app', 'Validité longue'],
+    details: ['Instant delivery', 'Email + in-app', 'Long validity'],
   },
   {
-    title: 'Active et connecte-toi',
-    description: 'Scanne le QR code, active la ligne eSIM et profite du réseau mobile.',
+    title: 'Activate & connect',
+    description: 'Scan the QR code, activate eSIM, and enjoy mobile connectivity.',
     icon: Smartphone,
-    details: ['Activation en 3 min', 'Support si besoin', 'Connexion immédiate'],
+    details: ['3 min activation', 'Support if needed', 'Immediate connection'],
+  },
+]
+
+const bonusSteps = [
+  {
+    icon: Gift,
+    title: 'Unlock travel perks',
+    desc: 'Access partner discounts on activities, lounges, insurance & more at your destination.',
+  },
+  {
+    icon: Star,
+    title: 'Earn rewards',
+    desc: 'Every purchase earns XP, points, and raffle tickets. Level up and win prizes.',
   },
 ]
 
@@ -34,13 +47,13 @@ export default function HowItWorksPage() {
             <div className="relative max-w-2xl">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-lime-400/40 bg-lime-400/10 text-black text-xs font-semibold tracking-wide mb-6">
                 <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse-subtle" />
-                3 étapes simples
+                3 simple steps
               </div>
               <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-black">
-                Comment ça marche
+                How SimPass works
               </h1>
               <p className="mt-5 text-base sm:text-lg text-gray max-w-xl">
-                Un parcours simple et rapide. Achat, QR code, activation. Tu es connecté en quelques minutes.
+                Buy an eSIM, activate in minutes, and unlock travel benefits instantly.
               </p>
             </div>
           </div>
@@ -85,14 +98,37 @@ export default function HowItWorksPage() {
               )
             })}
           </div>
+        </div>
+      </section>
+
+      {/* Bonus: Perks & Rewards */}
+      <section className="section-padding-md">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="text-xl font-bold text-black mb-6">And that&apos;s not all...</h2>
+          <div className="grid md:grid-cols-2 gap-5">
+            {bonusSteps.map((b) => {
+              const Icon = b.icon
+              return (
+                <div key={b.title} className="glass-card p-6 hover-lift group border-2 border-lime-400/20">
+                  <div className="flex items-center gap-4 mb-3">
+                    <div className="w-12 h-12 rounded-2xl bg-lime-400/20 border border-lime-400/30 flex items-center justify-center">
+                      <Icon className="w-6 h-6 text-lime-600" />
+                    </div>
+                    <h3 className="text-base font-semibold text-black">{b.title}</h3>
+                  </div>
+                  <p className="text-sm text-gray leading-relaxed">{b.desc}</p>
+                </div>
+              )
+            })}
+          </div>
 
           <CTASection
-            title="Prêt à démarrer ?"
-            subtitle="Choisis une offre et active ta eSIM."
+            title="Ready to get started?"
+            subtitle="Pick a plan and get connected in minutes."
             primaryHref="/pricing"
-            primaryLabel="Voir les offres"
-            secondaryHref="/faq"
-            secondaryLabel="Voir la FAQ"
+            primaryLabel="See pricing"
+            secondaryHref="/features"
+            secondaryLabel="All features"
           />
         </div>
       </section>

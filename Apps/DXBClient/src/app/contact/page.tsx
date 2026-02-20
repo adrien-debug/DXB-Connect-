@@ -1,29 +1,37 @@
 'use client'
 
-import { ChevronDown, Mail, MessageSquare, Send } from 'lucide-react'
+import { ChevronDown, Gift, Mail, MessageSquare, Send, Star } from 'lucide-react'
 import { useState } from 'react'
 import MarketingShell from '@/components/marketing/MarketingShell'
 
 const faqs = [
   {
-    question: 'Qu\'est-ce qu\'une eSIM ?',
-    answer: 'Une eSIM est une SIM numérique intégrée à votre appareil. Elle permet d\'activer un forfait mobile sans carte physique, directement via un QR code.',
+    question: 'What is an eSIM?',
+    answer: 'An eSIM is a digital SIM embedded in your device. It lets you activate a mobile plan without a physical card, directly via a QR code.',
   },
   {
-    question: 'Mon téléphone est-il compatible ?',
-    answer: 'La plupart des iPhones depuis le XS/XR et de nombreux Android récents supportent l\'eSIM. Vérifiez dans Réglages > Données cellulaires.',
+    question: 'Is my phone compatible?',
+    answer: 'Most iPhones since XS/XR and many recent Android devices support eSIM. Check in Settings > Cellular Data.',
   },
   {
-    question: 'Combien de temps prend l\'activation ?',
-    answer: 'L\'activation prend généralement 2-3 minutes. Vous recevez un QR code immédiatement après l\'achat.',
+    question: 'How long does activation take?',
+    answer: 'Activation typically takes 2-3 minutes. You receive a QR code immediately after purchase.',
   },
   {
-    question: 'Puis-je recharger ma eSIM ?',
-    answer: 'Oui, vous pouvez acheter un top-up à tout moment via l\'application. Le volume est crédité instantanément.',
+    question: 'Can I top up my eSIM?',
+    answer: 'Yes, you can buy a top-up anytime from the app. Data is credited instantly.',
   },
   {
-    question: 'Les appels et SMS sont-ils inclus ?',
-    answer: 'La plupart de nos forfaits sont data-only. Pour les appels, utilisez WhatsApp, FaceTime ou Skype via votre connexion data.',
+    question: 'What are SimPass membership plans?',
+    answer: 'SimPass offers 3 tiers: Privilege (-15%), Elite (-30%), and Black (-50%). Subscribe to save on every eSIM purchase and unlock exclusive travel perks.',
+  },
+  {
+    question: 'How does the rewards program work?',
+    answer: 'Every purchase, daily check-in, and mission earns you XP and points. Level up from Bronze to Platinum, enter raffles, and win real travel prizes.',
+  },
+  {
+    question: 'What travel perks are included?',
+    answer: 'All SimPass users get access to discounts on activities (GetYourGuide, Klook), airport lounges, travel insurance, hotel deals, and more.',
   },
 ]
 
@@ -43,10 +51,10 @@ export default function ContactPage() {
                 Contact & Support
               </div>
               <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-black">
-                Comment pouvons-nous vous aider ?
+                How can we help?
               </h1>
               <p className="mt-5 text-base sm:text-lg text-gray max-w-xl">
-                Une question ? Consultez notre FAQ ou contactez-nous directement.
+                Check our FAQ for instant answers or reach out to our team directly.
               </p>
             </div>
           </div>
@@ -56,7 +64,7 @@ export default function ContactPage() {
       {/* FAQ Section */}
       <section className="section-padding-sm">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="text-xl font-semibold text-black mb-6">Questions fréquentes</h2>
+          <h2 className="text-xl font-semibold text-black mb-6">Frequently asked questions</h2>
           <div className="space-y-3 max-w-3xl">
             {faqs.map((faq, idx) => {
               const isOpen = openFaq === idx
@@ -86,41 +94,43 @@ export default function ContactPage() {
       {/* Contact Form + Info */}
       <section className="section-padding-md">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="text-xl font-semibold text-black mb-6">Nous contacter</h2>
+          <h2 className="text-xl font-semibold text-black mb-6">Get in touch</h2>
           <div className="grid lg:grid-cols-5 gap-8">
             {/* Form */}
             <div className="lg:col-span-3 glass-card p-6 sm:p-8">
               <form className="space-y-5">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray uppercase tracking-wide mb-2">Nom</label>
-                    <input type="text" className="input-premium" placeholder="Votre nom" />
+                    <label className="block text-xs font-semibold text-gray uppercase tracking-wide mb-2">Name</label>
+                    <input type="text" className="input-premium" placeholder="Your name" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray uppercase tracking-wide mb-2">Email</label>
-                    <input type="email" className="input-premium" placeholder="vous@exemple.com" />
+                    <input type="email" className="input-premium" placeholder="you@example.com" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray uppercase tracking-wide mb-2">Sujet</label>
+                  <label className="block text-xs font-semibold text-gray uppercase tracking-wide mb-2">Subject</label>
                   <select className="select-premium">
-                    <option value="">Sélectionner un sujet</option>
-                    <option value="support">Support technique</option>
-                    <option value="sales">Question commerciale</option>
-                    <option value="partnership">Partenariat</option>
-                    <option value="other">Autre</option>
+                    <option value="">Select a subject</option>
+                    <option value="support">Technical support</option>
+                    <option value="sales">Sales inquiry</option>
+                    <option value="partnership">Partnership</option>
+                    <option value="perks">Perks & Rewards</option>
+                    <option value="subscription">Subscription</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray uppercase tracking-wide mb-2">Message</label>
-                  <textarea className="input-premium min-h-[120px]" placeholder="Décrivez votre demande..." />
+                  <textarea className="input-premium min-h-[120px]" placeholder="Describe your request..." />
                 </div>
 
                 <button type="submit" className="btn-premium">
                   <Send className="w-4 h-4" />
-                  Envoyer
+                  Send message
                 </button>
               </form>
             </div>
@@ -138,17 +148,22 @@ export default function ContactPage() {
               </div>
 
               <div className="glass-card p-6">
-                <h3 className="text-base font-semibold text-black">Heures de réponse</h3>
+                <div className="w-12 h-12 rounded-2xl bg-blue-100 border border-blue-200 flex items-center justify-center mb-4">
+                  <Gift className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-base font-semibold text-black">Perks & Rewards</h3>
                 <p className="text-sm text-gray mt-2">
-                  Lundi - Vendredi : 9h - 18h (CET)<br />
-                  Réponse sous 24h ouvrées
+                  Questions about travel perks, membership plans, or the rewards program? We&apos;re here to help.
                 </p>
               </div>
 
               <div className="glass-card p-6 border-lime-400/30 bg-lime-400/5">
-                <h3 className="text-base font-semibold text-black">Partenaires B2B</h3>
+                <div className="w-12 h-12 rounded-2xl bg-purple-100 border border-purple-200 flex items-center justify-center mb-4">
+                  <Star className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="text-base font-semibold text-black">B2B Partners</h3>
                 <p className="text-sm text-gray mt-2">
-                  Pour les intégrations API et partenariats
+                  API integrations and business partnerships
                 </p>
                 <a href="mailto:partners@simpass.io" className="mt-3 inline-block text-sm text-black hover:underline">
                   partners@simpass.io

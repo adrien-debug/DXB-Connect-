@@ -70,6 +70,7 @@ public enum APIEndpoint {
 
     // Auth
     case authRefresh
+    case authResetPassword
 
     // Checkout
     case checkout
@@ -82,6 +83,7 @@ public enum APIEndpoint {
         case .authEmailSendOTP: return "auth/email/send-otp"
         case .authEmailVerify: return "auth/email/verify"
         case .authRefresh: return "auth/refresh"
+        case .authResetPassword: return "auth/reset-password"
 
         // eSIM
         case .esimPackages: return "esim/packages"

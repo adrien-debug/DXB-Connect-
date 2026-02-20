@@ -416,11 +416,11 @@ final class AppCoordinator: ObservableObject {
 
 struct UserProfile {
     var id: String = UUID().uuidString
-    var name: String = "Mickael"
-    var email: String = "mickael@dxbconnect.com"
+    var name: String = ""
+    var email: String = ""
     var phone: String = ""
     var avatarURL: String? = nil
-    var isPro: Bool = true
+    var isPro: Bool = false
 
     var totalESIMs: Int = 0
     var activeESIMs: Int = 0

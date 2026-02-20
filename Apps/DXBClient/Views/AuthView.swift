@@ -290,9 +290,12 @@ struct LoginModalView: View {
 
 struct ForgotPasswordSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var coordinator: AppCoordinator
     @State private var email = ""
     @State private var isSending = false
     @State private var sent = false
+    @State private var showError = false
+    @State private var errorMessage = ""
 
     var isValidEmail: Bool {
         let regex = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
@@ -372,11 +375,18 @@ struct ForgotPasswordSheet: View {
                         .padding(.horizontal, 24)
 
                         Button {
-                            isSending = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            Task {
+                                isSending = true
+                                do {
+                                    try await coordinator.currentAPIService.requestPasswordReset(email: email)
+                                    HapticFeedback.success()
+                                    sent = true
+                                } catch {
+                                    errorMessage = "Unable to send reset link. Please try again."
+                                    showError = true
+                                    appLogError(error, message: "Password reset request failed", category: .auth)
+                                }
                                 isSending = false
-                                sent = true
-                                HapticFeedback.success()
                             }
                         } label: {
                             HStack {
@@ -405,6 +415,11 @@ struct ForgotPasswordSheet: View {
             }
         }
         .presentationDetents([.medium])
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage)
+        }
     }
 }
 

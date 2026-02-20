@@ -323,11 +323,11 @@ struct ProfileView: View {
 
     // MARK: - Sign Out
 
+    @State private var showSignOutConfirm = false
+
     private var signOutButton: some View {
         Button {
-            Task {
-                await coordinator.signOut()
-            }
+            showSignOutConfirm = true
         } label: {
             Text("Sign out")
                 .font(.system(size: 16, weight: .medium))
@@ -341,6 +341,16 @@ struct ProfileView: View {
         }
         .scaleOnPress()
         .slideIn(delay: 0.3)
+        .alert("Sign Out", isPresented: $showSignOutConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Sign Out", role: .destructive) {
+                Task {
+                    await coordinator.signOut()
+                }
+            }
+        } message: {
+            Text("Are you sure you want to sign out?")
+        }
     }
 
     // MARK: - App Info
