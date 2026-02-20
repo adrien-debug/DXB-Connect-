@@ -57,11 +57,14 @@ export async function GET(request: Request) {
 
     return NextResponse.json(data)
   } catch (error) {
+    const { searchParams: errParams } = new URL(request.url)
+    const errIccid = errParams.get('iccid')
+    
     if (error instanceof ESIMAccessError) {
       console.error('[esim/usage] eSIM API error:', {
         status: error.status,
         endpoint: error.endpoint,
-        iccid: iccid?.slice(0, 8) + '...',
+        iccid: errIccid?.slice(0, 8) + '...',
       })
       
       // Si l'eSIM n'existe pas (404), retourner une réponse vide au lieu d'une erreur
