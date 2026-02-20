@@ -556,8 +556,9 @@ struct MainTabView: View {
                 switch coordinator.selectedTab {
                 case 0: DashboardView()
                 case 1: PlanListView()
-                case 2: MyESIMsView()
-                case 3: ProfileView()
+                case 2: RewardsView()
+                case 3: MyESIMsView()
+                case 4: ProfileView()
                 default: DashboardView()
                 }
             }
@@ -650,11 +651,12 @@ struct NotificationsSheet: View {
 
 struct CustomTabBar: View {
     @Binding var selectedTab: Int
-    @State private var bounceStates: [Bool] = [false, false, false, false]
+    @State private var bounceStates: [Bool] = [false, false, false, false, false]
 
     private let tabs: [(icon: String, activeIcon: String, label: String)] = [
         ("house", "house.fill", "Home"),
         ("globe", "globe", "Plans"),
+        ("gift", "gift.fill", "Perks"),
         ("simcard", "simcard.fill", "eSIMs"),
         ("person", "person.fill", "Profile")
     ]

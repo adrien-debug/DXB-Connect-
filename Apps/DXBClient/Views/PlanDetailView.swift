@@ -235,7 +235,7 @@ struct PlanDetailView: View {
         .fullScreenCover(isPresented: $viewModel.showSuccess) {
             PaymentSuccessView(plan: plan) {
                 viewModel.showSuccess = false
-                coordinator.selectedTab = 2
+                coordinator.selectedTab = 3
                 dismiss()
             }
         }

@@ -258,6 +258,15 @@ struct SimPassSubscriptionView: View {
 
         do {
             let _ = try await storeKit.purchase(product)
+
+            // Sync subscription with backend
+            let billingPeriod = selectedPeriod == .monthly ? "monthly" : "yearly"
+            let _ = try? await coordinator.currentAPIService.createSubscription(
+                plan: name.lowercased(),
+                billingPeriod: billingPeriod
+            )
+
+            HapticFeedback.success()
         } catch {
             errorMessage = error.localizedDescription
             showError = true

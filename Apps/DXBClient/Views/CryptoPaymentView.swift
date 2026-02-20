@@ -6,6 +6,7 @@ struct CryptoPaymentView: View {
     let onComplete: () -> Void
     let onCancel: () -> Void
 
+    @EnvironmentObject private var coordinator: AppCoordinator
     @State private var depositAddress = ""
     @State private var asset = "USDC_POLYGON"
     @State private var invoiceId = ""
@@ -13,7 +14,7 @@ struct CryptoPaymentView: View {
     @State private var expiresAt: Date?
     @State private var isLoading = true
     @State private var error: String?
-    @State private var pollTimer: Timer?
+    @State private var pollTask: Task<Void, Never>?
 
     var body: some View {
         ZStack {
@@ -194,18 +195,62 @@ struct CryptoPaymentView: View {
     // MARK: - Network
 
     private func createInvoice() async {
-        // TODO: Appeler Railway via DXBAPIService.createCryptoInvoice(amountUSD:asset:)
-        // Pour l'instant, placeholder — sera branché quand les méthodes API seront ajoutées
-        isLoading = false
-        error = "Crypto payments coming soon"
+        isLoading = true
+        error = nil
+        do {
+            let response = try await coordinator.currentAPIService.createCryptoInvoice(
+                amountUSD: amountUSD,
+                asset: asset
+            )
+            invoiceId = response.id ?? ""
+            depositAddress = response.deposit_address ?? ""
+            status = response.status ?? "pending"
+
+            if let expiresStr = response.expires_at {
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                expiresAt = formatter.date(from: expiresStr)
+            }
+
+            isLoading = false
+            startPolling()
+        } catch {
+            isLoading = false
+            self.error = "Failed to create invoice. Please try again."
+        }
+    }
+
+    private func startPolling() {
+        pollTask = Task {
+            while !Task.isCancelled && status != "confirmed" && status != "expired" && status != "failed" {
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                guard !Task.isCancelled else { return }
+
+                do {
+                    let response = try await coordinator.currentAPIService.pollCryptoInvoice(invoiceId: invoiceId)
+                    await MainActor.run {
+                        status = response.status ?? status
+                        if status == "confirmed" {
+                            HapticFeedback.success()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                onComplete()
+                            }
+                        }
+                    }
+                } catch {
+                    // Silently retry
+                }
+            }
+        }
     }
 
     private func cleanup() {
-        pollTimer?.invalidate()
-        pollTimer = nil
+        pollTask?.cancel()
+        pollTask = nil
     }
 }
 
 #Preview {
     CryptoPaymentView(amountUSD: 9.99, onComplete: {}, onCancel: {})
+        .environmentObject(AppCoordinator())
 }

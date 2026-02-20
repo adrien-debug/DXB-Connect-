@@ -32,6 +32,10 @@ public protocol DXBAPIServiceProtocol: Sendable {
     // MARK: - Rewards (SimPass)
     func fetchRewardsSummary() async throws -> RewardsSummaryResponse
     func dailyCheckin() async throws -> CheckinResponse
+
+    // MARK: - Crypto Payments
+    func createCryptoInvoice(amountUSD: Double, asset: String) async throws -> CryptoInvoiceResponse
+    func pollCryptoInvoice(invoiceId: String) async throws -> CryptoInvoiceResponse
 }
 
 // MARK: - API Service Implementation
@@ -548,6 +552,44 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
         )
     }
 
+    // MARK: - Crypto Payments
+
+    public func createCryptoInvoice(amountUSD: Double, asset: String) async throws -> CryptoInvoiceResponse {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        let body: [String: Any] = [
+            "amount_usd": amountUSD,
+            "asset": asset
+        ]
+
+        let wrapper: CryptoInvoiceWrapper = try await apiClient.request(
+            endpoint: "checkout/crypto",
+            method: "POST",
+            body: body,
+            requiresAuth: true
+        )
+
+        guard let data = wrapper.data else { throw APIError.invalidResponse }
+        return data
+    }
+
+    public func pollCryptoInvoice(invoiceId: String) async throws -> CryptoInvoiceResponse {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        let wrapper: CryptoInvoiceWrapper = try await apiClient.request(
+            endpoint: "checkout/crypto/\(invoiceId)",
+            method: "GET",
+            requiresAuth: true
+        )
+
+        guard let data = wrapper.data else { throw APIError.invalidResponse }
+        return data
+    }
+
     // MARK: - Token Refresh
 
     public func refreshAccessToken() async throws -> AuthResponse {
@@ -849,4 +891,25 @@ public struct CheckinResponse: Codable {
 public struct CheckinData: Codable {
     public let streak_days: Int?
     public let date: String?
+}
+
+public struct CryptoInvoiceResponse: Codable {
+    public let id: String?
+    public let status: String?
+    public let amount_usd: Double?
+    public let asset: String?
+    public let deposit_address: String?
+    public let expires_at: String?
+    public let payments: [CryptoPaymentEntry]?
+}
+
+public struct CryptoPaymentEntry: Codable {
+    public let tx_hash: String?
+    public let amount: String?
+    public let status: String?
+}
+
+struct CryptoInvoiceWrapper: Codable {
+    let success: Bool?
+    let data: CryptoInvoiceResponse?
 }

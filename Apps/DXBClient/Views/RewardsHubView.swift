@@ -272,14 +272,83 @@ struct RewardsHubView: View {
 
     private func loadRewardsSummary() async {
         isLoading = true
-        // TODO: Appeler Railway /api/rewards/summary via DXBAPIService
+        do {
+            let summary = try await coordinator.currentAPIService.fetchRewardsSummary()
+
+            if let w = summary.wallet {
+                wallet = UserWallet(
+                    xp_total: w.xp_total ?? 0,
+                    level: w.level ?? 1,
+                    points_balance: w.points_balance ?? 0,
+                    points_earned_total: w.points_earned_total ?? 0,
+                    tickets_balance: w.tickets_balance ?? 0,
+                    tier: w.tier ?? "bronze",
+                    streak_days: w.streak_days ?? 0
+                )
+
+                if let lastCheckin = w.last_checkin {
+                    let formatter = ISO8601DateFormatter()
+                    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                    if let checkinDate = formatter.date(from: lastCheckin) {
+                        hasCheckedIn = Calendar.current.isDateInToday(checkinDate)
+                    }
+                }
+            }
+
+            if let m = summary.missions {
+                missions = m.map { md in
+                    MissionItem(
+                        id: md.id,
+                        type: md.type ?? "daily",
+                        title: md.title ?? "",
+                        description: md.description,
+                        xp_reward: md.xp_reward ?? 0,
+                        points_reward: md.points_reward ?? 0,
+                        condition_value: md.condition_value ?? 1,
+                        user_progress: md.user_progress,
+                        user_completed: md.user_completed
+                    )
+                }
+            }
+
+            if let r = summary.raffles {
+                raffles = r.map { rd in
+                    RaffleItem(
+                        id: rd.id,
+                        title: rd.title ?? "",
+                        prize_description: rd.prize_description ?? "",
+                        draw_date: rd.draw_date ?? "",
+                        image_url: rd.image_url
+                    )
+                }
+            }
+
+            if let tx = summary.recent_transactions {
+                transactions = tx.map { td in
+                    WalletTransaction(
+                        id: td.id,
+                        type: td.type ?? "points",
+                        delta: td.delta ?? 0,
+                        reason: td.reason ?? "",
+                        description: td.description
+                    )
+                }
+            }
+        } catch {
+            appLogError(error, message: "Failed to load rewards summary", category: .data)
+        }
         isLoading = false
     }
 
     private func performCheckin() async {
-        HapticFeedback.success()
-        hasCheckedIn = true
-        // TODO: Appeler Railway /api/rewards/checkin via DXBAPIService
+        do {
+            let _ = try await coordinator.currentAPIService.dailyCheckin()
+            HapticFeedback.success()
+            hasCheckedIn = true
+            await loadRewardsSummary()
+        } catch {
+            appLogError(error, message: "Daily checkin failed", category: .data)
+        }
     }
 }
 

@@ -118,9 +118,51 @@ struct RewardsView: View {
     private func loadOffers() async {
         isLoading = true
 
-        // TODO: appeler Railway via DXBAPIService quand les méthodes seront ajoutées
-        // Pour l'instant, les données viendront du backend une fois les endpoints branchés
+        do {
+            let country = locationManager.countryCode
+            let apiOffers = try await coordinator.currentAPIService.fetchOffers(
+                country: country,
+                category: selectedCategory
+            )
 
+            offers = apiOffers.map { o in
+                PartnerOffer(
+                    id: o.id,
+                    partner_name: o.partner_name ?? "",
+                    category: o.category ?? "other",
+                    title: o.title ?? "",
+                    description: o.description,
+                    image_url: o.image_url,
+                    discount_percent: o.discount_percent,
+                    discount_type: o.discount_type,
+                    country_codes: o.country_codes,
+                    city: o.city,
+                    is_global: o.is_global ?? true,
+                    tier_required: o.tier_required
+                )
+            }
+        } catch {
+            appLogError(error, message: "Failed to load offers", category: .data)
+        }
+
+        do {
+            let summary = try await coordinator.currentAPIService.fetchRewardsSummary()
+            if let w = summary.wallet {
+                wallet = UserWallet(
+                    xp_total: w.xp_total ?? 0,
+                    level: w.level ?? 1,
+                    points_balance: w.points_balance ?? 0,
+                    points_earned_total: w.points_earned_total ?? 0,
+                    tickets_balance: w.tickets_balance ?? 0,
+                    tier: w.tier ?? "free",
+                    streak_days: w.streak_days ?? 0
+                )
+            }
+        } catch {
+            // Wallet data is non-critical
+        }
+
+        locationManager.requestIfNeeded()
         isLoading = false
     }
 }

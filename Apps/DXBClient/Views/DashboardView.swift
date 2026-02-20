@@ -17,6 +17,7 @@ struct DashboardView: View {
                         heroHeader
 
                         VStack(spacing: 0) {
+                            rewardsWidget
                             perksPreviewSection
                             esimCardsSection
                             recentActivitySection
@@ -97,7 +98,7 @@ struct DashboardView: View {
                     HStack(spacing: 12) {
                         Button {
                             HapticFeedback.light()
-                            coordinator.selectedTab = 3
+                            coordinator.selectedTab = 4
                         } label: {
                             Circle()
                                 .fill(AppTheme.accent)
@@ -259,7 +260,10 @@ struct DashboardView: View {
             .slideIn(delay: 0)
         }
         .sheet(isPresented: $showSupport) { SupportView() }
-        .sheet(isPresented: $showRewards) { RewardsView() }
+        .sheet(isPresented: $showRewards) {
+            RewardsHubView()
+                .environmentObject(coordinator)
+        }
         .sheet(isPresented: $showScanner) { ScannerSheet() }
     }
 
@@ -311,6 +315,63 @@ struct DashboardView: View {
         return gb > 0 ? String(format: "%.0f", gb) : "0"
     }
 
+    // MARK: - Rewards Widget
+
+    private var rewardsWidget: some View {
+        Button {
+            HapticFeedback.light()
+            showRewards = true
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(AppTheme.accent.opacity(0.12))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(AppTheme.accent)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Rewards Hub")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(AppTheme.textPrimary)
+                    Text("Check in daily, complete missions, win prizes")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(AppTheme.textSecondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppTheme.textMuted)
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(AppTheme.backgroundPrimary)
+                    .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [AppTheme.accent.opacity(0.3), AppTheme.accent.opacity(0.05)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ),
+                                lineWidth: 0.5
+                            )
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 20)
+        .padding(.bottom, AppTheme.Spacing.md)
+        .slideIn(delay: 0.02)
+    }
+
     // MARK: - Perks Preview
 
     private var perksPreviewSection: some View {
@@ -323,7 +384,7 @@ struct DashboardView: View {
                 Spacer()
 
                 Button {
-                    showRewards = true
+                    coordinator.selectedTab = 2
                 } label: {
                     Text("See all")
                         .font(.system(size: 14, weight: .medium))
@@ -349,7 +410,7 @@ struct DashboardView: View {
     private func perkQuickCard(icon: String, title: String, subtitle: String, color: Color) -> some View {
         Button {
             HapticFeedback.light()
-            showRewards = true
+            coordinator.selectedTab = 2
         } label: {
             VStack(alignment: .leading, spacing: 10) {
                 ZStack {
@@ -398,7 +459,7 @@ struct DashboardView: View {
 
                 if !coordinator.esimOrders.isEmpty {
                     Button {
-                        coordinator.selectedTab = 2
+                        coordinator.selectedTab = 3
                     } label: {
                         Text("See all")
                             .font(.system(size: 14, weight: .medium))
@@ -585,7 +646,7 @@ struct DashboardView: View {
 
                     if coordinator.esimOrders.count > 5 {
                         Button {
-                            coordinator.selectedTab = 2
+                            coordinator.selectedTab = 3
                         } label: {
                             Text("View all")
                                 .font(AppTheme.Typography.button())

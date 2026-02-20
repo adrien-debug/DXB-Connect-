@@ -285,6 +285,7 @@ struct PaymentSheetView: View {
                 onComplete: { onSuccess() },
                 onCancel: { showCryptoPayment = false }
             )
+            .environmentObject(coordinator)
         }
     }
 }
