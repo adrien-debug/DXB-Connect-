@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { getAllPosts } from '@/content/blog/posts'
 
 function getBaseUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL || 'https://api-github-production-a848.up.railway.app'
+  return process.env.NEXT_PUBLIC_SITE_URL || 'https://web-production-14c51.up.railway.app'
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {

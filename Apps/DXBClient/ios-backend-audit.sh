@@ -43,7 +43,7 @@ echo ""
 echo -e "${YELLOW}Environnements configurés:${NC}"
 echo -e "  • Development:  ${GREEN}http://localhost:3000/api${NC}"
 echo -e "  • Staging:      ${GREEN}https://dxb-connect-staging.vercel.app/api${NC}"
-echo -e "  • Production:   ${YELLOW}https://api-github-production-a848.up.railway.app/api${NC} (ancien)"
+echo -e "  • Production:   ${YELLOW}https://web-production-14c51.up.railway.app/api${NC} (ancien)"
 echo ""
 
 echo -e "${YELLOW}Configuration actuelle (DXBClientApp.swift ligne 56):${NC}"

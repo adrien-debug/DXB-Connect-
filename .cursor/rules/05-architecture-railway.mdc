@@ -67,7 +67,7 @@ alwaysApply: true
 1. **Next.js (Admin Web)** :
    ```typescript
    // ✅ TOUJOURS passer par Railway
-   const RAILWAY_API = process.env.NEXT_PUBLIC_RAILWAY_URL || 'https://api-github-production-a848.up.railway.app';
+   const RAILWAY_API = process.env.NEXT_PUBLIC_RAILWAY_URL || 'https://web-production-14c51.up.railway.app';
 
    // ✅ Toutes les requêtes passent par Railway
    fetch(`${RAILWAY_API}/api/esim/packages`)
@@ -77,7 +77,7 @@ alwaysApply: true
    ```swift
    // ✅ TOUJOURS pointer vers Railway
    case .production:
-       return URL(string: "https://api-github-production-a848.up.railway.app/api")!
+       return URL(string: "https://web-production-14c51.up.railway.app/api")!
 
    // ❌ NE JAMAIS pointer ailleurs
    ```
@@ -94,7 +94,7 @@ alwaysApply: true
 
 ```env
 # ✅ OBLIGATOIRE - Railway Backend
-NEXT_PUBLIC_RAILWAY_URL=https://api-github-production-a848.up.railway.app
+NEXT_PUBLIC_RAILWAY_URL=https://web-production-14c51.up.railway.app
 
 # ❌ NE JAMAIS exposer côté client
 # SUPABASE_URL et SUPABASE_KEY restent côté serveur Railway uniquement
@@ -116,7 +116,7 @@ public static var baseURL: URL {
 
     case .production:
         // ✅ PRODUCTION RAILWAY - NE JAMAIS CHANGER
-        return URL(string: "https://api-github-production-a848.up.railway.app/api")!
+        return URL(string: "https://web-production-14c51.up.railway.app/api")!
     }
 }
 ```
@@ -241,12 +241,12 @@ Si quelqu'un (humain ou IA) propose :
 
 ```bash
 # Railway Backend (POINT CENTRAL)
-https://api-github-production-a848.up.railway.app
+https://web-production-14c51.up.railway.app
 
 # Endpoints API (via Railway)
-https://api-github-production-a848.up.railway.app/api/esim/packages
-https://api-github-production-a848.up.railway.app/api/esim/orders
-https://api-github-production-a848.up.railway.app/api/auth/email/send-otp
+https://web-production-14c51.up.railway.app/api/esim/packages
+https://web-production-14c51.up.railway.app/api/esim/orders
+https://web-production-14c51.up.railway.app/api/auth/email/send-otp
 ```
 
 ### URLs Internes (Jamais exposées au client)

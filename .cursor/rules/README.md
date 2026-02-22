@@ -12,7 +12,7 @@
 2. **`05-architecture-railway.mdc`** - Architecture Railway (NON NÉGOCIABLE)
    - iOS/Next.js → Railway UNIQUEMENT
    - Railway → Supabase + eSIM API
-   - URL: `https://api-github-production-a848.up.railway.app/api`
+   - URL: `https://web-production-14c51.up.railway.app/api`
 
 ### 🟡 Actives selon fichiers ouverts
 
@@ -51,7 +51,7 @@ Next.js ──┘
 
 **✅ OBLIGATOIRE** :
 - Railway est TOUJOURS le seul point d'entrée
-- URL Production: `https://api-github-production-a848.up.railway.app/api`
+- URL Production: `https://web-production-14c51.up.railway.app/api`
 
 ## 📖 Documentation
 
