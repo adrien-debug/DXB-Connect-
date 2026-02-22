@@ -93,6 +93,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (body.paymentToken === 'SIMULATOR_TOKEN') {
+      console.log('[Apple Pay] Simulator token detected — proceeding without real payment validation')
+    }
+
     console.log('[Apple Pay] Processing for user=%s, package=%s', user.id, body.packageCode)
 
     // 1. Commander on-demand via eSIM Access API

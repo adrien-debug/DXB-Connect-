@@ -169,8 +169,13 @@ public enum ApplePayError: LocalizedError {
 
 extension PKPayment {
     /// Retourne les données du token encodées en base64 pour envoi au backend
+    /// Sur simulateur, paymentData est vide — on envoie un placeholder
     public var tokenBase64: String {
-        token.paymentData.base64EncodedString()
+        let data = token.paymentData.base64EncodedString()
+        if data.isEmpty {
+            return "SIMULATOR_TOKEN"
+        }
+        return data
     }
     
     /// Retourne le réseau de carte utilisé
