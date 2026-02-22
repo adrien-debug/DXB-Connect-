@@ -60,31 +60,32 @@ struct AuthView: View {
     // MARK: - Logo
 
     private var logoSection: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             ZStack {
                 Circle()
-                    .fill(AppColors.accent.opacity(0.12))
-                    .frame(width: 100, height: 100)
-                    .blur(radius: 20)
+                    .fill(AppColors.accent.opacity(0.08))
+                    .frame(width: 110, height: 110)
+                    .blur(radius: 25)
 
                 Circle()
                     .fill(AppColors.accent)
-                    .frame(width: 72, height: 72)
+                    .frame(width: 76, height: 76)
+                    .shadow(color: AppColors.accent.opacity(0.3), radius: 20, x: 0, y: 8)
 
                 Text("S")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundColor(.black)
             }
             .scaleEffect(logoScale)
             .opacity(logoOpacity)
 
-            VStack(spacing: 8) {
+            VStack(spacing: 6) {
                 Text("SimPass")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
 
                 Text("Travel Connected")
-                    .font(AppFonts.tabLabel())
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(AppColors.textSecondary)
             }
             .opacity(logoOpacity)
@@ -105,18 +106,18 @@ struct AuthView: View {
     // MARK: - Landing
 
     private var landingContent: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 20) {
             VStack(spacing: 8) {
                 Text("Welcome")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
 
                 Text("Sign in to access your premium eSIMs")
-                    .font(AppFonts.body())
+                    .font(.system(size: 15))
                     .foregroundStyle(AppColors.textSecondary)
                     .multilineTextAlignment(.center)
             }
-            .padding(.bottom, AppSpacing.base)
+            .padding(.bottom, AppSpacing.sm)
 
             appleSignInButton
 
@@ -129,19 +130,19 @@ struct AuthView: View {
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "envelope.fill")
-                        .font(AppFonts.body())
+                        .font(.system(size: 15))
                     Text("Continue with Email")
-                        .font(AppFonts.button())
+                        .font(.system(size: 15, weight: .semibold))
                 }
                 .foregroundColor(AppColors.textPrimary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, AppSpacing.base)
+                .padding(.vertical, 15)
                 .background(
-                    RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                    Capsule()
                         .fill(AppColors.surface)
                         .overlay(
-                            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
-                                .stroke(AppColors.border, lineWidth: 1)
+                            Capsule()
+                                .stroke(AppColors.borderLight, lineWidth: 0.5)
                         )
                 )
             }
@@ -158,11 +159,11 @@ struct AuthView: View {
             handleAppleSignIn(result)
         }
         .signInWithAppleButtonStyle(.white)
-        .frame(height: 54)
-        .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
+        .frame(height: 52)
+        .clipShape(Capsule())
         .overlay(
-            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
-                .stroke(AppColors.border, lineWidth: 1)
+            Capsule()
+                .stroke(AppColors.border, lineWidth: 0.5)
         )
     }
 
@@ -331,7 +332,7 @@ struct AuthView: View {
                     errorMessage = nil
                 }
             } label: {
-                    HStack(spacing: 6) {
+                HStack(spacing: 6) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 14, weight: .semibold))
                     Text("Back")

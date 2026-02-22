@@ -103,10 +103,20 @@ export default function DashboardPage() {
       })
       const ordersByDay = Object.entries(dayMap).map(([name, orders]) => ({ name, orders }))
 
+      const { data: revenueData } = await supabase
+        .from('orders')
+        .select('total')
+        .eq('payment_status', 'paid')
+
+      const totalRevenue = revenueData?.reduce(
+        (sum: number, o: { total: number }) => sum + (o.total || 0),
+        0
+      ) || 0
+
       setStats({
         clientsCount: clientsCount || 0,
         esimOrdersCount: esimOrdersCount || 0,
-        totalRevenue: 0,
+        totalRevenue,
         recentOrders,
         ordersByCountry,
         ordersByDay

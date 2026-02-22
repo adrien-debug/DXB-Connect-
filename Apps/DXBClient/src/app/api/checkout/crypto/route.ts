@@ -63,7 +63,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Crypto payment setup failed' }, { status: 500 })
       }
     } else {
-      // Dev mode: simulated address
+      if (process.env.NODE_ENV === 'production') {
+        console.error('[checkout/crypto] Fireblocks not configured in production')
+        return NextResponse.json({ success: false, error: 'Crypto payment service unavailable' }, { status: 503 })
+      }
       depositAddress = '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
       fireblocksRef = 'dev_' + Date.now()
     }

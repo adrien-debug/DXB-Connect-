@@ -44,6 +44,19 @@ function getAdminClient() {
 
 export async function POST(request: Request) {
   try {
+    // Vérifier la signature ou le secret webhook
+    const webhookSecret = process.env.ESIM_WEBHOOK_SECRET
+    if (webhookSecret) {
+      const headerSecret = request.headers.get('x-webhook-secret') || request.headers.get('authorization')
+      if (headerSecret !== webhookSecret && headerSecret !== `Bearer ${webhookSecret}`) {
+        console.error('[webhook/esim] Invalid webhook signature')
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+      }
+    } else if (process.env.NODE_ENV === 'production') {
+      console.error('[webhook/esim] ESIM_WEBHOOK_SECRET not configured in production')
+      return NextResponse.json({ success: false, error: 'Webhook not configured' }, { status: 503 })
+    }
+
     // Parser le payload (peut être JSON ou query string)
     let payload: WebhookPayload
 

@@ -27,7 +27,7 @@ struct ESIMDetailView: View {
 
             if let esim = currentESIM {
                 ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 16) {
+                    VStack(spacing: AppSpacing.base) {
                         usageHero(esim).slideIn(delay: 0)
                         esimInfoCard(esim).slideIn(delay: 0.05)
                         actionsGrid(esim).slideIn(delay: 0.1)
@@ -94,24 +94,24 @@ struct ESIMDetailView: View {
     private func usageHero(_ esim: ESIMOrder) -> some View {
         VStack(spacing: AppSpacing.lg) {
             ZStack {
-                CleanArcProgress(progress: usage?.usagePercentage ?? 0, lineWidth: 10, size: 150)
+                CleanArcProgress(progress: usage?.usagePercentage ?? 0, lineWidth: 8, size: 140)
 
                 VStack(spacing: 4) {
                     if isLoadingUsage {
                         ProgressView().tint(AppColors.accent)
                     } else if let usage {
                         Text(usage.usedDisplay)
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundStyle(AppColors.textPrimary)
                         Text("of \(usage.totalDisplay)")
-                            .font(.system(size: 13))
+                            .font(.system(size: 12))
                             .foregroundStyle(AppColors.textSecondary)
                     } else {
                         Image(systemName: "simcard.fill")
-                            .font(.system(size: 28))
+                            .font(.system(size: 26))
                             .foregroundStyle(AppColors.textTertiary)
                         Text("Unavailable")
-                            .font(.system(size: 12))
+                            .font(.system(size: 11))
                             .foregroundStyle(AppColors.textTertiary)
                     }
                 }
@@ -128,9 +128,9 @@ struct ESIMDetailView: View {
             if let usage {
                 HStack(spacing: 0) {
                     usageStat(label: "Used", value: usage.usedDisplay, color: AppColors.warning)
-                    Rectangle().fill(AppColors.border).frame(width: 1, height: 36)
+                    Rectangle().fill(AppColors.border.opacity(0.5)).frame(width: 0.5, height: 32)
                     usageStat(label: "Remaining", value: usage.remainingDisplay, color: AppColors.success)
-                    Rectangle().fill(AppColors.border).frame(width: 1, height: 36)
+                    Rectangle().fill(AppColors.border.opacity(0.5)).frame(width: 0.5, height: 32)
                     usageStat(label: "Expires", value: formatExpiry(usage.expiredTime), color: AppColors.info)
                 }
             }
@@ -184,11 +184,11 @@ struct ESIMDetailView: View {
     private func infoRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 13))
+                .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(AppColors.textSecondary)
             Spacer()
             Text(value.isEmpty ? "--" : value)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(AppColors.textPrimary)
                 .lineLimit(1)
         }

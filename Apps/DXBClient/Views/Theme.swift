@@ -212,13 +212,13 @@ struct PulseCardModifier: ViewModifier {
                     .fill(AppColors.surface)
                     .overlay(
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .stroke(AppColors.border, lineWidth: 1)
+                            .stroke(AppColors.border, lineWidth: 0.5)
                     )
             )
             .shadow(
-                color: glow ? AppColors.accent.opacity(0.08) : Color.clear,
-                radius: glow ? 20 : 0,
-                x: 0, y: glow ? 8 : 0
+                color: glow ? AppColors.accent.opacity(0.06) : Color.black.opacity(0.15),
+                radius: glow ? 20 : 8,
+                x: 0, y: glow ? 8 : 4
             )
     }
 }
@@ -235,9 +235,10 @@ struct BentoCardModifier: ViewModifier {
                     .fill(AppColors.surface)
                     .overlay(
                         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                            .stroke(AppColors.border, lineWidth: 1)
+                            .stroke(AppColors.border, lineWidth: 0.5)
                     )
             )
+            .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
     }
 }
 
@@ -343,16 +344,16 @@ struct GoldButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: isSmall ? 14 : 16, weight: .semibold))
+            .font(.system(size: isSmall ? 14 : 16, weight: .bold))
             .foregroundStyle(.black)
             .padding(.horizontal, isSmall ? 20 : 28)
             .padding(.vertical, isSmall ? 12 : 16)
             .frame(maxWidth: isSmall ? nil : .infinity)
             .background(
-                RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                Capsule()
                     .fill(AppColors.accent)
             )
-            .shadow(color: AppColors.accent.opacity(0.3), radius: 12, x: 0, y: 6)
+            .shadow(color: AppColors.accent.opacity(0.25), radius: 10, x: 0, y: 5)
             .opacity(configuration.isPressed ? 0.85 : 1)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
@@ -369,11 +370,11 @@ struct SecondaryButtonStyle: ButtonStyle {
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
+                Capsule()
                     .fill(AppColors.surface)
                     .overlay(
-                        RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
-                            .stroke(AppColors.border, lineWidth: 1)
+                        Capsule()
+                            .stroke(AppColors.borderLight, lineWidth: 0.5)
                     )
             )
             .opacity(configuration.isPressed ? 0.7 : 1)
@@ -440,23 +441,20 @@ struct StatusBadge: View {
     let color: Color
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 5) {
             Circle()
                 .fill(color)
-                .frame(width: 6, height: 6)
+                .frame(width: 5, height: 5)
 
             Text(text)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(color)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
         .background(
             Capsule()
-                .fill(color.opacity(0.12))
-                .overlay(
-                    Capsule().stroke(color.opacity(0.2), lineWidth: 1)
-                )
+                .fill(color.opacity(0.1))
         )
     }
 }
@@ -471,24 +469,24 @@ struct EmptyStateView: View {
     var action: (() -> Void)?
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             ZStack {
                 Circle()
-                    .fill(AppColors.accent.opacity(0.1))
-                    .frame(width: 72, height: 72)
+                    .fill(AppColors.accent.opacity(0.08))
+                    .frame(width: 80, height: 80)
 
                 Image(systemName: icon)
-                    .font(.system(size: 30, weight: .medium))
-                    .foregroundStyle(AppColors.accent)
+                    .font(.system(size: 32, weight: .light))
+                    .foregroundStyle(AppColors.accent.opacity(0.8))
             }
 
-            VStack(spacing: 6) {
+            VStack(spacing: 8) {
                 Text(title)
-                    .font(AppFonts.cardAmount())
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
 
                 Text(subtitle)
-                    .font(AppFonts.body())
+                    .font(.system(size: 14))
                     .foregroundStyle(AppColors.textSecondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 260)
@@ -497,11 +495,11 @@ struct EmptyStateView: View {
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
                     .buttonStyle(PrimaryButtonStyle(isSmall: true))
-                    .padding(.top, 8)
+                    .padding(.top, 4)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        .padding(.vertical, 48)
     }
 }
 
@@ -642,16 +640,16 @@ struct PulseBackground: View {
             if showGlow {
                 RadialGradient(
                     colors: [
-                        AppColors.accent.opacity(0.06),
-                        AppColors.accent.opacity(0.02),
+                        AppColors.accent.opacity(0.04),
+                        AppColors.accent.opacity(0.01),
                         Color.clear
                     ],
                     center: .top,
                     startRadius: 0,
-                    endRadius: 500
+                    endRadius: 400
                 )
-                .frame(height: 600)
-                .offset(y: -200)
+                .frame(height: 500)
+                .offset(y: -150)
                 .ignoresSafeArea()
             }
         }
@@ -666,20 +664,20 @@ struct PulseSectionHeader: View {
     var onAction: (() -> Void)?
 
     var body: some View {
-        HStack(alignment: .bottom) {
+        HStack(alignment: .center) {
             Text(title)
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundColor(AppColors.textPrimary)
 
             Spacer()
 
             if let action, let onAction {
                 Button(action: onAction) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: 3) {
                         Text(action)
-                            .font(.system(size: 13, weight: .medium))
+                            .font(.system(size: 12, weight: .semibold))
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.system(size: 9, weight: .bold))
                     }
                     .foregroundColor(AppColors.accent)
                 }
@@ -797,23 +795,23 @@ struct PulseIconButton: View {
         Button(action: action) {
             ZStack(alignment: .topTrailing) {
                 Circle()
-                    .fill(AppColors.surface)
-                    .frame(width: 42, height: 42)
+                    .fill(AppColors.surfaceSecondary)
+                    .frame(width: 40, height: 40)
                     .overlay(
-                        Circle().stroke(AppColors.border, lineWidth: 1)
+                        Circle().stroke(AppColors.border, lineWidth: 0.5)
                     )
 
                 Image(systemName: icon)
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(AppColors.textPrimary)
-                    .frame(width: 42, height: 42)
+                    .frame(width: 40, height: 40)
 
                 if badge {
                     Circle()
                         .fill(AppColors.accent)
-                        .frame(width: 10, height: 10)
-                        .overlay(Circle().stroke(AppColors.background, lineWidth: 2))
-                        .offset(x: -4, y: 4)
+                        .frame(width: 8, height: 8)
+                        .overlay(Circle().stroke(AppColors.background, lineWidth: 1.5))
+                        .offset(x: -3, y: 3)
                 }
             }
         }

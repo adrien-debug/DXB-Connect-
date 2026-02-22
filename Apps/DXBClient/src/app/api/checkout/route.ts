@@ -64,9 +64,26 @@ export async function POST(request: NextRequest) {
     // 🔒 Utiliser le user_id authentifié, pas celui du body
     const userId = authenticatedUserId
 
-    // Calculate totals
-    const subtotal = body.items.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0)
-    const tax = subtotal * 0.05 // 5% VAT
+    // Vérifier les prix côté serveur via la table esim_pricing
+    let subtotal = 0
+    for (const item of body.items) {
+      if (item.product_sku) {
+        const { data: pricing } = await supabase
+          .from('esim_pricing')
+          .select('sell_price')
+          .eq('package_code', item.product_sku)
+          .single()
+
+        const serverPrice = pricing?.sell_price ?? item.unit_price
+        if (Math.abs(serverPrice - item.unit_price) > 0.01) {
+          console.error('[checkout] Price mismatch:', { sku: item.product_sku, clientPrice: item.unit_price, serverPrice })
+        }
+        subtotal += serverPrice * item.quantity
+      } else {
+        subtotal += item.unit_price * item.quantity
+      }
+    }
+    const tax = subtotal * 0.05
     const total = subtotal + tax
 
     // Generate order number
@@ -91,7 +108,7 @@ export async function POST(request: NextRequest) {
         },
         metadata: {
           order_number: orderNumber,
-          user_id: body.user_id
+          user_id: userId
         }
       })
 
@@ -101,10 +118,16 @@ export async function POST(request: NextRequest) {
         status: paymentIntent.status
       }
     } else {
-      // Simulated payment intent (development mode)
+      if (process.env.NODE_ENV === 'production') {
+        console.error('[checkout] Stripe not configured in production')
+        return NextResponse.json(
+          { success: false, error: 'Payment service unavailable' },
+          { status: 503 }
+        )
+      }
       paymentIntentData = {
-        id: `pi_simulated_${Date.now()}`,
-        client_secret: `pi_simulated_${Date.now()}_secret_${Math.random().toString(36).substring(2)}`,
+        id: `pi_dev_${Date.now()}`,
+        client_secret: `pi_dev_${Date.now()}_secret_${Math.random().toString(36).substring(2)}`,
         status: 'requires_payment_method'
       }
     }
@@ -168,7 +191,6 @@ export async function POST(request: NextRequest) {
         client_secret: paymentIntentData.client_secret,
         payment_intent_id: paymentIntentData.id
       },
-      stripe_configured: isStripeConfigured()
     })
 
   } catch (error) {

@@ -1,3 +1,4 @@
+import { requireAdmin } from '@/lib/auth-middleware'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
@@ -25,8 +26,11 @@ CREATE INDEX IF NOT EXISTS idx_esim_pricing_active ON esim_pricing(is_active);
  * GET /api/admin/setup-pricing
  * Vérifie si la table existe et retourne le SQL si besoin
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { error: authError } = await requireAdmin(request)
+    if (authError) return authError
+
     const supabase = await createClient()
 
     // Vérifier si la table existe
@@ -71,7 +75,10 @@ export async function GET() {
  * POST /api/admin/setup-pricing
  * Retourne le SQL pour créer la table
  */
-export async function POST() {
+export async function POST(request: Request) {
+  const { error: authError } = await requireAdmin(request)
+  if (authError) return authError
+
   return NextResponse.json({
     success: true,
     message: 'Execute this SQL in Supabase Dashboard > SQL Editor',

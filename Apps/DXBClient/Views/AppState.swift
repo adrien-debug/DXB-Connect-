@@ -23,6 +23,10 @@ final class AppState {
     var isDashboardLoading = false
     var dashboardError: String?
 
+    // MARK: Location
+
+    let locationManager = LocationManager()
+
     // MARK: Services (DI)
 
     let authService: AuthService
@@ -42,7 +46,6 @@ final class AppState {
         self.apiClient = client
         self.tokenManager = tm
         self.apiService = api
-
     }
 
     // MARK: - Auth Flow
@@ -53,6 +56,8 @@ final class AppState {
 
         await apiClient.setTokenManager(tokenManager)
         await tokenManager.setAPIClient(apiClient)
+
+        locationManager.requestIfNeeded()
 
         let authenticated = await authService.isAuthenticated()
         isAuthenticated = authenticated
@@ -128,7 +133,9 @@ final class AppState {
 
     private func loadOffers() async {
         do {
-            partnerOffers = try await apiService.fetchOffers(country: nil, category: nil)
+            let country = locationManager.detectedCountryCode
+            let tier = subscription?.plan
+            partnerOffers = try await apiService.fetchOffers(country: country, category: nil, tier: tier)
         } catch {
             if handleAuthError(error) { return }
             appLog("Failed to load offers: \(error.localizedDescription)", level: .error, category: .data)

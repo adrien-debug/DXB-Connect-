@@ -255,7 +255,7 @@ export default function RegisterPage() {
         <div className="relative z-10 flex items-center justify-center h-full p-12">
           <div className="max-w-sm space-y-6">
             <h2 className="text-2xl font-bold text-white">
-              Join 10,000+ travelers.
+              Join SimPass today.
             </h2>
             <p className="text-sm text-white/70 leading-relaxed">
               Create your free account and instantly unlock eSIM connectivity, travel perks, and rewards.

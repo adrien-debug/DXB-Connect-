@@ -18,9 +18,22 @@ type SupabaseAny = any
  */
 export async function POST(request: Request) {
   try {
+    // Vérifier la signature ou le secret webhook
+    const webhookSecret = process.env.ESIM_WEBHOOK_SECRET
+    if (webhookSecret) {
+      const headerSecret = request.headers.get('x-webhook-secret') || request.headers.get('authorization')
+      if (headerSecret !== webhookSecret && headerSecret !== `Bearer ${webhookSecret}`) {
+        console.error('[Webhook eSIM Access] Invalid signature')
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+      }
+    } else if (process.env.NODE_ENV === 'production') {
+      console.error('[Webhook eSIM Access] ESIM_WEBHOOK_SECRET not configured in production')
+      return NextResponse.json({ success: false, error: 'Webhook not configured' }, { status: 503 })
+    }
+
     const body = await request.json()
     
-    console.log('[Webhook eSIM Access] Event received:', JSON.stringify(body, null, 2))
+    console.log('[Webhook eSIM Access] Event received:', body.eventType)
     
     const { eventType, data } = body
     
@@ -80,14 +93,13 @@ async function handleEsimActivated(supabase: any, data: any) {
   
   console.log(`[Webhook] eSIM activated: ${iccid}`)
   
-  // Mettre à jour le statut dans esim_orders
   await supabase
     .from('esim_orders')
     .update({
       status: 'IN_USE',
       updated_at: new Date().toISOString()
     })
-    .or(`iccid.eq.${iccid},order_no.eq.${orderNo}`)
+    .eq('iccid', iccid)
 }
 
 async function handleEsimExpired(supabase: any, data: any) {
@@ -101,7 +113,7 @@ async function handleEsimExpired(supabase: any, data: any) {
       status: 'EXPIRED',
       updated_at: new Date().toISOString()
     })
-    .or(`iccid.eq.${iccid},order_no.eq.${orderNo}`)
+    .eq('iccid', iccid)
 }
 
 async function handleDataThreshold(supabase: any, data: any) {
@@ -124,7 +136,7 @@ async function handleTopupSuccess(supabase: any, data: any) {
       total_volume: newVolume,
       updated_at: new Date().toISOString()
     })
-    .or(`iccid.eq.${iccid},order_no.eq.${orderNo}`)
+    .eq('iccid', iccid)
 }
 
 // GET pour vérifier que l'endpoint existe

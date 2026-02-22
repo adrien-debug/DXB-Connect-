@@ -43,8 +43,7 @@ export async function POST(request: Request) {
     const orders = data.obj.esimList
     const supabase = createClient(supabaseUrl, serviceRoleKey)
 
-    // Récupérer l'ID de l'admin demo@dxb.com
-    const adminUserId = 'd6e91327-cc9b-4f81-ac27-a46cc8da84ab'
+    const adminUserId = user.id
 
     let imported = 0
     let skipped = 0

@@ -93,15 +93,7 @@ export async function GET(request: Request) {
       }
     })
 
-    // LOG DIAGNOSTIC DXB PROD 2026-02-18
-    console.log('### DXB PROD BACKEND STOCK DEBUG 2026-02-18-LOG')
-    console.log(`[stock] (1) Total eSIMs récupérées de l’API eSIMAccess: ${allEsims.length}`)
-    console.log(`[stock] (2) ICCIDs attribués (dans Supabase): ${assignedIccids.size}`)
-    console.log(`[stock] (3) eSIMs dispos après filtre: ${availableEsims.length}`)
-    if (availableEsims.length < 5) {
-      console.log('[stock] Détail eSIMs dispo:', JSON.stringify(availableEsims, null, 2))
-    }
-// 5. Stats
+    // 5. Stats
     const stats = {
       total: allEsims.length,
       available: availableEsims.length,

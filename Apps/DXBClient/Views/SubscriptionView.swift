@@ -126,16 +126,17 @@ struct SubscriptionView: View {
     // MARK: - Hero
 
     private var heroSection: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(AppColors.accent.opacity(0.1))
-                    .frame(width: 80, height: 80)
-                    .blur(radius: 15)
+                    .fill(AppColors.accent.opacity(0.08))
+                    .frame(width: 88, height: 88)
+                    .blur(radius: 18)
 
                 Image(systemName: "crown.fill")
-                    .font(.system(size: 38))
+                    .font(.system(size: 36))
                     .foregroundStyle(AppColors.accent)
+                    .shadow(color: AppColors.accent.opacity(0.3), radius: 12, x: 0, y: 4)
             }
 
             VStack(spacing: 6) {
@@ -143,7 +144,7 @@ struct SubscriptionView: View {
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
                 Text("Travel connected at reduced prices")
-                    .font(.system(size: 15))
+                    .font(.system(size: 14))
                     .foregroundStyle(AppColors.textSecondary)
             }
         }
@@ -162,7 +163,7 @@ struct SubscriptionView: View {
                 } label: {
                     VStack(spacing: 3) {
                         Text(period.rawValue)
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.system(size: 14, weight: isSelected ? .bold : .medium))
                         if !period.savings.isEmpty {
                             Text(period.savings)
                                 .font(.system(size: 10, weight: .bold))
@@ -173,7 +174,7 @@ struct SubscriptionView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(
-                        RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
+                        Capsule()
                             .fill(isSelected ? AppColors.accent : Color.clear)
                     )
                 }
@@ -181,9 +182,9 @@ struct SubscriptionView: View {
         }
         .padding(4)
         .background(
-            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+            Capsule()
                 .fill(AppColors.surface)
-                .overlay(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous).stroke(AppColors.border, lineWidth: 1))
+                .overlay(Capsule().stroke(AppColors.border, lineWidth: 0.5))
         )
     }
 
@@ -204,42 +205,42 @@ struct SubscriptionView: View {
         return Button {
             withAnimation(.spring(response: 0.3)) { selectedPlan = plan }
         } label: {
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 Image(systemName: plan.icon)
-                    .font(.system(size: 22))
+                    .font(.system(size: 20))
                     .foregroundStyle(plan.color)
 
                 Text(plan.displayName)
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(AppColors.textPrimary)
 
                 VStack(spacing: 1) {
                     Text("$\(String(format: "%.2f", perMonth))")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundStyle(isSelected ? AppColors.accent : AppColors.textPrimary)
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .foregroundStyle(isSelected ? plan.color : AppColors.textPrimary)
                     Text("/mo")
-                        .font(.system(size: 10))
+                        .font(.system(size: 9, weight: .medium))
                         .foregroundStyle(AppColors.textTertiary)
                 }
 
                 Text("-\(plan.discount)%")
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 9, weight: .black))
                     .foregroundStyle(plan.color)
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, 7)
                     .padding(.vertical, 3)
-                    .background(Capsule().fill(plan.color.opacity(0.12)))
+                    .background(Capsule().fill(plan.color.opacity(0.1)))
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
+            .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
-                    .fill(AppColors.surface)
+                    .fill(isSelected ? AppColors.surfaceSecondary : AppColors.surface)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
-                            .stroke(isSelected ? plan.color : AppColors.border, lineWidth: isSelected ? 2 : 1)
+                            .stroke(isSelected ? plan.color.opacity(0.6) : AppColors.border, lineWidth: isSelected ? 1.5 : 0.5)
                     )
             )
-            .shadow(color: isSelected ? plan.color.opacity(0.15) : Color.clear, radius: 12, x: 0, y: 6)
+            .shadow(color: isSelected ? plan.color.opacity(0.1) : Color.clear, radius: 10, x: 0, y: 5)
         }
     }
 

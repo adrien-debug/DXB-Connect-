@@ -51,7 +51,6 @@ export default function HomePage() {
             { value: '120+', label: 'Countries' },
             { value: '3 min', label: 'Activation' },
             { value: '-50%', label: 'Max discount' },
-            { value: '15+', label: 'Partners' },
           ].map((stat) => (
             <div key={stat.label} className="text-left">
               <div className="text-3xl sm:text-4xl font-bold text-white tracking-tight">{stat.value}</div>
@@ -235,67 +234,54 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
+      {/* WHY SIMPASS */}
       <section className="section-padding-md">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-black tracking-tight">
-              Trusted by travelers worldwide
+              Why travelers choose SimPass
             </h2>
             <p className="mt-4 text-base text-gray">
-              See what our users are saying about SimPass.
+              eSIM + travel perks in one app, designed for modern travelers.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                name: 'Sarah K.',
-                location: 'London, UK',
-                text: 'The Elite plan saved me over $80 on my last trip to Japan. Instant activation + Klook discounts made it a no-brainer.',
-                rating: 5,
+                title: 'Instant activation',
+                text: 'Scan a QR code and connect in under 3 minutes — no physical SIM needed.',
+                icon: QrCode,
               },
               {
-                name: 'Marco R.',
-                location: 'Milan, Italy',
-                text: 'I love the rewards program. Daily check-ins and missions keep me engaged, and I actually won a raffle prize last month!',
-                rating: 5,
+                title: 'Real savings',
+                text: 'SimPass members save on eSIMs and unlock discounts on activities, lounges, and more.',
+                icon: Gift,
               },
               {
-                name: 'Aisha M.',
-                location: 'Dubai, UAE',
-                text: 'Best eSIM app I\'ve used. The travel perks are a game-changer — airport lounge access at $32 is unbeatable.',
-                rating: 5,
+                title: 'Global coverage',
+                text: '120+ countries supported with reliable 4G/5G data from trusted carriers.',
+                icon: Globe,
               },
-            ].map((t) => (
-              <div key={t.name} className="tech-card p-7 hover-lift">
-                <div className="flex items-center gap-1 mb-4">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-lime-400 text-lime-400" />
-                  ))}
-                </div>
-                <p className="text-sm text-black leading-relaxed mb-5">
-                  &ldquo;{t.text}&rdquo;
-                </p>
-                <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
-                  <div className="w-10 h-10 rounded-full bg-lime-400/15 border border-lime-400/25 flex items-center justify-center text-sm font-bold text-lime-700">
-                    {t.name.charAt(0)}
+            ].map((item) => {
+              const Icon = item.icon
+              return (
+                <div key={item.title} className="tech-card p-7 hover-lift text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-lime-400/15 border border-lime-400/25 flex items-center justify-center mx-auto mb-5">
+                    <Icon className="w-6 h-6 text-lime-600" />
                   </div>
-                  <div>
-                    <div className="text-sm font-semibold text-black">{t.name}</div>
-                    <div className="text-xs text-gray">{t.location}</div>
-                  </div>
+                  <h3 className="text-base font-bold text-black mb-2">{item.title}</h3>
+                  <p className="text-sm text-gray leading-relaxed">{item.text}</p>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm text-gray">
             {[
-              '4.9/5 App Store rating',
-              '10,000+ active users',
               '120+ countries covered',
-              '15+ travel partners',
+              'Instant QR activation',
+              'Real travel perks included',
             ].map((item) => (
               <span key={item} className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-lime-400 shadow-sm shadow-lime-400/40" />

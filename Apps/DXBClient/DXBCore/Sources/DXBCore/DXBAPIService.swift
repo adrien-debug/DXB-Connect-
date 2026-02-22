@@ -23,7 +23,7 @@ public protocol DXBAPIServiceProtocol: Sendable {
     func requestPasswordReset(email: String) async throws
 
     // MARK: - Offers (SimPass)
-    func fetchOffers(country: String?, category: String?) async throws -> [PartnerOfferResponse]
+    func fetchOffers(country: String?, category: String?, tier: String?) async throws -> [PartnerOfferResponse]
     func trackOfferClick(offerId: String, country: String?) async throws -> OfferClickResponse
 
     // MARK: - Subscriptions (SimPass)
@@ -35,6 +35,9 @@ public protocol DXBAPIServiceProtocol: Sendable {
     func fetchRewardsSummary() async throws -> RewardsSummaryResponse
     func dailyCheckin() async throws -> CheckinResponse
     func enterRaffle(raffleId: String) async throws
+
+    // MARK: - Promo Codes
+    func validatePromoCode(_ code: String) async throws -> Bool
 
     // MARK: - Crypto Payments
     func createCryptoInvoice(amountUSD: Double, asset: String) async throws -> CryptoInvoiceResponse
@@ -486,7 +489,7 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
 
     // MARK: - Offers (SimPass)
 
-    public func fetchOffers(country: String? = nil, category: String? = nil) async throws -> [PartnerOfferResponse] {
+    public func fetchOffers(country: String? = nil, category: String? = nil, tier: String? = nil) async throws -> [PartnerOfferResponse] {
         if let token = try await authService.getAccessToken() {
             await apiClient.setAccessToken(token)
         }
@@ -494,6 +497,7 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
         var queryParts: [String] = []
         if let c = country { queryParts.append("country=\(c)") }
         if let cat = category { queryParts.append("category=\(cat)") }
+        if let t = tier { queryParts.append("tier=\(t)") }
         let endpoint = queryParts.isEmpty ? "offers" : "offers?\(queryParts.joined(separator: "&"))"
 
         let response: OffersListResponse = try await apiClient.request(
@@ -648,6 +652,23 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
 
         guard let data = wrapper.data else { throw APIError.invalidResponse }
         return data
+    }
+
+    // MARK: - Promo Codes
+
+    public func validatePromoCode(_ code: String) async throws -> Bool {
+        struct PromoResponse: Codable {
+            let valid: Bool
+        }
+
+        let body: [String: Any] = ["code": code]
+        let response: PromoResponse = try await apiClient.request(
+            endpoint: "promo/validate",
+            method: "POST",
+            body: body,
+            requiresAuth: true
+        )
+        return response.valid
     }
 
     // MARK: - Token Refresh

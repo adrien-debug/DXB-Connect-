@@ -13,8 +13,6 @@ import { NextResponse } from 'next/server'
  * Query params: page (défaut 1), pageSize (défaut 50), all (admin only)
  */
 export async function GET(request: Request) {
-  console.log('### DXB PROD BACKEND ORDERS VERSION 2026-02-18-19H FIX SANITY')
-  
   // Auth flexible (Bearer iOS ou Cookie Web)
   const { error: authError, user } = await requireAuthFlexible(request)
   if (authError) return authError

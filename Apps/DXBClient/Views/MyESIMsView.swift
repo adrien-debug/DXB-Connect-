@@ -65,21 +65,21 @@ struct MyESIMsView: View {
     }
 
     private func statBox(value: String, label: String, icon: String, color: Color) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.system(size: 16))
-                .foregroundStyle(color)
+                .font(.system(size: 14))
+                .foregroundStyle(color.opacity(0.7))
 
             Text(value)
-                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .font(.system(size: 24, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
 
             Text(label)
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(AppColors.textSecondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        .padding(.vertical, 14)
         .chromeCard()
     }
 
@@ -101,15 +101,15 @@ struct MyESIMsView: View {
                     withAnimation(.spring(response: 0.3)) { selectedFilter = filter }
                 } label: {
                     Text(filter.rawValue)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 13, weight: isSelected ? .bold : .medium))
                         .foregroundStyle(isSelected ? .black : AppColors.textSecondary)
-                    .padding(.horizontal, AppSpacing.base)
-                    .padding(.vertical, AppSpacing.sm)
+                        .padding(.horizontal, AppSpacing.base)
+                        .padding(.vertical, AppSpacing.sm)
                         .background(
                             Capsule()
                                 .fill(isSelected ? AppColors.accent : AppColors.surface)
                                 .overlay(
-                                    Capsule().stroke(isSelected ? Color.clear : AppColors.border, lineWidth: 1)
+                                    Capsule().stroke(isSelected ? Color.clear : AppColors.border, lineWidth: 0.5)
                                 )
                         )
                 }
@@ -140,18 +140,18 @@ struct MyESIMsView: View {
     private func esimCard(_ esim: ESIMOrder) -> some View {
         HStack(spacing: AppSpacing.md) {
             ZStack {
-                Circle()
-                    .fill(statusColor(esim.status).opacity(0.1))
-                    .frame(width: 48, height: 48)
+                RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                    .fill(statusColor(esim.status).opacity(0.08))
+                    .frame(width: 44, height: 44)
 
                 Image(systemName: "simcard.fill")
-                    .font(.system(size: 18))
+                    .font(.system(size: 17))
                     .foregroundStyle(statusColor(esim.status))
             }
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(esim.packageName)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(AppColors.textPrimary)
                     .lineLimit(1)
 
@@ -162,18 +162,18 @@ struct MyESIMsView: View {
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: 5) {
                 StatusBadge(text: statusLabel(esim.status), color: statusColor(esim.status))
 
                 if let usage = usageCache[esim.iccid] {
                     Text("\(Int(usage.usagePercentage * 100))% used")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(AppColors.textTertiary)
                 }
             }
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(AppColors.textTertiary)
         }
         .padding(AppSpacing.base)
@@ -182,7 +182,7 @@ struct MyESIMsView: View {
                 .fill(AppColors.surface)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
-                        .stroke(AppColors.border, lineWidth: 1)
+                        .stroke(AppColors.border, lineWidth: 0.5)
                 )
         )
         .task { await loadUsage(for: esim) }
@@ -190,7 +190,9 @@ struct MyESIMsView: View {
 
     private var esimLoadingCard: some View {
         HStack(spacing: AppSpacing.md) {
-            Circle().fill(AppColors.surfaceSecondary).frame(width: 48, height: 48)
+            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                .fill(AppColors.surfaceSecondary)
+                .frame(width: 44, height: 44)
             VStack(alignment: .leading, spacing: 6) {
                 RoundedRectangle(cornerRadius: AppRadius.xs).fill(AppColors.surfaceSecondary).frame(width: 130, height: 14)
                 RoundedRectangle(cornerRadius: AppRadius.xs).fill(AppColors.surfaceSecondary).frame(width: 80, height: 10)
@@ -201,7 +203,7 @@ struct MyESIMsView: View {
         .background(
             RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
                 .fill(AppColors.surface)
-                .overlay(RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous).stroke(AppColors.border, lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous).stroke(AppColors.border, lineWidth: 0.5))
         )
         .shimmer()
     }

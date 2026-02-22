@@ -41,7 +41,7 @@ struct MainTabView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                Color.clear.frame(height: 46)
+                Color.clear.frame(height: 44)
             }
 
             floatingTabBar
@@ -52,13 +52,13 @@ struct MainTabView: View {
     private var floatingTabBar: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(AppColors.border)
+                .fill(AppColors.border.opacity(0.5))
                 .frame(height: 0.5)
 
             HStack(spacing: 0) {
                 ForEach(Tab.allCases, id: \.self) { tab in
                     Button {
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                             if selectedTab != tab {
                                 HapticFeedback.light()
                                 selectedTab = tab
@@ -69,18 +69,21 @@ struct MainTabView: View {
                             Image(systemName: tab.icon)
                                 .font(.system(size: 16, weight: selectedTab == tab ? .semibold : .regular))
                                 .foregroundColor(selectedTab == tab ? AppColors.accent : AppColors.textTertiary)
+                                .symbolEffect(.bounce, value: selectedTab == tab)
 
                             Text(tab.label)
-                                .font(.system(size: 9, weight: selectedTab == tab ? .semibold : .regular))
+                                .font(.system(size: 9, weight: selectedTab == tab ? .bold : .medium))
                                 .foregroundColor(selectedTab == tab ? AppColors.accent : AppColors.textTertiary)
                         }
                         .frame(maxWidth: .infinity)
+                        .padding(.vertical, 2)
                         .accessibilityLabel(tab.label)
                     }
                 }
             }
-            .padding(.horizontal, AppSpacing.lg)
-            .padding(.vertical, 8)
+            .padding(.horizontal, AppSpacing.base)
+            .padding(.top, 4)
+            .padding(.bottom, 2)
         }
         .background(.ultraThinMaterial)
         .environment(\.colorScheme, .dark)

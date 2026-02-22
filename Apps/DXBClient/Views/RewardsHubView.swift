@@ -101,16 +101,16 @@ struct RewardsHubView: View {
     }
 
     private func walletStat(icon: String, value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 5) {
             Image(systemName: icon)
-                .font(.system(size: 16))
-                .foregroundStyle(color)
+                .font(.system(size: 14))
+                .foregroundStyle(color.opacity(0.8))
             Text(value)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
             Text(label)
-                .font(.system(size: 9, weight: .bold))
-                .tracking(1)
+                .font(.system(size: 8, weight: .black))
+                .tracking(1.2)
                 .foregroundStyle(AppColors.textTertiary)
         }
         .frame(maxWidth: .infinity)
@@ -176,30 +176,32 @@ struct RewardsHubView: View {
     // MARK: - Tabs
 
     private var tabSelector: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 4) {
             ForEach(RewardsTab.allCases, id: \.self) { tab in
                 let isSelected = selectedTab == tab
                 Button {
                     withAnimation(.spring(response: 0.3)) { selectedTab = tab }
                 } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: tab.icon).font(.system(size: 11))
-                        Text(tab.rawValue).font(.system(size: 13, weight: .semibold))
+                    HStack(spacing: 4) {
+                        Image(systemName: tab.icon).font(.system(size: 10))
+                        Text(tab.rawValue).font(.system(size: 13, weight: isSelected ? .bold : .medium))
                     }
                     .foregroundStyle(isSelected ? .black : AppColors.textSecondary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
                     .background(
-                        RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
-                            .fill(isSelected ? AppColors.accent : AppColors.surface)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
-                                    .stroke(isSelected ? Color.clear : AppColors.border, lineWidth: 1)
-                            )
+                        Capsule()
+                            .fill(isSelected ? AppColors.accent : Color.clear)
                     )
                 }
             }
         }
+        .padding(4)
+        .background(
+            Capsule()
+                .fill(AppColors.surface)
+                .overlay(Capsule().stroke(AppColors.border, lineWidth: 0.5))
+        )
     }
 
     @ViewBuilder
@@ -358,8 +360,8 @@ struct RewardsHubView: View {
         return HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill((positive ? AppColors.success : AppColors.error).opacity(0.1))
-                    .frame(width: 36, height: 36)
+                    .fill((positive ? AppColors.success : AppColors.error).opacity(0.08))
+                    .frame(width: 38, height: 38)
                 Image(systemName: positive ? "arrow.down.left" : "arrow.up.right")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(positive ? AppColors.success : AppColors.error)
@@ -367,7 +369,7 @@ struct RewardsHubView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(tx.reason ?? tx.type ?? "Transaction")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(AppColors.textPrimary)
                 Text(tx.description ?? "")
                     .font(.system(size: 12))
@@ -383,9 +385,9 @@ struct RewardsHubView: View {
         }
         .padding(AppSpacing.md)
         .background(
-            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
                 .fill(AppColors.surface)
-                .overlay(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous).stroke(AppColors.border, lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous).stroke(AppColors.border, lineWidth: 0.5))
         )
     }
 

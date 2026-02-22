@@ -61,7 +61,13 @@ export async function POST(request: Request) {
     const priceId = getStripePriceId(validated.plan, validated.billing_period)
 
     if (!isStripeConfigured() || !priceId) {
-      // Mode développement : créer abo sans Stripe
+      if (process.env.NODE_ENV === 'production') {
+        console.error('[subscriptions/create] Stripe not configured in production')
+        return NextResponse.json(
+          { success: false, error: 'Payment service unavailable. Please try again later.' },
+          { status: 503 }
+        )
+      }
       const now = new Date()
       const periodEnd = new Date(now)
       if (validated.billing_period === 'monthly') {

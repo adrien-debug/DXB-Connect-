@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     const order = orderData.obj
 
     const { error: insertError } = await supabase.from('esim_orders').insert({
-      user_id: 'd6e91327-cc9b-4f81-ac27-a46cc8da84ab', // demo@dxb.com
+      user_id: user.id,
       order_no: order.orderNo,
       package_code: cheapestPackage.packageCode,
       iccid: order.esimList?.[0]?.iccid,

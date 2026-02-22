@@ -1,12 +1,13 @@
 'use client'
 
+import { useSidebar } from '@/contexts/SidebarContext'
 import { useAuth } from '@/hooks/useAuth'
 import { useCartTotal } from '@/hooks/useCart'
-import { useSidebar } from '@/contexts/SidebarContext'
 import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  CreditCard,
   DollarSign,
   Gift,
   LayoutDashboard,
@@ -14,7 +15,6 @@ import {
   Settings,
   ShoppingCart,
   Star,
-  CreditCard,
   Users,
   Wifi
 } from 'lucide-react'
@@ -25,7 +25,7 @@ import CartDrawer from './CartDrawer'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Vue d\'ensemble' },
-  { href: '/esim', label: 'Acheter eSIM', icon: Wifi, description: 'Nouvelle commande' },
+  { href: '/esim', label: 'Acheter eSIM', icon: Wifi, description: 'Catalogue packages' },
   { href: '/esim/orders', label: 'Mes eSIMs', icon: ClipboardList, description: 'Historique' },
   { href: '/esim/pricing', label: 'Prix & Marges', icon: DollarSign, description: 'Gestion tarifs' },
   { href: '/customers', label: 'Clients', icon: Users, description: 'Gestion CRM' },
@@ -101,8 +101,8 @@ export default function Sidebar({ onNavigate }: SidebarProps = {}) {
             const isChildMatch = pathname.startsWith(item.href + '/')
             const hasMoreSpecificMatch = navItems.some(
               other => other.href !== item.href &&
-                       other.href.startsWith(item.href) &&
-                       (pathname === other.href || pathname.startsWith(other.href + '/'))
+                other.href.startsWith(item.href) &&
+                (pathname === other.href || pathname.startsWith(other.href + '/'))
             )
             const isActive = isExactMatch || (isChildMatch && !hasMoreSpecificMatch)
 

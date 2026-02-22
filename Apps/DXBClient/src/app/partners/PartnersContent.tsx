@@ -23,9 +23,7 @@ const apiPartnerBenefits = [
 ]
 
 const stats = [
-  { value: 15, suffix: '+', label: 'Travel partners' },
   { value: 120, suffix: '+', label: 'Countries covered' },
-  { value: 50, suffix: '+', label: 'API partners' },
   { value: 99.9, suffix: '%', label: 'API uptime' },
 ]
 

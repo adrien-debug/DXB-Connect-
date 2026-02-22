@@ -1,3 +1,4 @@
+import { requireAdmin } from '@/lib/auth-middleware'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
@@ -20,8 +21,11 @@ interface EsimPricing {
  * GET /api/admin/pricing
  * Récupère tous les prix personnalisés
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { error: authError } = await requireAdmin(request)
+    if (authError) return authError
+
     const supabase = await createClient()
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,6 +52,9 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
+    const { error: authError } = await requireAdmin(request)
+    if (authError) return authError
+
     const body = await request.json()
     const { package_code, package_name, cost_price, sell_price, location_code, location_name } = body
 
@@ -101,6 +108,9 @@ export async function POST(request: Request) {
  */
 export async function DELETE(request: Request) {
   try {
+    const { error: authError } = await requireAdmin(request)
+    if (authError) return authError
+
     const { searchParams } = new URL(request.url)
     const packageCode = searchParams.get('package_code')
 

@@ -40,25 +40,25 @@ struct ProfileView: View {
     // MARK: - Header
 
     private var profileHeader: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 16) {
             ZStack {
                 Circle()
                     .fill(AppColors.accent)
-                    .frame(width: 72, height: 72)
-                    .shadow(color: AppColors.accent.opacity(0.3), radius: 16, x: 0, y: 6)
+                    .frame(width: 68, height: 68)
+                    .shadow(color: AppColors.accent.opacity(0.2), radius: 12, x: 0, y: 4)
 
                 Text(userInitials)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundColor(.black)
             }
 
-            VStack(spacing: 4) {
+            VStack(spacing: 5) {
                 Text(appState.currentUser?.name ?? "User")
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
 
                 Text(appState.currentUser?.email ?? "")
-                    .font(.system(size: 14))
+                    .font(.system(size: 13))
                     .foregroundStyle(AppColors.textSecondary)
             }
 
@@ -156,10 +156,10 @@ struct ProfileView: View {
     }
 
     private func settingsGroup(title: String, items: [SettingsItem]) -> some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.system(size: 10, weight: .bold))
-                .tracking(2)
+                .tracking(1.5)
                 .foregroundStyle(AppColors.textTertiary)
                 .padding(.leading, 4)
 
@@ -179,7 +179,7 @@ struct ProfileView: View {
                     .fill(AppColors.surface)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
-                            .stroke(AppColors.border, lineWidth: 1)
+                            .stroke(AppColors.border, lineWidth: 0.5)
                     )
             )
         }
@@ -192,11 +192,11 @@ struct ProfileView: View {
             HStack(spacing: 12) {
                 ZStack {
                     RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
-                        .fill(item.color.opacity(0.12))
-                        .frame(width: 30, height: 30)
+                        .fill(item.color.opacity(0.08))
+                        .frame(width: 32, height: 32)
 
                     Image(systemName: item.icon)
-                        .font(.system(size: 13))
+                        .font(.system(size: 14))
                         .foregroundStyle(item.color)
                 }
 
@@ -207,11 +207,11 @@ struct ProfileView: View {
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(AppColors.textTertiary)
             }
             .padding(.horizontal, AppSpacing.base)
-            .padding(.vertical, AppSpacing.md)
+            .padding(.vertical, 11)
         }
     }
 
@@ -249,11 +249,11 @@ struct ProfileView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .background(
-                RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
-                    .fill(AppColors.error.opacity(0.08))
+                RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                    .fill(AppColors.error.opacity(0.06))
                     .overlay(
-                        RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
-                            .stroke(AppColors.error.opacity(0.15), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                            .stroke(AppColors.error.opacity(0.1), lineWidth: 0.5)
                     )
             )
         }

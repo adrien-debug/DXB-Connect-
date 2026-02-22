@@ -28,7 +28,7 @@ struct RootView: View {
             AppColors.background.ignoresSafeArea()
 
             RadialGradient(
-                colors: [AppColors.accent.opacity(0.08), Color.clear],
+                colors: [AppColors.accent.opacity(0.05), Color.clear],
                 center: .center,
                 startRadius: 0,
                 endRadius: 300
@@ -38,35 +38,36 @@ struct RootView: View {
             VStack(spacing: AppSpacing.xl) {
                 ZStack {
                     Circle()
-                        .fill(AppColors.accent.opacity(0.12))
-                        .frame(width: 100, height: 100)
-                        .blur(radius: 20)
+                        .fill(AppColors.accent.opacity(0.08))
+                        .frame(width: 110, height: 110)
+                        .blur(radius: 25)
 
                     Circle()
                         .fill(AppColors.accent)
-                        .frame(width: 72, height: 72)
+                        .frame(width: 76, height: 76)
+                        .shadow(color: AppColors.accent.opacity(0.3), radius: 20, x: 0, y: 8)
 
                     Text("S")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
                         .foregroundColor(.black)
                 }
                 .scaleEffect(logoScale)
                 .opacity(logoOpacity)
 
-                VStack(spacing: AppSpacing.sm) {
+                VStack(spacing: 6) {
                     Text("SimPass")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
 
                     Text("Travel Connected")
-                        .font(.system(size: 15))
+                        .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(AppColors.textSecondary)
                 }
                 .opacity(logoOpacity)
 
                 ProgressView()
                     .tint(AppColors.accent)
-                    .scaleEffect(1.1)
+                    .scaleEffect(1.0)
                     .padding(.top, AppSpacing.lg)
                     .opacity(logoOpacity)
             }

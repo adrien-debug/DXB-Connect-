@@ -176,20 +176,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // Insert admin profile directly
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert({
-        id: 'd6e91327-cc9b-4f81-ac27-a46cc8da84ab',
-        email: 'demo@dxb.com',
-        full_name: 'Demo Admin',
-        role: 'admin'
-      }, { onConflict: 'id' })
-
     return NextResponse.json({
       success: true,
       results,
-      profileInsert: profileError ? profileError.message : 'ok'
     })
   } catch (error) {
     console.error('[setup-db] Error:', error)

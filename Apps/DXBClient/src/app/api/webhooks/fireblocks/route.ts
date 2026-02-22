@@ -16,12 +16,14 @@ export async function POST(request: Request) {
     const body = await request.text()
     const signature = request.headers.get('fireblocks-signature') || ''
 
-    // Vérification de signature (skip en dev si pas configuré)
     if (process.env.FIREBLOCKS_WEBHOOK_SECRET) {
       if (!verifyWebhookSignature(body, signature)) {
         console.error('[webhook/fireblocks] Invalid signature')
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
       }
+    } else if (process.env.NODE_ENV === 'production') {
+      console.error('[webhook/fireblocks] Webhook secret not configured in production')
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 503 })
     }
 
     const event = JSON.parse(body)

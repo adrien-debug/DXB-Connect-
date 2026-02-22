@@ -5,8 +5,6 @@ import AVFoundation
 struct DashboardView: View {
     @Environment(AppState.self) private var appState
 
-    @State private var heroAnimated = false
-
     @State private var showSupport = false
     @State private var showScanner = false
     @State private var usageCache: [String: ESIMUsage] = [:]
@@ -15,32 +13,45 @@ struct DashboardView: View {
         ZStack {
             PulseBackground()
 
-            VStack(spacing: 0) {
-                smartHeader
-                    .padding(.top, 8)
+            if appState.isDashboardLoading && appState.activeESIMs.isEmpty {
+                loadingState
+            } else {
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        smartHeader
+                            .padding(.top, 8)
 
-                Spacer()
+                        heroBalanceCard
+                            .padding(.horizontal, AppSpacing.lg)
+                            .padding(.top, AppSpacing.xl)
 
-                heroBalanceCard
-                    .padding(.horizontal, AppSpacing.lg)
+                        esimCardsRow
+                            .padding(.top, AppSpacing.xl)
 
-                Spacer()
+                        if let errorMsg = appState.dashboardError {
+                            errorBanner(errorMsg)
+                                .padding(.horizontal, AppSpacing.lg)
+                                .padding(.top, AppSpacing.md)
+                        }
 
-                esimCardsRow
+                        if appState.subscription == nil {
+                            subscriptionPromoBanner
+                                .padding(.horizontal, AppSpacing.lg)
+                                .padding(.top, AppSpacing.xl)
+                        }
 
-                Spacer()
+                        if !appState.partnerOffers.isEmpty {
+                            promoOffersSection
+                                .padding(.top, AppSpacing.xl)
+                        }
 
-                if appState.subscription == nil {
-                    subscriptionPromoBanner
-                        .padding(.horizontal, AppSpacing.lg)
-
-                    Spacer()
+                        Spacer(minLength: AppSpacing.xxl)
+                    }
                 }
-
-                if !appState.partnerOffers.isEmpty {
-                    promoOffersSection
-
-                    Spacer()
+                .refreshable {
+                    await appState.loadDashboard()
+                    usageCache.removeAll()
+                    await loadUsageData()
                 }
             }
         }
@@ -55,46 +66,92 @@ struct DashboardView: View {
         .sheet(isPresented: $showScanner) { ScannerSheet() }
     }
 
+    // MARK: - Loading State
+
+    private var loadingState: some View {
+        VStack(spacing: AppSpacing.lg) {
+            ProgressView()
+                .tint(AppColors.accent)
+                .scaleEffect(1.2)
+
+            Text("Loading your dashboard...")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(AppColors.textSecondary)
+        }
+    }
+
+    // MARK: - Error Banner
+
+    private func errorBanner(_ message: String) -> some View {
+        HStack(spacing: AppSpacing.sm) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 14))
+                .foregroundStyle(AppColors.warning)
+
+            Text(message)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(AppColors.textSecondary)
+
+            Spacer()
+
+            Button {
+                Task { await appState.loadDashboard() }
+            } label: {
+                Text("Retry")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(AppColors.accent)
+            }
+        }
+        .padding(AppSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
+                .fill(AppColors.warning.opacity(0.08))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
+                        .stroke(AppColors.warning.opacity(0.2), lineWidth: 1)
+                )
+        )
+    }
+
     // MARK: - Header
 
     private var smartHeader: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             ZStack {
                 Circle()
                     .fill(AppColors.accent)
-                    .frame(width: 46, height: 46)
+                    .frame(width: 42, height: 42)
 
                 Text(String(firstName.prefix(1)).uppercased())
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
                     .foregroundColor(.black)
             }
-            .shadow(color: AppColors.accent.opacity(0.3), radius: 12, x: 0, y: 4)
+            .shadow(color: AppColors.accent.opacity(0.2), radius: 8, x: 0, y: 3)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(greeting)
-                    .font(.system(size: 13))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundColor(AppColors.textSecondary)
 
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Text(firstName)
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
                         .foregroundColor(AppColors.textPrimary)
 
                     if let tier = appState.subscription?.plan {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 3) {
                             Image(systemName: AppTheme.tierIcon(tier))
-                                .font(.system(size: 9))
+                                .font(.system(size: 8))
                             Text(tier.uppercased())
-                                .font(.system(size: 8, weight: .bold))
-                                .tracking(0.8)
+                                .font(.system(size: 7, weight: .black))
+                                .tracking(0.6)
                         }
                         .foregroundStyle(AppTheme.tierColor(tier))
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, 7)
                         .padding(.vertical, 3)
                         .background(
                             Capsule()
-                                .fill(AppTheme.tierColor(tier).opacity(0.12))
-                                .overlay(Capsule().stroke(AppTheme.tierColor(tier).opacity(0.2), lineWidth: 1))
+                                .fill(AppTheme.tierColor(tier).opacity(0.1))
                         )
                     }
                 }
@@ -135,47 +192,47 @@ struct DashboardView: View {
 
     private var heroBalanceCard: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 4) {
-                HStack {
+            VStack(spacing: 6) {
+                HStack(spacing: 6) {
                     Image(systemName: "simcard.2.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(AppColors.accent.opacity(0.8))
+                        .font(.system(size: 11))
+                        .foregroundColor(AppColors.accent.opacity(0.7))
                     Text("Total Data Balance")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundColor(AppColors.textSecondary)
-                        .tracking(0.8)
+                        .tracking(1.0)
                     Spacer()
                 }
 
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(remainingDataDisplay.0)
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .font(.system(size: 42, weight: .bold, design: .rounded))
                         .foregroundColor(AppColors.textPrimary)
                         .contentTransition(.numericText())
 
                     Text(remainingDataDisplay.1)
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
-                        .foregroundColor(AppColors.textSecondary)
+                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .foregroundColor(AppColors.textTertiary)
 
                     Spacer()
 
                     HStack(spacing: 4) {
                         Circle()
                             .fill(AppColors.accent)
-                            .frame(width: 5, height: 5)
-                        Text("\(usagePercent)% used")
-                            .font(.system(size: 11, weight: .medium))
+                            .frame(width: 6, height: 6)
+                        Text("\(usagePercentDisplay) used")
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(AppColors.accent)
                     }
                 }
 
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 2)
+                        RoundedRectangle(cornerRadius: 3)
                             .fill(Color.white.opacity(0.06))
-                            .frame(height: 3)
+                            .frame(height: 4)
 
-                        RoundedRectangle(cornerRadius: 2)
+                        RoundedRectangle(cornerRadius: 3)
                             .fill(
                                 LinearGradient(
                                     colors: [AppColors.accent, AppColors.accentLight],
@@ -183,19 +240,20 @@ struct DashboardView: View {
                                     endPoint: .trailing
                                 )
                             )
-                            .frame(width: geo.size.width * CGFloat(usagePercent) / 100, height: 3)
-                            .shadow(color: AppColors.accent.opacity(0.5), radius: 4, x: 0, y: 0)
+                            .frame(width: max(geo.size.width * CGFloat(usagePercent) / 100, 0), height: 4)
+                            .shadow(color: AppColors.accent.opacity(0.4), radius: 4, x: 0, y: 0)
                     }
                 }
-                .frame(height: 3)
-                .padding(.top, 2)
+                .frame(height: 4)
+                .padding(.top, 4)
             }
-            .padding(.horizontal, AppSpacing.base)
-            .padding(.vertical, AppSpacing.md)
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.top, AppSpacing.lg)
+            .padding(.bottom, AppSpacing.base)
 
             Rectangle()
-                .fill(Color.white.opacity(0.04))
-                .frame(height: 1)
+                .fill(Color.white.opacity(0.05))
+                .frame(height: 0.5)
 
             HStack(spacing: 0) {
                 heroMiniStat(
@@ -205,8 +263,8 @@ struct DashboardView: View {
                 )
 
                 Rectangle()
-                    .fill(Color.white.opacity(0.04))
-                    .frame(width: 1, height: 28)
+                    .fill(Color.white.opacity(0.05))
+                    .frame(width: 0.5, height: 30)
 
                 heroMiniStat(
                     icon: "checkmark.seal.fill",
@@ -215,8 +273,8 @@ struct DashboardView: View {
                 )
 
                 Rectangle()
-                    .fill(Color.white.opacity(0.04))
-                    .frame(width: 1, height: 28)
+                    .fill(Color.white.opacity(0.05))
+                    .frame(width: 0.5, height: 30)
 
                 heroMiniStat(
                     icon: "globe",
@@ -224,7 +282,7 @@ struct DashboardView: View {
                     label: "Countries"
                 )
             }
-            .padding(.vertical, AppSpacing.sm)
+            .padding(.vertical, AppSpacing.md)
         }
         .background(
             ZStack {
@@ -232,10 +290,9 @@ struct DashboardView: View {
                     .fill(
                         LinearGradient(
                             stops: [
-                                .init(color: AppColors.chromeLight, location: 0),
-                                .init(color: AppColors.chromeDark, location: 0.4),
-                                .init(color: AppColors.chromeMid, location: 0.7),
-                                .init(color: AppColors.chromeLight.opacity(0.7), location: 1.0),
+                                .init(color: AppColors.chromeLight.opacity(0.8), location: 0),
+                                .init(color: AppColors.chromeDark, location: 0.5),
+                                .init(color: AppColors.chromeMid.opacity(0.9), location: 1.0),
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -245,7 +302,7 @@ struct DashboardView: View {
                 RoundedRectangle(cornerRadius: AppRadius.xl, style: .continuous)
                     .fill(
                         LinearGradient(
-                            colors: [Color.white.opacity(0.05), Color.clear],
+                            colors: [Color.white.opacity(0.04), Color.clear],
                             startPoint: .top,
                             endPoint: .center
                         )
@@ -255,34 +312,34 @@ struct DashboardView: View {
                     .stroke(
                         LinearGradient(
                             colors: [
-                                AppColors.chromeBorder,
-                                AppColors.chromeHighlight.opacity(0.3),
-                                AppColors.chromeBorder.opacity(0.5),
+                                AppColors.chromeBorder.opacity(0.6),
+                                AppColors.chromeHighlight.opacity(0.2),
+                                AppColors.chromeBorder.opacity(0.3),
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
-                        lineWidth: 1
+                        lineWidth: 0.5
                     )
             }
         )
-        .shadow(color: AppColors.accent.opacity(0.08), radius: 24, x: 0, y: 12)
-        .shadow(color: Color.black.opacity(0.3), radius: 16, x: 0, y: 8)
+        .shadow(color: AppColors.accent.opacity(0.06), radius: 20, x: 0, y: 10)
+        .shadow(color: Color.black.opacity(0.25), radius: 12, x: 0, y: 6)
         .slideIn(delay: 0.05)
     }
 
     private func heroMiniStat(icon: String, value: String, label: String) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 7) {
             Image(systemName: icon)
-                .font(.system(size: 11))
-                .foregroundColor(AppColors.accent.opacity(0.7))
+                .font(.system(size: 12))
+                .foregroundColor(AppColors.accent.opacity(0.6))
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(value)
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
                     .foregroundColor(AppColors.textPrimary)
                 Text(label)
-                    .font(.system(size: 9, weight: .medium))
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundColor(AppColors.textTertiary)
             }
         }
@@ -296,7 +353,9 @@ struct DashboardView: View {
     }
 
     private var countriesCount: String {
-        let countries = Set(appState.activeESIMs.map { $0.packageName.lowercased() })
+        let countries = Set(appState.activeESIMs.map {
+            $0.packageName.components(separatedBy: " ").first?.lowercased() ?? $0.packageName.lowercased()
+        })
         return "\(countries.count)"
     }
 
@@ -321,10 +380,7 @@ struct DashboardView: View {
                 HStack(spacing: AppSpacing.md) {
                     if appState.activeESIMs.isEmpty {
                         NavigationLink { PlanListView() } label: {
-                            simPlaceholder(region: "Europe", data: "5 GB", icon: "globe.europe.africa.fill")
-                        }.buttonStyle(.plain)
-                        NavigationLink { PlanListView() } label: {
-                            simPlaceholder(region: "USA", data: "10 GB", icon: "globe.americas.fill")
+                            emptySimPrompt
                         }.buttonStyle(.plain)
                     } else {
                         ForEach(Array(appState.activeESIMs.prefix(5).enumerated()), id: \.element.id) { index, esim in
@@ -334,13 +390,13 @@ struct DashboardView: View {
                             .buttonStyle(.plain)
                             .scaleOnPress()
                         }
-                    }
 
-                    NavigationLink { PlanListView() } label: {
-                        addSimBadge
+                        NavigationLink { PlanListView() } label: {
+                            addSimBadge
+                        }
+                        .buttonStyle(.plain)
+                        .scaleOnPress()
                     }
-                    .buttonStyle(.plain)
-                    .scaleOnPress()
                 }
                 .padding(.horizontal, AppSpacing.lg)
             }
@@ -349,98 +405,93 @@ struct DashboardView: View {
     }
 
     private func simBadge(esim: ESIMOrder, isFirst: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
+        let isActive = ESIMStatusHelper.isActive(esim.status)
+        let statusLabel = ESIMStatusHelper.label(esim.status)
+        let statusColor = ESIMStatusHelper.color(esim.status)
+
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 5) {
                 Text(flagEmoji(for: esim.packageName))
-                    .font(.system(size: 16))
+                    .font(.system(size: 18))
                 Text(esim.packageName)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(isFirst ? AppColors.accent : AppColors.textPrimary)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppColors.textPrimary)
                     .lineLimit(1)
             }
 
             HStack {
-                Text(isFirst ? "Active" : ESIMStatusHelper.label(esim.status))
-                    .font(.system(size: 8, weight: .bold))
-                    .padding(.horizontal, 5)
+                Text(statusLabel)
+                    .font(.system(size: 8, weight: .black))
+                    .tracking(0.3)
+                    .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(
-                        Capsule().fill(isFirst ? AppColors.accent : AppColors.textSecondary.opacity(0.3))
+                        Capsule().fill(isActive ? statusColor : AppColors.textSecondary.opacity(0.2))
                     )
-                    .foregroundColor(isFirst ? .black : AppColors.textPrimary)
+                    .foregroundColor(isActive ? .black : AppColors.textPrimary)
 
                 Spacer()
 
                 Text(esim.totalVolume.isEmpty ? "--" : esim.totalVolume)
-                    .font(.system(size: 9))
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundColor(AppColors.textSecondary)
             }
         }
-        .padding(AppSpacing.sm)
-        .frame(width: 130, height: 58)
+        .padding(AppSpacing.md)
+        .frame(width: 140, height: 64)
         .background(
-            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
                 .fill(AppColors.surface)
                 .overlay(
-                    RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
-                        .stroke(isFirst ? AppColors.accent.opacity(0.3) : AppColors.border, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                        .stroke(isActive ? AppColors.accent.opacity(0.25) : AppColors.border, lineWidth: 0.5)
                 )
         )
     }
 
-    private func simPlaceholder(region: String, data: String, icon: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.system(size: 14))
-                    .foregroundColor(AppColors.textTertiary)
-                Text(region)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(AppColors.textSecondary)
-                    .lineLimit(1)
-            }
+    private var emptySimPrompt: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "plus.circle.fill")
+                .font(.system(size: 18))
+                .foregroundColor(AppColors.accent.opacity(0.6))
 
-            HStack {
-                Text("eSIM")
-                    .font(.system(size: 8, weight: .bold))
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 2)
-                    .background(Capsule().fill(AppColors.textSecondary.opacity(0.2)))
-                    .foregroundColor(AppColors.textSecondary)
-                Spacer()
-                Text(data)
-                    .font(.system(size: 9))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Get your first eSIM")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(AppColors.textPrimary)
+                Text("Browse plans")
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundColor(AppColors.textTertiary)
             }
         }
-        .padding(AppSpacing.sm)
-        .frame(width: 130, height: 58)
+        .padding(AppSpacing.md)
+        .frame(height: 64)
         .background(
-            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
                 .fill(AppColors.surface)
                 .overlay(
-                    RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
-                        .strokeBorder(AppColors.border, style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
+                    RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                        .strokeBorder(AppColors.accent.opacity(0.15), style: StrokeStyle(lineWidth: 0.5, dash: [6, 4]))
                 )
         )
     }
 
     private var addSimBadge: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             Image(systemName: "plus.circle")
-                .font(.system(size: 18, weight: .light))
-                .foregroundColor(AppColors.accent.opacity(0.6))
+                .font(.system(size: 20, weight: .light))
+                .foregroundColor(AppColors.accent.opacity(0.5))
             Text("Get eSIM")
-                .font(.system(size: 8, weight: .semibold))
+                .font(.system(size: 9, weight: .semibold))
                 .foregroundColor(AppColors.textTertiary)
         }
-        .frame(width: 60, height: 58)
+        .frame(width: 64, height: 64)
         .background(
-            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
                 .fill(AppColors.surface)
                 .overlay(
-                    RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
-                        .strokeBorder(AppColors.accent.opacity(0.15), style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
+                    RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                        .strokeBorder(AppColors.accent.opacity(0.12), style: StrokeStyle(lineWidth: 0.5, dash: [6, 4]))
                 )
         )
     }
@@ -451,43 +502,43 @@ struct DashboardView: View {
         NavigationLink {
             SubscriptionView()
         } label: {
-            HStack(spacing: 14) {
+            HStack(spacing: 12) {
                 ZStack {
                     Circle()
-                        .fill(AppColors.accent.opacity(0.15))
+                        .fill(AppColors.accent.opacity(0.1))
                         .frame(width: 44, height: 44)
                     Image(systemName: "crown.fill")
-                        .font(.system(size: 20))
+                        .font(.system(size: 18))
                         .foregroundStyle(AppColors.accent)
                 }
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("SimPass Premium")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
                     Text("Up to -30% on eSIMs · From $3.33/mo")
-                        .font(.system(size: 13))
+                        .font(.system(size: 12))
                         .foregroundStyle(AppColors.textSecondary)
                 }
 
                 Spacer()
 
                 Text("TRY FREE")
-                    .font(.system(size: 11, weight: .bold))
-                    .tracking(0.8)
+                    .font(.system(size: 10, weight: .black))
+                    .tracking(0.5)
                     .foregroundStyle(.black)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                     .background(Capsule().fill(AppColors.accent))
             }
             .padding(.horizontal, AppSpacing.lg)
-            .padding(.vertical, AppSpacing.base)
+            .padding(.vertical, AppSpacing.md)
             .background(
                 RoundedRectangle(cornerRadius: AppRadius.xl, style: .continuous)
                     .fill(AppColors.surface)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppRadius.xl, style: .continuous)
-                            .stroke(AppColors.accent.opacity(0.2), lineWidth: 1)
+                            .stroke(AppColors.accent.opacity(0.15), lineWidth: 0.5)
                     )
             )
         }
@@ -506,7 +557,13 @@ struct DashboardView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: AppSpacing.md) {
                     ForEach(appState.partnerOffers.prefix(5)) { offer in
-                        promoOfferCard(offer)
+                        Button {
+                            Task { await openOffer(offer) }
+                        } label: {
+                            promoOfferCard(offer)
+                        }
+                        .buttonStyle(.plain)
+                        .scaleOnPress()
                     }
                 }
                 .padding(.horizontal, AppSpacing.lg)
@@ -562,143 +619,25 @@ struct DashboardView: View {
         .bentoCard()
     }
 
-    // MARK: - My eSIMs Section
-
-    private var myEsimsSection: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.md) {
-            NavigationLink {
-                MyESIMsView()
-            } label: {
-                PulseSectionHeader(
-                    title: "My eSIMs",
-                    action: appState.activeESIMs.isEmpty ? nil : "View all",
-                    onAction: {}
-                )
-            }
-            .buttonStyle(.plain)
-
-            if appState.activeESIMs.isEmpty {
-                emptyESIMCard
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(appState.activeESIMs.prefix(3).enumerated()), id: \.element.id) { index, order in
-                        NavigationLink {
-                            ESIMDetailView(esim: order)
-                        } label: {
-                            esimRow(order: order)
-                        }
-                        .buttonStyle(.plain)
-
-                        if index < min(2, appState.activeESIMs.count - 1) {
-                            Divider()
-                                .background(AppColors.border)
-                                .padding(.leading, 56)
-                        }
-                    }
+    private func openOffer(_ offer: PartnerOfferResponse) async {
+        do {
+            let response = try await appState.apiService.trackOfferClick(offerId: offer.id, country: nil)
+            if let urlString = response.data?.redirectUrl, let url = URL(string: urlString) {
+                await MainActor.run {
+                    UIApplication.shared.open(url)
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
-                        .fill(AppColors.surface)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
-                                .stroke(AppColors.border, lineWidth: 1)
-                        )
-                )
             }
+        } catch {
+            appLog("Offer click failed: \(error.localizedDescription)", level: .warning, category: .data)
         }
-        .slideIn(delay: 0.25)
-    }
-
-    private var emptyESIMCard: some View {
-        VStack(spacing: AppSpacing.lg) {
-            ZStack {
-                Circle()
-                    .fill(AppColors.accent.opacity(0.1))
-                    .frame(width: 72, height: 72)
-
-                Image(systemName: "simcard")
-                    .font(.system(size: 30, weight: .medium))
-                    .foregroundColor(AppColors.accent)
-            }
-
-            VStack(spacing: 6) {
-                Text("No eSIMs yet")
-                    .font(AppFonts.bodyMedium())
-                    .foregroundColor(AppColors.textPrimary)
-
-                Text("Get connected worldwide in seconds")
-                    .font(.system(size: 14))
-                    .foregroundColor(AppColors.textSecondary)
-            }
-
-            NavigationLink {
-                PlanListView()
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .bold))
-                    Text("Get Started")
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                .foregroundColor(.black)
-                .padding(.horizontal, AppSpacing.xl)
-                .padding(.vertical, AppSpacing.md)
-                .background(
-                    Capsule().fill(AppColors.accent)
-                )
-            }
-            .shadow(color: AppColors.accent.opacity(0.3), radius: 12, x: 0, y: 6)
-            .scaleOnPress()
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, AppSpacing.xxxl)
-        .background(
-            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
-                .fill(AppColors.surface)
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
-                        .stroke(AppColors.border, lineWidth: 1)
-                )
-        )
-    }
-
-    private func esimRow(order: ESIMOrder) -> some View {
-        let isActive = ["RELEASED", "IN_USE", "ENABLED", "ACTIVE"].contains(order.status.uppercased())
-
-        return HStack(spacing: AppSpacing.md) {
-            Text(flagEmoji(for: order.packageName))
-                .font(.system(size: 24))
-                .frame(width: 40, height: 40)
-                .background(Circle().fill(AppColors.surfaceSecondary))
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(order.packageName)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(AppColors.textPrimary)
-                    .lineLimit(1)
-
-                Text(isActive ? "Active" : order.status.capitalized)
-                    .font(.system(size: 13))
-                    .foregroundColor(AppColors.textSecondary)
-            }
-
-            Spacer()
-
-            Text(order.totalVolume.isEmpty ? "—" : order.totalVolume)
-                .font(.system(size: 14))
-                .foregroundColor(isActive ? AppColors.accent : AppColors.textSecondary)
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(AppColors.textTertiary)
-        }
-        .padding(.horizontal, AppSpacing.base)
-        .padding(.vertical, AppSpacing.md)
     }
 
     // MARK: - Helpers
 
+    private var isUsageLoaded: Bool { !usageCache.isEmpty || appState.activeESIMs.isEmpty }
+
     private var remainingDataDisplay: (String, String) {
+        guard isUsageLoaded else { return ("--", "") }
         let totalRemaining = totalRemainingGB
         if totalRemaining >= 1 {
             return (String(format: "%.1f", totalRemaining), "GB")
@@ -714,17 +653,16 @@ struct DashboardView: View {
     }
 
     private var usagePercent: Int {
-        guard !usageCache.isEmpty else {
-            let active = appState.activeESIMs.filter {
-                ["RELEASED", "IN_USE", "ENABLED", "ACTIVE"].contains($0.status.uppercased())
-            }
-            guard !active.isEmpty else { return 0 }
-            return 0
-        }
+        guard !usageCache.isEmpty else { return 0 }
         let totalBytes = usageCache.values.reduce(Int64(0)) { $0 + $1.totalBytes }
         let usedBytes = usageCache.values.reduce(Int64(0)) { $0 + $1.usedBytes }
         guard totalBytes > 0 else { return 0 }
         return Int(Double(usedBytes) / Double(totalBytes) * 100)
+    }
+
+    private var usagePercentDisplay: String {
+        guard isUsageLoaded else { return "--" }
+        return "\(usagePercent)%"
     }
 
     private func flagEmoji(for packageName: String) -> String {
@@ -900,6 +838,15 @@ class QRScannerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupCamera()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if captureSession.isRunning {
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                self?.captureSession.stopRunning()
+            }
+        }
     }
 
     private func setupCamera() {
