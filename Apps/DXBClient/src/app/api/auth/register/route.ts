@@ -1,34 +1,16 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { z } from 'zod'
 
-/**
- * Register avec email/password pour iOS
- * Utilise le service role pour auto-confirmer l'email
- */
-
-interface RegisterRequest {
-  email: string
-  password: string
-  name: string
-}
+const registerSchema = z.object({
+  email: z.string().email('Invalid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  name: z.string().max(100).default(''),
+})
 
 export async function POST(request: Request) {
   try {
-    const body: RegisterRequest = await request.json()
-
-    if (!body.email || !body.password) {
-      return NextResponse.json(
-        { success: false, error: 'Email and password are required' },
-        { status: 400 }
-      )
-    }
-
-    if (body.password.length < 8) {
-      return NextResponse.json(
-        { success: false, error: 'Password must be at least 8 characters' },
-        { status: 400 }
-      )
-    }
+    const body = registerSchema.parse(await request.json())
 
     // Utiliser service role pour créer l'utilisateur avec email confirmé
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -55,9 +37,12 @@ export async function POST(request: Request) {
     })
 
     if (error) {
-      console.error('[auth/register] Supabase error:', error.message)
+      console.error('[auth/register] Supabase error:', { code: error.status })
+      const safeMessage = error.message?.includes('already registered')
+        ? 'An account with this email already exists'
+        : 'Registration failed. Please try again.'
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: safeMessage },
         { status: 400 }
       )
     }
@@ -104,9 +89,15 @@ export async function POST(request: Request) {
       },
     }
 
-    console.log('[auth/register] Success for:', body.email)
+    console.log('[auth/register] Success for userId:', data.user.id)
     return NextResponse.json(response)
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid input', details: error.errors },
+        { status: 400 }
+      )
+    }
     console.error('[auth/register] Error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },

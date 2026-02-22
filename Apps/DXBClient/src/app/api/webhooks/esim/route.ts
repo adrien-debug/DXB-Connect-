@@ -240,12 +240,6 @@ async function handleValidityUsage(supabase: any, content: WebhookPayload['conte
   }
 }
 
-// Support GET pour test du webhook
 export async function GET() {
-  return NextResponse.json({
-    status: 'ok',
-    endpoint: '/api/webhooks/esim',
-    supportedTypes: ['ORDER_STATUS', 'ESIM_STATUS', 'DATA_USAGE', 'VALIDITY_USAGE'],
-    documentation: 'https://docs.esimaccess.com/',
-  })
+  return NextResponse.json({ status: 'ok' })
 }

@@ -13,7 +13,9 @@ CREATE TABLE public.profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all for authenticated" ON public.profiles FOR ALL USING (true);
+CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Service role can manage all profiles" ON public.profiles FOR ALL USING (auth.role() = 'service_role');
 
 -- SUPPLIERS
 DROP TABLE IF EXISTS public.suppliers CASCADE;
@@ -27,7 +29,8 @@ CREATE TABLE public.suppliers (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all suppliers" ON public.suppliers FOR ALL USING (true);
+CREATE POLICY "Service role can manage suppliers" ON public.suppliers FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Authenticated can view suppliers" ON public.suppliers FOR SELECT USING (auth.role() = 'authenticated');
 
 -- PRODUCTS
 DROP TABLE IF EXISTS public.products CASCADE;
@@ -43,7 +46,8 @@ CREATE TABLE public.products (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all products" ON public.products FOR ALL USING (true);
+CREATE POLICY "Service role can manage products" ON public.products FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Authenticated can view products" ON public.products FOR SELECT USING (auth.role() = 'authenticated');
 
 -- CUSTOMERS
 DROP TABLE IF EXISTS public.customers CASCADE;
@@ -57,7 +61,7 @@ CREATE TABLE public.customers (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all customers" ON public.customers FOR ALL USING (true);
+CREATE POLICY "Service role can manage customers" ON public.customers FOR ALL USING (auth.role() = 'service_role');
 
 -- AD_CAMPAIGNS
 DROP TABLE IF EXISTS public.ad_campaigns CASCADE;
@@ -75,7 +79,7 @@ CREATE TABLE public.ad_campaigns (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE public.ad_campaigns ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all campaigns" ON public.ad_campaigns FOR ALL USING (true);
+CREATE POLICY "Service role can manage campaigns" ON public.ad_campaigns FOR ALL USING (auth.role() = 'service_role');
 
 -- CART_ITEMS
 DROP TABLE IF EXISTS public.cart_items CASCADE;
@@ -87,7 +91,8 @@ CREATE TABLE public.cart_items (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE public.cart_items ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all cart_items" ON public.cart_items FOR ALL USING (true);
+CREATE POLICY "Users can manage own cart" ON public.cart_items FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Service role can manage all carts" ON public.cart_items FOR ALL USING (auth.role() = 'service_role');
 
 -- ORDERS
 DROP TABLE IF EXISTS public.orders CASCADE;
@@ -100,7 +105,8 @@ CREATE TABLE public.orders (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all orders" ON public.orders FOR ALL USING (true);
+CREATE POLICY "Users can view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Service role can manage all orders" ON public.orders FOR ALL USING (auth.role() = 'service_role');
 
 -- ESIM_ORDERS
 DROP TABLE IF EXISTS public.esim_orders CASCADE;
@@ -120,7 +126,8 @@ CREATE TABLE public.esim_orders (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE public.esim_orders ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow all esim_orders" ON public.esim_orders FOR ALL USING (true);
+CREATE POLICY "Users can view own esim_orders" ON public.esim_orders FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Service role can manage all esim_orders" ON public.esim_orders FOR ALL USING (auth.role() = 'service_role');
 
 -- FUNCTION get_user_role
 CREATE OR REPLACE FUNCTION public.get_user_role(user_id UUID)

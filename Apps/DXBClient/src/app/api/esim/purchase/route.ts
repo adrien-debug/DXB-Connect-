@@ -1,10 +1,10 @@
 import { requireAuthFlexible } from '@/lib/auth-middleware'
 import type { Database } from '@/lib/database.types'
 import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
-import type { PurchaseRequest } from '@/lib/esim-types'
 import { createClient } from '@/lib/supabase/server'
 import { emitEvent } from '@/lib/events/event-pipeline'
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 
 type EsimOrderInsert = Database['public']['Tables']['esim_orders']['Insert']
 
@@ -69,21 +69,47 @@ interface OrderResponse {
  * - Enregistre la commande dans Supabase
  * - Retourne les infos de l'eSIM (QR code, LPA, etc.)
  */
+const purchaseSchema = z.object({
+  packageCode: z.string().min(1, 'packageCode is required'),
+  quantity: z.number().int().positive().max(10).default(1),
+})
+
 export async function POST(request: Request) {
   try {
     const { error: authError, user } = await requireAuthFlexible(request)
     if (authError) return authError
 
-    const body: PurchaseRequest = await request.json()
-
-    if (!body.packageCode) {
-      return NextResponse.json(
-        { success: false, error: 'packageCode is required' },
-        { status: 400 }
-      )
-    }
+    const body = purchaseSchema.parse(await request.json())
 
     console.log('[esim/purchase] On-demand order for user=%s, package=%s', user.id, body.packageCode)
+
+    // 0. Idempotence : vérifier si une commande récente (< 30s) existe pour le même package
+    const supabase = await createClient()
+    const thirtySecsAgo = new Date(Date.now() - 30_000).toISOString()
+    const { data: recentOrder } = await (supabase.from('esim_orders') as SupabaseAny)
+      .select('order_no, iccid, lpa_code, qr_code_url, status')
+      .eq('user_id', user.id)
+      .eq('package_code', body.packageCode)
+      .gte('created_at', thirtySecsAgo)
+      .maybeSingle()
+
+    if (recentOrder) {
+      console.log('[esim/purchase] Duplicate detected, returning existing order=%s', recentOrder.order_no)
+      return NextResponse.json({
+        success: true,
+        obj: {
+          orderNo: recentOrder.order_no,
+          esimList: recentOrder.iccid ? [{
+            iccid: recentOrder.iccid,
+            ac: recentOrder.lpa_code,
+            qrCodeUrl: recentOrder.qr_code_url,
+            smdpStatus: recentOrder.status,
+          }] : [],
+          packageList: [],
+          duplicate: true,
+        }
+      })
+    }
 
     // 1. Commander on-demand via eSIM Access API
     const transactionId = `dxb_${user.id.slice(0, 8)}_${Date.now()}`
@@ -106,19 +132,19 @@ export async function POST(request: Request) {
 
     const orderNo = orderResponse.obj.orderNo
 
-    // 2. Attendre un instant puis récupérer les détails (QR code, LPA)
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // 2. Polling pour récupérer les détails (QR code, LPA) - max 3 tentatives
+    let esimDetails: { iccid?: string; ac?: string; qrCodeUrl?: string; smdpStatus?: string } | undefined
+    let pkgDetails = orderResponse.obj?.packageList?.[0]
 
-    const queryResponse = await esimPost<OrderResponse>('/open/esim/query', {
-      orderNo,
-    })
-
-    const esimDetails = queryResponse.obj?.esimList?.[0]
-    const pkgDetails = queryResponse.obj?.packageList?.[0] || orderResponse.obj?.packageList?.[0]
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 1000 + attempt * 1000))
+      const queryResponse = await esimPost<OrderResponse>('/open/esim/query', { orderNo })
+      esimDetails = queryResponse.obj?.esimList?.[0]
+      pkgDetails = queryResponse.obj?.packageList?.[0] || pkgDetails
+      if (esimDetails?.iccid) break
+    }
 
     // 3. Enregistrer dans Supabase
-    const supabase = await createClient()
-
     const row: EsimOrderInsert = {
       user_id: user.id,
       order_no: orderNo,
@@ -127,7 +153,7 @@ export async function POST(request: Request) {
       lpa_code: esimDetails?.ac || '',
       qr_code_url: esimDetails?.qrCodeUrl || '',
       status: esimDetails?.smdpStatus || 'PENDING',
-      raw_response: queryResponse.obj as unknown as EsimOrderInsert['raw_response'],
+      raw_response: {} as EsimOrderInsert['raw_response'],
     }
 
     const { error: dbError } = await (supabase.from('esim_orders') as SupabaseAny).insert(row)
@@ -195,6 +221,12 @@ export async function POST(request: Request) {
       }
     })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid input', details: error.errors },
+        { status: 400 }
+      )
+    }
     if (error instanceof ESIMAccessError) {
       console.error('[esim/purchase] eSIM API error:', error.status, error.body)
       return NextResponse.json(

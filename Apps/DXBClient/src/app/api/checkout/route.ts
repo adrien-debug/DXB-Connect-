@@ -1,68 +1,37 @@
+import { requireAuthFlexible } from '@/lib/auth-middleware'
 import { isStripeConfigured, stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-interface CheckoutItem {
-  product_id: string | null
-  product_name: string
-  product_sku?: string
-  quantity: number
-  unit_price: number
-}
+const checkoutItemSchema = z.object({
+  product_id: z.string().nullable(),
+  product_name: z.string().min(1),
+  product_sku: z.string().optional(),
+  quantity: z.number().int().positive(),
+  unit_price: z.number().positive(),
+})
 
-interface CheckoutRequest {
-  items: CheckoutItem[]
-  payment_method: 'stripe' | 'apple_pay' | 'google_pay' | 'paypal'
-  customer_email: string
-  customer_name: string
-  user_id: string
-}
+const checkoutSchema = z.object({
+  items: z.array(checkoutItemSchema).min(1, 'At least one item is required'),
+  payment_method: z.enum(['stripe', 'apple_pay', 'google_pay', 'paypal']),
+  customer_email: z.string().email(),
+  customer_name: z.string().min(1),
+})
 
 export async function POST(request: NextRequest) {
   try {
-    // 🔴 SÉCURITÉ: Vérifier l'authentification (éviter spoofing user_id)
-    const authHeader = request.headers.get('Authorization')
+    const { error: authError, user } = await requireAuthFlexible(request)
+    if (authError) return authError
+
+    const rawBody = await request.json()
+    const body = checkoutSchema.parse(rawBody)
+
+    const userId = user.id
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
-    let authenticatedUserId: string | null = null
-
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.replace('Bearer ', '')
-      const { data: { user }, error } = await supabase.auth.getUser(token)
-      if (!error && user) {
-        authenticatedUserId = user.id
-      }
-    }
-
-    if (!authenticatedUserId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized - valid token required' },
-        { status: 401 }
-      )
-    }
-
-    const body: CheckoutRequest = await request.json()
-
-    // Validate request
-    if (!body.items || body.items.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'No items provided' },
-        { status: 400 }
-      )
-    }
-
-    if (!body.customer_email || !body.customer_name) {
-      return NextResponse.json(
-        { success: false, error: 'Customer info required' },
-        { status: 400 }
-      )
-    }
-
-    // 🔒 Utiliser le user_id authentifié, pas celui du body
-    const userId = authenticatedUserId
 
     // Vérifier les prix côté serveur via la table esim_pricing
     let subtotal = 0
@@ -194,7 +163,13 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Checkout error:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid input', details: error.errors },
+        { status: 400 }
+      )
+    }
+    console.error('[checkout] Error:', { userId: 'unknown' })
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

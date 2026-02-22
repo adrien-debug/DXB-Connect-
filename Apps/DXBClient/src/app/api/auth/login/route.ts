@@ -1,25 +1,15 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { z } from 'zod'
 
-/**
- * Login avec email/password pour iOS
- */
-
-interface LoginRequest {
-  email: string
-  password: string
-}
+const loginSchema = z.object({
+  email: z.string().email('Invalid email'),
+  password: z.string().min(1, 'Password is required'),
+})
 
 export async function POST(request: Request) {
   try {
-    const body: LoginRequest = await request.json()
-    
-    if (!body.email || !body.password) {
-      return NextResponse.json(
-        { success: false, error: 'Email and password are required' },
-        { status: 400 }
-      )
-    }
+    const body = loginSchema.parse(await request.json())
 
     const supabase = await createClient()
 
@@ -62,9 +52,15 @@ export async function POST(request: Request) {
       },
     }
 
-    console.log('[auth/login] Success for:', body.email)
+    console.log('[auth/login] Success for userId:', data.user.id)
     return NextResponse.json(response)
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid input', details: error.errors },
+        { status: 400 }
+      )
+    }
     console.error('[auth/login] Error:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },

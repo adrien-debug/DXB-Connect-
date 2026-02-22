@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { verifyWebhookSignature } from '@/lib/fireblocks/client'
 import { emitEvent } from '@/lib/events/event-pipeline'
 import { NextResponse } from 'next/server'
@@ -31,7 +31,10 @@ export async function POST(request: Request) {
 
     console.log('[webhook/fireblocks] Event received:', { type, txId: data?.id })
 
-    const supabase = await createClient() as SupabaseAny
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    ) as SupabaseAny
 
     if (type === 'TRANSACTION_STATUS_UPDATED' || type === 'TRANSACTION_CREATED') {
       const tx = data

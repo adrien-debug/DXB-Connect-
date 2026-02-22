@@ -3,7 +3,7 @@ import { z } from 'zod'
 // === AUTH SCHEMAS ===
 export const loginSchema = z.object({
   email: z.string().email('Email invalide'),
-  password: z.string().min(6, 'Mot de passe minimum 6 caractères'),
+  password: z.string().min(8, 'Mot de passe minimum 8 caractères'),
 })
 
 export const registerSchema = loginSchema.extend({
