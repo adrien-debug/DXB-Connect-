@@ -59,11 +59,27 @@ final class AppState {
 
         locationManager.requestIfNeeded()
 
-        let authenticated = await authService.isAuthenticated()
-        isAuthenticated = authenticated
+        let hasToken = await authService.isAuthenticated()
 
-        if authenticated {
-            await loadDashboard()
+        if hasToken {
+            if let token = try? await authService.getAccessToken() {
+                await apiClient.setAccessToken(token)
+            }
+            do {
+                _ = try await apiService.fetchMyESIMs()
+                isAuthenticated = true
+                await loadDashboard()
+            } catch {
+                if case APIError.unauthorized = error {
+                    try? await authService.clearTokens()
+                    isAuthenticated = false
+                } else {
+                    isAuthenticated = true
+                    await loadDashboard()
+                }
+            }
+        } else {
+            isAuthenticated = false
         }
     }
 

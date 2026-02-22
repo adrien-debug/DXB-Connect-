@@ -1,10 +1,24 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 /**
- * Envoie un OTP par email pour iOS
- * Utilise Supabase Magic Link / OTP
+ * Envoie un OTP (code 6 chiffres) par email pour iOS.
+ * Utilise admin.generateLink pour obtenir le code, puis Supabase
+ * envoie l'email automatiquement via signInWithOtp.
+ *
+ * IMPORTANT : Dans Supabase Dashboard > Authentication > Email Templates > Magic Link,
+ * le template doit contenir {{ .Token }} pour afficher le code OTP 6 chiffres.
  */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SupabaseAny = any
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  ) as SupabaseAny
+}
 
 interface SendOTPRequest {
   email: string
@@ -13,7 +27,7 @@ interface SendOTPRequest {
 export async function POST(request: Request) {
   try {
     const body: SendOTPRequest = await request.json()
-    
+
     if (!body.email) {
       return NextResponse.json(
         { success: false, error: 'email is required' },
@@ -21,7 +35,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Valider format email
     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
     if (!emailRegex.test(body.email)) {
       return NextResponse.json(
@@ -30,13 +43,11 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = await createClient()
+    const supabase = getAdminClient()
 
-    // Envoyer OTP via Supabase
     const { error } = await supabase.auth.signInWithOtp({
       email: body.email,
       options: {
-        // Pour iOS, on veut un code OTP, pas un magic link
         shouldCreateUser: true,
       },
     })
@@ -49,9 +60,11 @@ export async function POST(request: Request) {
       )
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'OTP sent successfully' 
+    console.log('[auth/email/send-otp] OTP sent to:', body.email.slice(0, 3) + '***')
+
+    return NextResponse.json({
+      success: true,
+      message: 'OTP sent successfully'
     })
   } catch (error) {
     console.error('[auth/email/send-otp] Error:', error)

@@ -37,9 +37,10 @@ export async function POST(request: Request) {
     })
 
     if (error) {
-      console.error('[auth/register] Supabase error:', { code: error.status })
-      const safeMessage = error.message?.includes('already registered')
-        ? 'An account with this email already exists'
+      console.error('[auth/register] Supabase error:', { code: error.status, message: error.message })
+      const isExisting = error.message?.includes('already registered') || error.message?.includes('already been registered') || error.status === 422
+      const safeMessage = isExisting
+        ? 'An account with this email already exists. Try signing in.'
         : 'Registration failed. Please try again.'
       return NextResponse.json(
         { success: false, error: safeMessage },

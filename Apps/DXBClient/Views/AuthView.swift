@@ -7,14 +7,16 @@ struct AuthView: View {
 
     @State private var authMode: AuthMode = .landing
     @State private var email = ""
-    @State private var otpCode = ""
+    @State private var password = ""
+    @State private var name = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var logoScale: CGFloat = 0.8
     @State private var logoOpacity: Double = 0
+    @State private var isRegistering = false
 
     enum AuthMode {
-        case landing, emailInput, otpVerify
+        case landing, emailAuth
     }
 
     var body: some View {
@@ -96,8 +98,7 @@ struct AuthView: View {
     private var authContent: some View {
         switch authMode {
         case .landing:   landingContent
-        case .emailInput: emailInputContent
-        case .otpVerify: otpVerifyContent
+        case .emailAuth: emailAuthContent
         }
     }
 
@@ -123,7 +124,8 @@ struct AuthView: View {
 
             Button {
                 withAnimation(.spring(response: 0.4)) {
-                    authMode = .emailInput
+                    isRegistering = false
+                    authMode = .emailAuth
                 }
             } label: {
                 HStack(spacing: 10) {
@@ -175,20 +177,31 @@ struct AuthView: View {
         }
     }
 
-    // MARK: - Email Input
+    // MARK: - Email Auth (Login / Register)
 
-    private var emailInputContent: some View {
+    private var emailAuthContent: some View {
         VStack(spacing: 24) {
             backButton
 
             VStack(spacing: 8) {
-                Text("Email Sign In")
+                Text(isRegistering ? "Create Account" : "Sign In")
                     .font(AppFonts.sectionTitle())
                     .foregroundStyle(AppColors.textPrimary)
 
-                Text("We'll send you a verification code")
+                Text(isRegistering ? "Enter your details to get started" : "Enter your credentials")
                     .font(AppFonts.body())
                     .foregroundStyle(AppColors.textSecondary)
+            }
+
+            if isRegistering {
+                pulseTextField(
+                    label: "NAME",
+                    placeholder: "Your name",
+                    text: $name,
+                    keyboardType: .default,
+                    contentType: .name,
+                    isSecure: false
+                )
             }
 
             pulseTextField(
@@ -196,123 +209,87 @@ struct AuthView: View {
                 placeholder: "your@email.com",
                 text: $email,
                 keyboardType: .emailAddress,
-                contentType: .emailAddress
+                contentType: .emailAddress,
+                isSecure: false
+            )
+
+            pulseTextField(
+                label: "PASSWORD",
+                placeholder: "Min. 8 characters",
+                text: $password,
+                keyboardType: .default,
+                contentType: isRegistering ? .newPassword : .password,
+                isSecure: true
             )
 
             if let error = errorMessage { errorBanner(error) }
 
-            Button { Task { await sendOTP() } } label: {
-                Text("Send Code")
+            Button { Task { await submitAuth() } } label: {
+                Text(isRegistering ? "Create Account" : "Sign In")
             }
             .buttonStyle(PrimaryButtonStyle())
-            .disabled(email.isEmpty || !email.contains("@"))
-            .opacity(email.isEmpty || !email.contains("@") ? 0.5 : 1)
+            .disabled(!isFormValid)
+            .opacity(isFormValid ? 1 : 0.5)
+
+            Button {
+                withAnimation(.spring(response: 0.3)) {
+                    isRegistering.toggle()
+                    errorMessage = nil
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(isRegistering ? "Already have an account?" : "Don't have an account?")
+                        .foregroundStyle(AppColors.textSecondary)
+                    Text(isRegistering ? "Sign In" : "Sign Up")
+                        .foregroundStyle(AppColors.accent)
+                        .fontWeight(.semibold)
+                }
+                .font(.system(size: 14))
+            }
         }
         .slideIn(delay: 0)
     }
 
-    // MARK: - OTP Verify
-
-    private var otpVerifyContent: some View {
-        VStack(spacing: 24) {
-            backButton
-
-            VStack(spacing: 8) {
-                Text("Verification")
-                    .font(AppFonts.sectionTitle())
-                    .foregroundStyle(AppColors.textPrimary)
-
-                Text("Code sent to \(email)")
-                    .font(AppFonts.body())
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("VERIFICATION CODE")
-                    .font(.system(size: 10, weight: .bold))
-                    .tracking(1.5)
-                    .foregroundStyle(AppColors.textTertiary)
-
-                HStack(spacing: 8) {
-                    ForEach(0..<6, id: \.self) { index in
-                        let char = index < otpCode.count
-                            ? String(otpCode[otpCode.index(otpCode.startIndex, offsetBy: index)])
-                            : ""
-
-                        Text(char)
-                            .font(.system(size: 24, weight: .bold, design: .monospaced))
-                            .foregroundColor(AppColors.textPrimary)
-                            .frame(width: 44, height: 56)
-                            .background(
-                                RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
-                                    .fill(AppColors.surface)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
-                                    .stroke(
-                                        index == otpCode.count ? AppColors.accent : AppColors.border,
-                                        lineWidth: index == otpCode.count ? 2 : 1
-                                    )
-                            )
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .overlay(
-                    TextField("", text: $otpCode)
-                        .keyboardType(.numberPad)
-                        .textContentType(.oneTimeCode)
-                        .opacity(0.01)
-                        .onChange(of: otpCode) { _, newValue in
-                            if newValue.count > 6 {
-                                otpCode = String(newValue.prefix(6))
-                            }
-                        }
-                )
-            }
-
-            if let error = errorMessage { errorBanner(error) }
-
-            Button { Task { await verifyOTP() } } label: {
-                Text("Verify")
-            }
-            .buttonStyle(PrimaryButtonStyle())
-            .disabled(otpCode.count < 6)
-            .opacity(otpCode.count < 6 ? 0.5 : 1)
-
-            Button { Task { await sendOTP() } } label: {
-                Text("Resend code")
-                    .font(AppFonts.tabLabel())
-                    .foregroundStyle(AppColors.accent)
-            }
+    private var isFormValid: Bool {
+        let emailOk = !email.isEmpty && email.contains("@")
+        let passwordOk = password.count >= 8
+        if isRegistering {
+            return emailOk && passwordOk && !name.isEmpty
         }
-        .slideIn(delay: 0)
+        return emailOk && passwordOk
     }
 
     // MARK: - Components
 
-    private func pulseTextField(label: String, placeholder: String, text: Binding<String>, keyboardType: UIKeyboardType = .default, contentType: UITextContentType? = nil) -> some View {
+    private func pulseTextField(label: String, placeholder: String, text: Binding<String>, keyboardType: UIKeyboardType = .default, contentType: UITextContentType? = nil, isSecure: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
                 .font(.system(size: 10, weight: .bold))
                 .tracking(1.5)
                 .foregroundStyle(AppColors.textTertiary)
 
-            TextField("", text: text, prompt: Text(placeholder).foregroundColor(AppColors.textTertiary))
-                .font(AppFonts.body())
-                .foregroundStyle(AppColors.textPrimary)
-                .keyboardType(keyboardType)
-                .textContentType(contentType)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .padding(AppSpacing.base)
-                .background(
-                    RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
-                        .fill(AppColors.surface)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
-                        .stroke(AppColors.border, lineWidth: 1)
-                )
+            Group {
+                if isSecure {
+                    SecureField("", text: text, prompt: Text(placeholder).foregroundColor(AppColors.textTertiary))
+                } else {
+                    TextField("", text: text, prompt: Text(placeholder).foregroundColor(AppColors.textTertiary))
+                        .keyboardType(keyboardType)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                }
+            }
+            .font(AppFonts.body())
+            .foregroundStyle(AppColors.textPrimary)
+            .textContentType(contentType)
+            .padding(AppSpacing.base)
+            .background(
+                RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                    .fill(AppColors.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                    .stroke(AppColors.border, lineWidth: 1)
+            )
         }
     }
 
@@ -320,13 +297,10 @@ struct AuthView: View {
         HStack {
             Button {
                 withAnimation(.spring(response: 0.4)) {
-                    if authMode == .otpVerify {
-                        authMode = .emailInput
-                        otpCode = ""
-                    } else {
-                        authMode = .landing
-                        email = ""
-                    }
+                    authMode = .landing
+                    email = ""
+                    password = ""
+                    name = ""
                     errorMessage = nil
                 }
             } label: {
@@ -374,8 +348,7 @@ struct AuthView: View {
     private var loadingMessage: String {
         switch authMode {
         case .landing: return "Signing in..."
-        case .emailInput: return "Sending code..."
-        case .otpVerify: return "Verifying..."
+        case .emailAuth: return isRegistering ? "Creating account..." : "Signing in..."
         }
     }
 
@@ -419,28 +392,30 @@ struct AuthView: View {
         }
     }
 
-    private func sendOTP() async {
+    private func submitAuth() async {
         isLoading = true
         errorMessage = nil
         do {
-            try await appState.apiService.signInWithEmail(email: email)
-            isLoading = false
-            withAnimation(.spring(response: 0.4)) { authMode = .otpVerify }
-        } catch {
-            errorMessage = "Unable to send verification code"
-            isLoading = false
-        }
-    }
-
-    private func verifyOTP() async {
-        isLoading = true
-        errorMessage = nil
-        do {
-            let response = try await appState.apiService.verifyOTP(email: email, otp: otpCode)
+            let response: AuthResponse
+            if isRegistering {
+                response = try await appState.apiService.signUpWithPassword(email: email, password: password, name: name)
+            } else {
+                response = try await appState.apiService.signInWithPassword(email: email, password: password)
+            }
             isLoading = false
             appState.didSignIn(response: response)
+        } catch let apiError as APIError {
+            switch apiError {
+            case .serverError(_, let message):
+                errorMessage = message
+            case .unauthorized:
+                errorMessage = "Invalid email or password"
+            default:
+                errorMessage = apiError.localizedDescription
+            }
+            isLoading = false
         } catch {
-            errorMessage = "Invalid or expired code"
+            errorMessage = isRegistering ? "Registration failed. Please try again." : "Invalid email or password."
             isLoading = false
         }
     }
