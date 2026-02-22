@@ -41,7 +41,7 @@ struct MainTabView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                Color.clear.frame(height: 44)
+                Color.clear.frame(height: 36)
             }
 
             floatingTabBar
@@ -52,7 +52,7 @@ struct MainTabView: View {
     private var floatingTabBar: some View {
         VStack(spacing: 0) {
             Rectangle()
-                .fill(AppColors.border.opacity(0.5))
+                .fill(AppColors.border.opacity(0.4))
                 .frame(height: 0.5)
 
             HStack(spacing: 0) {
@@ -67,22 +67,21 @@ struct MainTabView: View {
                     } label: {
                         VStack(spacing: 2) {
                             Image(systemName: tab.icon)
-                                .font(.system(size: 16, weight: selectedTab == tab ? .semibold : .regular))
+                                .font(.system(size: 18, weight: selectedTab == tab ? .semibold : .regular))
                                 .foregroundColor(selectedTab == tab ? AppColors.accent : AppColors.textTertiary)
                                 .symbolEffect(.bounce, value: selectedTab == tab)
 
                             Text(tab.label)
-                                .font(.system(size: 9, weight: selectedTab == tab ? .bold : .medium))
+                                .font(.system(size: 10, weight: selectedTab == tab ? .bold : .medium))
                                 .foregroundColor(selectedTab == tab ? AppColors.accent : AppColors.textTertiary)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 2)
                         .accessibilityLabel(tab.label)
                     }
                 }
             }
             .padding(.horizontal, AppSpacing.base)
-            .padding(.top, 4)
+            .padding(.top, 21)
             .padding(.bottom, 2)
         }
         .background(.ultraThinMaterial)

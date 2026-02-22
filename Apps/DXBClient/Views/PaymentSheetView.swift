@@ -1,5 +1,6 @@
 import SwiftUI
 import DXBCore
+import PassKit
 
 struct PaymentSheetView: View {
     @Environment(AppState.self) private var appState
@@ -8,7 +9,13 @@ struct PaymentSheetView: View {
     let plan: Plan
     var onPurchaseComplete: ((ESIMOrder) -> Void)?
 
-    @State private var selectedMethod: PaymentMethod = .applePay
+    @State private var selectedMethod: PaymentMethod = {
+        #if targetEnvironment(simulator)
+        return .card
+        #else
+        return ApplePayService.canMakePayments ? .applePay : .card
+        #endif
+    }()
     @State private var isPurchasing = false
     @State private var errorMessage: String?
 
@@ -258,10 +265,43 @@ struct PaymentSheetView: View {
     }
 
     private func processPurchase() async {
+        if selectedMethod == .applePay && !ApplePayService.canMakePayments {
+            errorMessage = "Apple Pay is not available. Select another method."
+            selectedMethod = .card
+            return
+        }
+
         isPurchasing = true; errorMessage = nil
         do {
-            let order = try await appState.apiService.purchasePlan(planId: plan.id)
+            let order: ESIMOrder
+            switch selectedMethod {
+            case .applePay:
+                let payment = try await ApplePayService.shared.presentPaymentSheet(
+                    amount: discountedPrice,
+                    label: "\(plan.location) eSIM – \(plan.dataGB)GB"
+                )
+                order = try await appState.apiService.processApplePayPayment(
+                    planId: plan.id,
+                    paymentToken: payment.tokenBase64,
+                    paymentNetwork: payment.paymentNetwork
+                )
+            case .card:
+                order = try await appState.apiService.purchasePlan(planId: plan.id)
+            case .crypto:
+                isPurchasing = false; return
+            }
             isPurchasing = false; onPurchaseComplete?(order); dismiss()
+        } catch let apError as ApplePayError {
+            isPurchasing = false
+            switch apError {
+            case .cancelled:
+                break
+            case .notAvailable, .notConfigured, .failedToPresent:
+                errorMessage = apError.localizedDescription
+                selectedMethod = .card
+            case .failedToCreate, .paymentFailed:
+                errorMessage = apError.localizedDescription
+            }
         } catch {
             errorMessage = "Payment failed. Please try again."; isPurchasing = false
         }

@@ -55,7 +55,9 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
 
     nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         Task { @MainActor in
-            appLog("Location error: \(error.localizedDescription)", level: .warning, category: .general)
+            #if DEBUG
+            print("[LocationManager] Error: \(error.localizedDescription)")
+            #endif
             fallbackToLocale()
         }
     }
@@ -66,10 +68,14 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
             if let placemark = placemarks.first {
                 detectedCountryCode = placemark.isoCountryCode
                 detectedCity = placemark.locality
-                appLog("Location detected: \(detectedCountryCode ?? "?") / \(detectedCity ?? "?")", level: .info, category: .general)
+                #if DEBUG
+                print("[LocationManager] Detected: \(detectedCountryCode ?? "?") / \(detectedCity ?? "?")")
+                #endif
             }
         } catch {
-            appLog("Geocoding failed: \(error.localizedDescription)", level: .warning, category: .general)
+            #if DEBUG
+            print("[LocationManager] Geocoding failed: \(error.localizedDescription)")
+            #endif
             fallbackToLocale()
         }
     }

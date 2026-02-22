@@ -30,6 +30,24 @@ struct OffersListView: View {
         .navigationTitle("Exclusive Offers")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                VStack(spacing: 1) {
+                    Text("Exclusive Offers")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(AppColors.textPrimary)
+                    if let country = appState.locationManager.detectedCountryCode {
+                        HStack(spacing: 3) {
+                            Image(systemName: "location.fill")
+                                .font(.system(size: 8))
+                            Text(Locale.current.localizedString(forRegionCode: country) ?? country)
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                        .foregroundStyle(AppColors.accent)
+                    }
+                }
+            }
+        }
         .task { await loadOffers() }
     }
 
@@ -101,88 +119,160 @@ struct OffersListView: View {
         .refreshable { await loadOffers() }
     }
 
+    private func offerImageURL(_ offer: PartnerOfferResponse) -> URL? {
+        if let imageUrl = offer.image_url, let url = URL(string: imageUrl) { return url }
+        let keyword: String
+        if let city = offer.city { keyword = city }
+        else if let codes = offer.country_codes, let first = codes.first {
+            keyword = Locale.current.localizedString(forRegionCode: first) ?? first
+        } else if let cat = offer.category { keyword = cat == "activity" ? "travel" : cat }
+        else { keyword = "travel" }
+        let encoded = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "travel"
+        return URL(string: "https://source.unsplash.com/600x400/?\(encoded)")
+    }
+
+    private func flagEmoji(for countryCode: String) -> String {
+        let base: UInt32 = 127397
+        return countryCode.uppercased().unicodeScalars.compactMap {
+            UnicodeScalar(base + $0.value).map(String.init)
+        }.joined()
+    }
+
+    private func offerCategoryIcon(_ category: String?) -> String {
+        switch category {
+        case "activity": return "figure.hiking"
+        case "transport": return "car.fill"
+        case "food": return "fork.knife"
+        case "hotel": return "bed.double.fill"
+        case "lounge": return "cup.and.saucer.fill"
+        case "insurance": return "shield.checkered"
+        default: return "sparkles"
+        }
+    }
+
     private func offerCard(_ offer: PartnerOfferResponse) -> some View {
-        HStack(spacing: AppSpacing.md) {
-            if let imageUrl = offer.image_url, let url = URL(string: imageUrl) {
-                AsyncImage(url: url) { phase in
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack(alignment: .bottomLeading) {
+                AsyncImage(url: offerImageURL(offer)) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFill()
-                            .frame(width: 80, height: 80)
-                            .clipped()
                     default:
                         ZStack {
-                            Rectangle().fill(AppColors.surfaceSecondary)
-                            Image(systemName: "tag.fill")
-                                .font(.system(size: 20))
-                                .foregroundStyle(AppColors.accent.opacity(0.3))
+                            Rectangle().fill(
+                                LinearGradient(
+                                    colors: [AppColors.accent.opacity(0.3), AppColors.surfaceSecondary],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            Image(systemName: offerCategoryIcon(offer.category))
+                                .font(.system(size: 36, weight: .light))
+                                .foregroundStyle(.white.opacity(0.5))
                         }
-                        .frame(width: 80, height: 80)
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
-            } else {
-                ZStack {
-                    RoundedRectangle(cornerRadius: AppRadius.md)
-                        .fill(AppColors.surfaceSecondary)
-                    Image(systemName: "tag.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(AppColors.accent.opacity(0.3))
-                }
-                .frame(width: 80, height: 80)
-            }
+                .frame(height: 180)
+                .frame(maxWidth: .infinity)
+                .clipped()
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(offer.partner_name ?? "Partner")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(AppColors.textPrimary)
-                    .lineLimit(1)
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.65)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 90)
 
-                Text(offer.title ?? "Special Offer")
-                    .font(.system(size: 13))
-                    .foregroundStyle(AppColors.textSecondary)
-                    .lineLimit(2)
+                HStack(spacing: 6) {
+                    if let codes = offer.country_codes, let code = codes.first {
+                        HStack(spacing: 4) {
+                            Text(flagEmoji(for: code))
+                                .font(.system(size: 16))
+                            if let city = offer.city {
+                                Text(city)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(.ultraThinMaterial))
+                    } else if offer.is_global == true {
+                        HStack(spacing: 4) {
+                            Text("🌍")
+                                .font(.system(size: 14))
+                            Text("Worldwide")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(.white)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(.ultraThinMaterial))
+                    }
 
-                HStack(spacing: 8) {
-                    if let cat = offer.category {
-                        Text(cat.capitalized)
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(AppColors.textTertiary)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Capsule().fill(AppColors.surfaceSecondary))
+                    if let discount = offer.discount_percent, discount > 0 {
+                        Text("-\(discount)%")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Capsule().fill(AppColors.success))
                     }
 
                     if let tier = offer.tier_required {
-                        HStack(spacing: 2) {
+                        HStack(spacing: 3) {
                             Image(systemName: AppTheme.tierIcon(tier))
-                                .font(.system(size: 7))
+                                .font(.system(size: 8))
                             Text(tier.uppercased())
-                                .font(.system(size: 8, weight: .black))
+                                .font(.system(size: 9, weight: .black))
                         }
                         .foregroundStyle(AppTheme.tierColor(tier))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(AppTheme.tierColor(tier).opacity(0.1)))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(AppTheme.tierColor(tier).opacity(0.15)))
                     }
                 }
+                .padding(AppSpacing.sm)
             }
 
-            Spacer()
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    HStack(spacing: 6) {
+                        Text(offer.partner_name ?? "Viator")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(AppColors.accent)
+                            .textCase(.uppercase)
+                            .tracking(0.5)
 
-            VStack(alignment: .trailing, spacing: 4) {
-                if let discount = offer.discount_percent, discount > 0 {
-                    Text("-\(discount)%")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundStyle(AppColors.success)
+                        if let cat = offer.category {
+                            Text("·")
+                                .foregroundStyle(AppColors.textTertiary)
+                            Text(cat.capitalized)
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(AppColors.textTertiary)
+                        }
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(AppColors.accent)
                 }
 
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(AppColors.accent)
+                Text(offer.title ?? "Special Offer")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text(offer.description ?? "")
+                    .font(.system(size: 12))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .lineLimit(2)
             }
+            .padding(AppSpacing.base)
         }
-        .padding(AppSpacing.base)
         .background(
             RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
                 .fill(AppColors.surface)
@@ -191,23 +281,29 @@ struct OffersListView: View {
                         .stroke(AppColors.border, lineWidth: 0.5)
                 )
         )
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous))
     }
 
     private var loadingCard: some View {
-        HStack(spacing: AppSpacing.md) {
-            RoundedRectangle(cornerRadius: AppRadius.md).fill(AppColors.surfaceSecondary).frame(width: 80, height: 80)
-            VStack(alignment: .leading, spacing: 8) {
-                RoundedRectangle(cornerRadius: AppRadius.xs).fill(AppColors.surfaceSecondary).frame(width: 120, height: 14)
-                RoundedRectangle(cornerRadius: AppRadius.xs).fill(AppColors.surfaceSecondary).frame(width: 180, height: 10)
+        VStack(alignment: .leading, spacing: 0) {
+            RoundedRectangle(cornerRadius: 0).fill(AppColors.surfaceSecondary)
+                .frame(height: 180)
+            VStack(alignment: .leading, spacing: 10) {
+                RoundedRectangle(cornerRadius: AppRadius.xs).fill(AppColors.surfaceSecondary)
+                    .frame(width: 80, height: 10)
+                RoundedRectangle(cornerRadius: AppRadius.xs).fill(AppColors.surfaceSecondary)
+                    .frame(width: 220, height: 16)
+                RoundedRectangle(cornerRadius: AppRadius.xs).fill(AppColors.surfaceSecondary)
+                    .frame(width: 180, height: 12)
             }
-            Spacer()
+            .padding(AppSpacing.base)
         }
-        .padding(AppSpacing.base)
         .background(
             RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
                 .fill(AppColors.surface)
                 .overlay(RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous).stroke(AppColors.border, lineWidth: 0.5))
         )
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous))
         .shimmer()
     }
 
@@ -224,20 +320,25 @@ struct OffersListView: View {
         } catch {
             errorMessage = "Unable to load offers"
             isLoading = false
-            appLog("Failed to load offers: \(error.localizedDescription)", level: .error, category: .data)
+            #if DEBUG
+            print("[OffersListView] Failed to load offers: \(error.localizedDescription)")
+            #endif
         }
     }
 
     private func openOffer(_ offer: PartnerOfferResponse) async {
         do {
-            let response = try await appState.apiService.trackOfferClick(offerId: offer.id, country: nil)
+            let country = appState.locationManager.detectedCountryCode
+            let response = try await appState.apiService.trackOfferClick(offerId: offer.id, country: country)
             if let urlString = response.data?.redirectUrl, let url = URL(string: urlString) {
                 await MainActor.run {
                     UIApplication.shared.open(url)
                 }
             }
         } catch {
-            appLog("Offer click failed: \(error.localizedDescription)", level: .warning, category: .data)
+            #if DEBUG
+            print("[OffersListView] Offer click failed: \(error.localizedDescription)")
+            #endif
         }
     }
 }

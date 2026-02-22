@@ -29,6 +29,7 @@ public protocol DXBAPIServiceProtocol: Sendable {
     // MARK: - Subscriptions (SimPass)
     func fetchMySubscription() async throws -> SubscriptionResponse?
     func createSubscription(plan: String, billingPeriod: String) async throws -> SubscriptionResponse
+    func createSubscriptionApplePay(plan: String, billingPeriod: String, paymentToken: String, paymentNetwork: String) async throws -> SubscriptionResponse
     func cancelSubscription() async throws
 
     // MARK: - Rewards (SimPass)
@@ -178,19 +179,8 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
         } ?? []
 
         await AppLogger.shared.logData("Fetched \(allPlans.count) plans from API")
-        
-        // Optimisation: Limiter le nombre de plans pour éviter les problèmes de performance
-        // Grouper par destination et garder les 5 meilleurs plans par destination
-        let plansByLocation = Dictionary(grouping: allPlans) { $0.locationCode }
-        let filteredPlans = plansByLocation.values.flatMap { locationPlans in
-            // Trier par prix et garder les 5 moins chers
-            locationPlans.sorted { $0.priceUSD < $1.priceUSD }.prefix(5)
-        }
-        
-        let plans = Array(filteredPlans).sorted { $0.priceUSD < $1.priceUSD }
-        await AppLogger.shared.logData("Filtered to \(plans.count) plans for better performance")
-        
-        return plans
+
+        return allPlans.sorted { $0.location < $1.location }
     }
 
     public func fetchStock() async throws -> [ESIMOrder] {
@@ -553,6 +543,29 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
 
         let response: SubscriptionWrapper = try await apiClient.request(
             endpoint: "subscriptions/create",
+            method: "POST",
+            body: body,
+            requiresAuth: true
+        )
+
+        guard let data = response.data else { throw APIError.invalidResponse }
+        return data
+    }
+
+    public func createSubscriptionApplePay(plan: String, billingPeriod: String, paymentToken: String, paymentNetwork: String) async throws -> SubscriptionResponse {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        let body: [String: Any] = [
+            "plan": plan,
+            "billing_period": billingPeriod,
+            "payment_token": paymentToken,
+            "payment_network": paymentNetwork,
+        ]
+
+        let response: SubscriptionWrapper = try await apiClient.request(
+            endpoint: "subscriptions/create-apple-pay",
             method: "POST",
             body: body,
             requiresAuth: true

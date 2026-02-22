@@ -19,15 +19,13 @@ struct AuthView: View {
 
     var body: some View {
         ZStack {
-            AppColors.background.ignoresSafeArea()
+            Image("LoginBackground")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .ignoresSafeArea()
 
-            RadialGradient(
-                colors: [AppColors.accent.opacity(0.06), Color.clear],
-                center: .top,
-                startRadius: 0,
-                endRadius: 500
-            )
-            .ignoresSafeArea()
+            Color.black.opacity(0.55)
+                .ignoresSafeArea()
 
             GeometryReader { proxy in
                 ScrollView(.vertical, showsIndicators: false) {

@@ -411,7 +411,7 @@ struct DashboardView: View {
 
         return VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 5) {
-                Text(flagEmoji(for: esim.packageName))
+                Text(flagFromPackage(esim.packageName))
                     .font(.system(size: 18))
                 Text(esim.packageName)
                     .font(.system(size: 13, weight: .semibold))
@@ -516,14 +516,14 @@ struct DashboardView: View {
                     Text("SimPass Premium")
                         .font(.system(size: 15, weight: .bold, design: .rounded))
                         .foregroundStyle(AppColors.textPrimary)
-                    Text("Up to -30% on eSIMs · From $3.33/mo")
+                    Text("Up to -50% on eSIMs · From $3.33/mo")
                         .font(.system(size: 12))
                         .foregroundStyle(AppColors.textSecondary)
                 }
 
                 Spacer()
 
-                Text("TRY FREE")
+                Text("SUBSCRIBE")
                     .font(.system(size: 10, weight: .black))
                     .tracking(0.5)
                     .foregroundStyle(.black)
@@ -551,12 +551,32 @@ struct DashboardView: View {
 
     private var promoOffersSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            PulseSectionHeader(title: "Exclusive Offers")
-                .padding(.horizontal, AppSpacing.lg)
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    PulseSectionHeader(title: "Exclusive Offers")
+                    if let country = appState.locationManager.detectedCountryCode {
+                        HStack(spacing: 4) {
+                            Image(systemName: "location.fill")
+                                .font(.system(size: 9))
+                            Text(countryName(for: country))
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                        .foregroundStyle(AppColors.accent)
+                        .padding(.leading, 2)
+                    }
+                }
+                Spacer()
+                NavigationLink { OffersListView() } label: {
+                    Text("View all")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(AppColors.accent)
+                }
+            }
+            .padding(.horizontal, AppSpacing.lg)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: AppSpacing.md) {
-                    ForEach(appState.partnerOffers.prefix(5)) { offer in
+                    ForEach(appState.partnerOffers) { offer in
                         Button {
                             Task { await openOffer(offer) }
                         } label: {
@@ -572,64 +592,151 @@ struct DashboardView: View {
         .slideIn(delay: 0.18)
     }
 
+    private func offerImageURL(_ offer: PartnerOfferResponse) -> URL? {
+        if let imageUrl = offer.image_url, let url = URL(string: imageUrl) { return url }
+        let keyword: String
+        if let city = offer.city { keyword = city }
+        else if let codes = offer.country_codes, let first = codes.first {
+            keyword = countryName(for: first)
+        } else if let cat = offer.category { keyword = cat == "activity" ? "travel" : cat }
+        else { keyword = "travel" }
+        let encoded = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "travel"
+        return URL(string: "https://source.unsplash.com/600x400/?\(encoded)")
+    }
+
     private func promoOfferCard(_ offer: PartnerOfferResponse) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let imageUrl = offer.image_url, let url = URL(string: imageUrl) {
-                AsyncImage(url: url) { phase in
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack(alignment: .bottomLeading) {
+                AsyncImage(url: offerImageURL(offer)) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFill()
-                            .frame(width: 200, height: 100)
-                            .clipped()
                     default:
                         ZStack {
-                            Rectangle().fill(AppColors.surfaceSecondary)
-                            Image(systemName: "tag.fill")
-                                .font(.system(size: 24))
-                                .foregroundStyle(AppColors.accent.opacity(0.3))
+                            Rectangle().fill(
+                                LinearGradient(
+                                    colors: [AppColors.accent.opacity(0.3), AppColors.surfaceSecondary],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            Image(systemName: offerCategoryIcon(offer.category))
+                                .font(.system(size: 32, weight: .light))
+                                .foregroundStyle(.white.opacity(0.5))
                         }
-                        .frame(width: 200, height: 100)
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
+                .frame(width: 170, height: 120)
+                .clipped()
+
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.6)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 60)
+
+                Group {
+                    if let codes = offer.country_codes, let code = codes.first {
+                        HStack(spacing: 3) {
+                            Text(flagEmoji(for: code))
+                                .font(.system(size: 12))
+                            if let city = offer.city {
+                                Text(city)
+                                    .font(.system(size: 9, weight: .semibold))
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(.ultraThinMaterial))
+                    } else if offer.is_global == true {
+                        HStack(spacing: 3) {
+                            Text("🌍")
+                                .font(.system(size: 11))
+                            Text("Global")
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundStyle(.white)
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(.ultraThinMaterial))
+                    }
+                }
+                .padding(6)
             }
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(offer.partner_name ?? "Partner")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(AppColors.textPrimary)
-                    .lineLimit(1)
-
                 Text(offer.title ?? "Special Offer")
-                    .font(.system(size: 12))
-                    .foregroundStyle(AppColors.textSecondary)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(AppColors.textPrimary)
                     .lineLimit(2)
-            }
 
-            if let discount = offer.discount_percent, discount > 0 {
-                Text("-\(discount)%")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(AppColors.success)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Capsule().fill(AppColors.success.opacity(0.12)))
+                HStack(spacing: 0) {
+                    Text(offer.partner_name ?? "Viator")
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(AppColors.accent)
+
+                    Spacer()
+
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(AppColors.accent)
+                }
             }
+            .padding(.horizontal, 8)
+            .padding(.top, 6)
+            .padding(.bottom, 8)
         }
-        .frame(width: 200)
-        .bentoCard()
+        .frame(width: 170)
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                .fill(AppColors.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                        .stroke(AppColors.border, lineWidth: 0.5)
+                )
+        )
+    }
+
+    private func offerCategoryIcon(_ category: String?) -> String {
+        switch category {
+        case "activity": return "figure.hiking"
+        case "transport": return "car.fill"
+        case "food": return "fork.knife"
+        case "hotel": return "bed.double.fill"
+        case "lounge": return "cup.and.saucer.fill"
+        case "insurance": return "shield.checkered"
+        default: return "sparkles"
+        }
     }
 
     private func openOffer(_ offer: PartnerOfferResponse) async {
         do {
-            let response = try await appState.apiService.trackOfferClick(offerId: offer.id, country: nil)
+            let country = appState.locationManager.detectedCountryCode
+            let response = try await appState.apiService.trackOfferClick(offerId: offer.id, country: country)
             if let urlString = response.data?.redirectUrl, let url = URL(string: urlString) {
                 await MainActor.run {
                     UIApplication.shared.open(url)
                 }
             }
         } catch {
-            appLog("Offer click failed: \(error.localizedDescription)", level: .warning, category: .data)
+            #if DEBUG
+            print("[Dashboard] Offer click failed: \(error.localizedDescription)")
+            #endif
         }
+    }
+
+    private func countryName(for code: String) -> String {
+        Locale.current.localizedString(forRegionCode: code) ?? code
+    }
+
+    private func flagEmoji(for countryCode: String) -> String {
+        let base: UInt32 = 127397
+        return countryCode.uppercased().unicodeScalars.compactMap {
+            UnicodeScalar(base + $0.value).map(String.init)
+        }.joined()
     }
 
     // MARK: - Helpers
@@ -665,7 +772,7 @@ struct DashboardView: View {
         return "\(usagePercent)%"
     }
 
-    private func flagEmoji(for packageName: String) -> String {
+    private func flagFromPackage(_ packageName: String) -> String {
         CountryHelper.flagFromName(packageName)
     }
 
@@ -678,7 +785,9 @@ struct DashboardView: View {
                     usageCache[esim.iccid] = usage
                 }
             } catch {
-                appLog("Usage fetch failed for \(esim.iccid): \(error.localizedDescription)", level: .warning, category: .data)
+                #if DEBUG
+                print("[Dashboard] Usage fetch failed for \(esim.iccid): \(error.localizedDescription)")
+                #endif
             }
         }
     }
@@ -868,7 +977,9 @@ class QRScannerViewController: UIViewController {
                 self?.captureSession.startRunning()
             }
         } catch {
-            appLog("Camera setup failed: \(error.localizedDescription)", level: .error, category: .general)
+            #if DEBUG
+            print("[Scanner] Camera setup failed: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -884,7 +995,9 @@ class QRScannerViewController: UIViewController {
             device.torchMode = on ? .on : .off
             device.unlockForConfiguration()
         } catch {
-            appLog("Torch configuration failed: \(error.localizedDescription)", level: .warning, category: .general)
+            #if DEBUG
+            print("[Scanner] Torch configuration failed: \(error.localizedDescription)")
+            #endif
         }
     }
 }

@@ -1,5 +1,6 @@
 import SwiftUI
 import DXBCore
+import PassKit
 
 struct SubscriptionView: View {
     @Environment(AppState.self) private var appState
@@ -11,6 +12,13 @@ struct SubscriptionView: View {
     @State private var subscriptionError: String?
     @State private var showChangePlan = false
     @State private var showCancelConfirm = false
+    @State private var useApplePay: Bool = {
+        #if targetEnvironment(simulator)
+        return false
+        #else
+        return ApplePayService.canMakePayments
+        #endif
+    }()
 
     enum SubPlan: String, CaseIterable {
         case privilege, elite, black
@@ -33,17 +41,17 @@ struct SubscriptionView: View {
 
         var color: Color {
             switch self {
-            case .privilege: return .cyan
-            case .elite:     return .purple
-            case .black:     return AppColors.accent
+            case .privilege: return AppColors.chromeLight
+            case .elite:     return AppColors.accent
+            case .black:     return AppColors.white
             }
         }
 
         var discount: Int {
             switch self {
-            case .privilege: return 10
-            case .elite:     return 20
-            case .black:     return 30
+            case .privilege: return 15
+            case .elite:     return 30
+            case .black:     return 50
             }
         }
 
@@ -65,9 +73,9 @@ struct SubscriptionView: View {
 
         var features: [String] {
             switch self {
-            case .privilege: return ["-10% on all eSIM plans", "Priority support", "Partner offers access", "Privilege badge"]
-            case .elite:     return ["-20% on all eSIM plans", "VIP 24/7 support", "Premium partner offers", "Gold Elite badge", "Early access to new destinations"]
-            case .black:     return ["-30% on all eSIM plans", "Dedicated concierge", "Exclusive partner offers", "Diamond Black badge", "VIP event invitations", "2x bonus points"]
+            case .privilege: return ["-15% on all eSIM plans", "Priority support", "Partner offers access", "Privilege badge"]
+            case .elite:     return ["-30% on all eSIM plans", "VIP 24/7 support", "Premium partner offers", "Gold Elite badge", "Early access to new destinations"]
+            case .black:     return ["-50% on 1st eSIM/month, then -30%", "Dedicated concierge", "Exclusive partner offers", "Diamond Black badge", "VIP event invitations", "2x bonus points"]
             }
         }
     }
@@ -89,22 +97,36 @@ struct SubscriptionView: View {
         ZStack {
             AppColors.background.ignoresSafeArea()
 
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: AppSpacing.lg) {
+            VStack(spacing: 0) {
+                if currentSubscription == nil {
                     heroSection.slideIn(delay: 0)
 
-                    if currentSubscription == nil {
-                        billingToggle.slideIn(delay: 0.05)
-                        planSelector.slideIn(delay: 0.08)
-                        selectedPlanDetails.slideIn(delay: 0.1)
-                        subscribeButton.slideIn(delay: 0.12)
-                    } else {
-                        currentPlanCard.slideIn(delay: 0.05)
-                        managementOptions.slideIn(delay: 0.08)
-                    }
+                    billingToggle.slideIn(delay: 0.05)
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.bottom, 10)
+
+                    planSelector.slideIn(delay: 0.08)
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.bottom, 10)
+
+                    selectedPlanDetails.slideIn(delay: 0.1)
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.bottom, 14)
+
+                    subscribeButton.slideIn(delay: 0.12)
+                        .padding(.horizontal, AppSpacing.lg)
+                } else {
+                    heroSection.slideIn(delay: 0)
+
+                    currentPlanCard.slideIn(delay: 0.05)
+                        .padding(.horizontal, AppSpacing.lg)
+                        .padding(.bottom, 14)
+
+                    managementOptions.slideIn(delay: 0.08)
+                        .padding(.horizontal, AppSpacing.lg)
                 }
-                .padding(.horizontal, AppSpacing.lg)
-                .padding(.bottom, 120)
+
+                Spacer()
             }
 
             if isSubscribing {
@@ -126,30 +148,31 @@ struct SubscriptionView: View {
     // MARK: - Hero
 
     private var heroSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 8) {
             ZStack {
                 Circle()
                     .fill(AppColors.accent.opacity(0.08))
-                    .frame(width: 88, height: 88)
-                    .blur(radius: 18)
+                    .frame(width: 56, height: 56)
+                    .blur(radius: 12)
 
                 Image(systemName: "crown.fill")
-                    .font(.system(size: 36))
+                    .font(.system(size: 24))
                     .foregroundStyle(AppColors.accent)
-                    .shadow(color: AppColors.accent.opacity(0.3), radius: 12, x: 0, y: 4)
+                    .shadow(color: AppColors.accent.opacity(0.3), radius: 8, x: 0, y: 3)
             }
 
-            VStack(spacing: 6) {
+            VStack(spacing: 3) {
                 Text("SimPass Premium")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
                 Text("Travel connected at reduced prices")
-                    .font(.system(size: 14))
+                    .font(.system(size: 12))
                     .foregroundStyle(AppColors.textSecondary)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, AppSpacing.xl)
+        .padding(.top, 10)
+        .padding(.bottom, 12)
     }
 
     // MARK: - Billing Toggle
@@ -167,12 +190,12 @@ struct SubscriptionView: View {
                         if !period.savings.isEmpty {
                             Text(period.savings)
                                 .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(isSelected ? .black.opacity(0.6) : AppColors.success)
+                                .foregroundStyle(isSelected ? .black.opacity(0.7) : AppColors.accent)
                         }
                     }
                     .foregroundStyle(isSelected ? .black : AppColors.textSecondary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 10)
                     .background(
                         Capsule()
                             .fill(isSelected ? AppColors.accent : Color.clear)
@@ -201,71 +224,94 @@ struct SubscriptionView: View {
     private func planCard(_ plan: SubPlan) -> some View {
         let isSelected = selectedPlan == plan
         let perMonth = selectedBilling == .annual ? plan.annualPrice / 12 : plan.monthlyPrice
+        let isBlack = plan == .black
 
         return Button {
             withAnimation(.spring(response: 0.3)) { selectedPlan = plan }
+            HapticFeedback.light()
         } label: {
-            VStack(spacing: 8) {
-                Image(systemName: plan.icon)
-                    .font(.system(size: 20))
-                    .foregroundStyle(plan.color)
+            VStack(spacing: 6) {
+                ZStack {
+                    Circle()
+                        .fill(plan.color.opacity(isBlack ? 0.08 : 0.06))
+                        .frame(width: 32, height: 32)
 
-                Text(plan.displayName)
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(AppColors.textPrimary)
+                    Image(systemName: plan.icon)
+                        .font(.system(size: 14))
+                        .foregroundStyle(plan.color)
+                }
+
+                Text(plan.displayName.uppercased())
+                    .font(.system(size: 9, weight: .bold))
+                    .tracking(1)
+                    .foregroundStyle(isSelected ? plan.color : AppColors.textSecondary)
 
                 VStack(spacing: 1) {
                     Text("$\(String(format: "%.2f", perMonth))")
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
-                        .foregroundStyle(isSelected ? plan.color : AppColors.textPrimary)
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
                     Text("/mo")
-                        .font(.system(size: 9, weight: .medium))
+                        .font(.system(size: 8, weight: .medium))
                         .foregroundStyle(AppColors.textTertiary)
                 }
 
                 Text("-\(plan.discount)%")
-                    .font(.system(size: 9, weight: .black))
-                    .foregroundStyle(plan.color)
+                    .font(.system(size: 8, weight: .black))
+                    .foregroundStyle(plan == .elite ? .black : plan.color)
                     .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .background(Capsule().fill(plan.color.opacity(0.1)))
+                    .padding(.vertical, 2)
+                    .background(
+                        Capsule().fill(plan == .elite ? AppColors.accent : plan.color.opacity(0.1))
+                    )
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
+            .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
-                    .fill(isSelected ? AppColors.surfaceSecondary : AppColors.surface)
+                    .fill(isSelected ? AppColors.surfaceElevated : AppColors.surface)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
-                            .stroke(isSelected ? plan.color.opacity(0.6) : AppColors.border, lineWidth: isSelected ? 1.5 : 0.5)
+                            .stroke(
+                                isSelected ? (plan == .elite ? AppColors.accent.opacity(0.5) : plan.color.opacity(0.3)) : AppColors.border,
+                                lineWidth: isSelected ? 1.5 : 0.5
+                            )
                     )
             )
-            .shadow(color: isSelected ? plan.color.opacity(0.1) : Color.clear, radius: 10, x: 0, y: 5)
         }
     }
 
     // MARK: - Details
 
     private var selectedPlanDetails: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(selectedPlan.displayName)
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundStyle(AppColors.textPrimary)
+                HStack(spacing: 6) {
+                    Image(systemName: selectedPlan.icon)
+                        .font(.system(size: 12))
+                        .foregroundStyle(selectedPlan == .elite ? AppColors.accent : selectedPlan.color)
+                    Text(selectedPlan.displayName)
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                }
                 Spacer()
-                Text("Benefits")
-                    .font(.system(size: 12, weight: .medium))
+                Text("BENEFITS")
+                    .font(.system(size: 8, weight: .bold))
+                    .tracking(1)
                     .foregroundStyle(AppColors.textTertiary)
             }
 
-            VStack(spacing: 10) {
+            VStack(spacing: 5) {
                 ForEach(selectedPlan.features, id: \.self) { feature in
-                    HStack(spacing: 10) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 15))
-                            .foregroundStyle(selectedPlan.color)
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(AppColors.accent)
+                            .frame(width: 16, height: 16)
+                            .background(
+                                Circle().fill(AppColors.accent.opacity(0.1))
+                            )
                         Text(feature)
-                            .font(.system(size: 14))
+                            .font(.system(size: 13))
                             .foregroundStyle(AppColors.textSecondary)
                         Spacer()
                     }
@@ -278,13 +324,13 @@ struct SubscriptionView: View {
     // MARK: - Subscribe
 
     private var subscribeButton: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 6) {
             if let error = subscriptionError {
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(AppColors.error)
-                    Text(error).font(.system(size: 13)).foregroundStyle(AppColors.textPrimary)
+                    Text(error).font(.system(size: 12)).foregroundStyle(AppColors.textPrimary)
                 }
-                .padding(10)
+                .padding(8)
                 .frame(maxWidth: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: AppRadius.sm).fill(AppColors.error.opacity(0.08))
@@ -294,19 +340,59 @@ struct SubscriptionView: View {
 
             let price = selectedBilling == .annual ? selectedPlan.annualPrice : selectedPlan.monthlyPrice
 
-            Button { Task { await subscribe() } } label: {
-                HStack(spacing: 8) {
-                    Text("Subscribe for $\(String(format: "%.2f", price))")
-                    Text(selectedBilling == .annual ? "/year" : "/mo")
-                        .opacity(0.6)
+            if useApplePay {
+                Button { Task { await subscribeWithApplePay() } } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "apple.logo")
+                            .font(.system(size: 16))
+                        Text("Pay $\(String(format: "%.2f", price))")
+                            .font(.system(size: 16, weight: .bold))
+                        Text(selectedBilling == .annual ? "/year" : "/mo")
+                            .font(.system(size: 14))
+                            .opacity(0.6)
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(Capsule().fill(.black))
+                    .overlay(Capsule().stroke(AppColors.borderLight, lineWidth: 0.5))
+                }
+
+                Button {
+                    useApplePay = false
+                } label: {
+                    Text("Use card instead")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            } else {
+                Button { Task { await subscribe() } } label: {
+                    HStack(spacing: 6) {
+                        Text("Subscribe for $\(String(format: "%.2f", price))")
+                        Text(selectedBilling == .annual ? "/year" : "/mo")
+                            .opacity(0.6)
+                    }
+                }
+                .buttonStyle(PrimaryButtonStyle())
+
+                if ApplePayService.isAvailable {
+                    Button {
+                        useApplePay = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "apple.logo").font(.system(size: 10))
+                            Text("Use Apple Pay")
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                        .foregroundStyle(AppColors.textSecondary)
+                    }
                 }
             }
-            .buttonStyle(PrimaryButtonStyle())
 
-            HStack(spacing: 4) {
-                Image(systemName: "lock.fill").font(.system(size: 9))
-                Text("Cancel anytime. Secure payment via Stripe.")
-                    .font(.system(size: 11))
+            HStack(spacing: 3) {
+                Image(systemName: "lock.fill").font(.system(size: 8))
+                Text("Cancel anytime. Secure payment.")
+                    .font(.system(size: 10))
             }
             .foregroundStyle(AppColors.textTertiary)
         }
@@ -445,7 +531,7 @@ struct SubscriptionView: View {
     private func changePlan() async {
         isSubscribing = true; subscriptionError = nil
         do {
-            let billing = selectedBilling == .annual ? "annual" : "monthly"
+            let billing = selectedBilling == .annual ? "yearly" : "monthly"
             _ = try await appState.apiService.createSubscription(plan: selectedPlan.rawValue, billingPeriod: billing)
             await appState.loadDashboard()
             isSubscribing = false; showChangePlan = false
@@ -462,9 +548,56 @@ struct SubscriptionView: View {
             await appState.loadDashboard()
         } catch {
             subscriptionError = "Unable to cancel subscription. Please contact support."
-            appLog("Cancel subscription failed: \(error.localizedDescription)", level: .error, category: .data)
+            #if DEBUG
+            print("[Subscription] Cancel failed: \(error.localizedDescription)")
+            #endif
         }
         isSubscribing = false
+    }
+
+    // MARK: - Apple Pay Subscribe
+
+    private func subscribeWithApplePay() async {
+        guard ApplePayService.isAvailable else {
+            subscriptionError = "Apple Pay is not available on this device. Use card instead."
+            useApplePay = false
+            return
+        }
+
+        isSubscribing = true; subscriptionError = nil
+        do {
+            let price = selectedBilling == .annual ? selectedPlan.annualPrice : selectedPlan.monthlyPrice
+            let label = "SimPass \(selectedPlan.displayName) – \(selectedBilling == .annual ? "Annual" : "Monthly")"
+
+            let payment = try await ApplePayService.shared.presentPaymentSheet(
+                amount: price,
+                label: label
+            )
+
+            let billing = selectedBilling == .annual ? "yearly" : "monthly"
+            _ = try await appState.apiService.createSubscriptionApplePay(
+                plan: selectedPlan.rawValue,
+                billingPeriod: billing,
+                paymentToken: payment.tokenBase64,
+                paymentNetwork: payment.paymentNetwork
+            )
+            await appState.loadDashboard()
+            isSubscribing = false; dismiss()
+        } catch let apError as ApplePayError {
+            isSubscribing = false
+            switch apError {
+            case .cancelled:
+                break
+            case .notAvailable, .notConfigured, .failedToPresent:
+                subscriptionError = apError.localizedDescription
+                useApplePay = false
+            case .failedToCreate, .paymentFailed:
+                subscriptionError = apError.localizedDescription
+            }
+        } catch {
+            subscriptionError = "Payment failed. Please try again."
+            isSubscribing = false
+        }
     }
 
     // MARK: - Actions
@@ -472,7 +605,7 @@ struct SubscriptionView: View {
     private func subscribe() async {
         isSubscribing = true; subscriptionError = nil
         do {
-            let billing = selectedBilling == .annual ? "annual" : "monthly"
+            let billing = selectedBilling == .annual ? "yearly" : "monthly"
             _ = try await appState.apiService.createSubscription(plan: selectedPlan.rawValue, billingPeriod: billing)
             await appState.loadDashboard()
             isSubscribing = false; dismiss()

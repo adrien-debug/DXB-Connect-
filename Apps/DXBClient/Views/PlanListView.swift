@@ -184,7 +184,7 @@ struct PlanListView: View {
             HapticFeedback.light()
         } label: {
             VStack(spacing: AppSpacing.md) {
-                Text(flagEmoji(for: country.name))
+                Text(flagEmoji(for: country))
                     .font(.system(size: 40))
 
                 VStack(spacing: 3) {
@@ -325,7 +325,7 @@ struct PlanListView: View {
 
     private func countryHeroBanner(_ country: CountryEntry) -> some View {
         HStack(spacing: 14) {
-            Text(flagEmoji(for: country.name))
+            Text(flagEmoji(for: country))
                 .font(.system(size: 36))
 
             VStack(alignment: .leading, spacing: 2) {
@@ -615,8 +615,11 @@ struct PlanListView: View {
         }
     }
 
-    private func flagEmoji(for country: String) -> String {
-        CountryHelper.flagFromName(country)
+    private func flagEmoji(for country: CountryEntry) -> String {
+        if !country.code.isEmpty {
+            return CountryHelper.flagFromCode(country.code)
+        }
+        return CountryHelper.flagFromName(country.name)
     }
 }
 

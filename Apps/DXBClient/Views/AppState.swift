@@ -77,7 +77,9 @@ final class AppState {
         do {
             try await authService.clearTokens()
         } catch {
-            appLog("Sign out failed: \(error.localizedDescription)", level: .error, category: .auth)
+            #if DEBUG
+            print("[AppState] Sign out failed: \(error.localizedDescription)")
+            #endif
         }
         isAuthenticated = false
         currentUser = nil
@@ -109,7 +111,9 @@ final class AppState {
         } catch {
             if handleAuthError(error) { return }
             dashboardError = "Failed to load eSIMs"
-            appLog("Failed to load eSIMs: \(error.localizedDescription)", level: .error, category: .data)
+            #if DEBUG
+            print("[AppState] Failed to load eSIMs: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -118,7 +122,9 @@ final class AppState {
             subscription = try await apiService.fetchMySubscription()
         } catch {
             if handleAuthError(error) { return }
-            appLog("Failed to load subscription: \(error.localizedDescription)", level: .error, category: .data)
+            #if DEBUG
+            print("[AppState] Failed to load subscription: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -127,7 +133,9 @@ final class AppState {
             rewardsSummary = try await apiService.fetchRewardsSummary()
         } catch {
             if handleAuthError(error) { return }
-            appLog("Failed to load rewards: \(error.localizedDescription)", level: .error, category: .data)
+            #if DEBUG
+            print("[AppState] Failed to load rewards: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -138,7 +146,9 @@ final class AppState {
             partnerOffers = try await apiService.fetchOffers(country: country, category: nil, tier: tier)
         } catch {
             if handleAuthError(error) { return }
-            appLog("Failed to load offers: \(error.localizedDescription)", level: .error, category: .data)
+            #if DEBUG
+            print("[AppState] Failed to load offers: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -149,7 +159,9 @@ final class AppState {
         if case APIError.unauthorized = error {
             guard !isSigningOutFromAuth else { return true }
             isSigningOutFromAuth = true
-            appLog("Unauthorized - signing out", level: .warning, category: .auth)
+            #if DEBUG
+            print("[AppState] Unauthorized - signing out")
+            #endif
             Task {
                 await signOut()
                 isSigningOutFromAuth = false
