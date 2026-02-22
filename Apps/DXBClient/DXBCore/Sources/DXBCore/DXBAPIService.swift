@@ -29,10 +29,12 @@ public protocol DXBAPIServiceProtocol: Sendable {
     // MARK: - Subscriptions (SimPass)
     func fetchMySubscription() async throws -> SubscriptionResponse?
     func createSubscription(plan: String, billingPeriod: String) async throws -> SubscriptionResponse
+    func cancelSubscription() async throws
 
     // MARK: - Rewards (SimPass)
     func fetchRewardsSummary() async throws -> RewardsSummaryResponse
     func dailyCheckin() async throws -> CheckinResponse
+    func enterRaffle(raffleId: String) async throws
 
     // MARK: - Crypto Payments
     func createCryptoInvoice(amountUSD: Double, asset: String) async throws -> CryptoInvoiceResponse
@@ -408,7 +410,7 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
         let body: [String: Any] = [
             "iccid": iccid,
             "packageCode": packageCode,
-            "transactionId": "dxb_topup_\(Int(Date().timeIntervalSince1970))"
+            "transactionId": "dxb_topup_\(UUID().uuidString)"
         ]
 
         let response: SimpleResponse = try await apiClient.request(
@@ -489,9 +491,10 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
             await apiClient.setAccessToken(token)
         }
 
-        var endpoint = "offers?"
-        if let c = country { endpoint += "country=\(c)&" }
-        if let cat = category { endpoint += "category=\(cat)&" }
+        var queryParts: [String] = []
+        if let c = country { queryParts.append("country=\(c)") }
+        if let cat = category { queryParts.append("category=\(cat)") }
+        let endpoint = queryParts.isEmpty ? "offers" : "offers?\(queryParts.joined(separator: "&"))"
 
         let response: OffersListResponse = try await apiClient.request(
             endpoint: endpoint,
@@ -555,6 +558,18 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
         return data
     }
 
+    public func cancelSubscription() async throws {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        let _: EmptyResponse = try await apiClient.request(
+            endpoint: "subscriptions/cancel",
+            method: "POST",
+            requiresAuth: true
+        )
+    }
+
     // MARK: - Rewards (SimPass)
 
     public func fetchRewardsSummary() async throws -> RewardsSummaryResponse {
@@ -578,6 +593,19 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
 
         return try await apiClient.request(
             endpoint: "rewards/checkin",
+            method: "POST",
+            body: [:],
+            requiresAuth: true
+        )
+    }
+
+    public func enterRaffle(raffleId: String) async throws {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
+        let _: EmptyResponse = try await apiClient.request(
+            endpoint: "rewards/raffles/\(raffleId)/enter",
             method: "POST",
             body: [:],
             requiresAuth: true

@@ -11,192 +11,402 @@ alwaysApply: false
 ```
 DXBCore/
 ├── Sources/DXBCore/
-│   ├── Models.swift        # Plan, ESIMOrder, Auth
-│   ├── Config.swift        # Environnements API
-│   ├── APIClient.swift     # Client HTTP
-│   ├── AuthService.swift   # Auth Apple/Email
-│   ├── DXBAPIService.swift # Endpoints eSIM
-│   ├── TokenManager.swift  # Refresh auto
-│   └── Logger.swift        # Logs structurés
+│   ├── Models.swift          # Plan, ESIMOrder, Auth, Usage, Rewards, Offers, Crypto
+│   ├── Config.swift          # APIConfig + APIEndpoint (Railway uniquement)
+│   ├── APIClient.swift       # actor APIClient (request générique)
+│   ├── AuthService.swift     # actor AuthService (Keychain)
+│   ├── DXBAPIService.swift   # actor DXBAPIService (tous les endpoints)
+│   ├── TokenManager.swift    # actor TokenManager (refresh auto)
+│   ├── ApplePayService.swift # Apple Pay
+│   ├── StoreKitManager.swift # In-App Purchase
+│   └── Logger.swift          # AppLogger actor + appLog()
 └── Tests/DXBCoreTests/
+    ├── APIClientTests.swift
+    ├── AuthServiceTests.swift
+    ├── ConfigTests.swift
+    └── TokenManagerTests.swift
+```
+
+## 🏗️ Architecture App (Pattern réel)
+
+```
+DXBClientApp (@main)
+└── RootView
+    ├── splashView (isCheckingAuth)
+    ├── AuthView (!isAuthenticated)
+    └── MainTabView (isAuthenticated)
+        ├── DashboardView (Accueil)
+        ├── MyESIMsView (Mes eSIM)
+        ├── RewardsHubView (Rewards)
+        └── ProfileView (Profil)
+```
+
+### Gestion d'état centralisée
+```swift
+// ✅ Pattern RÉEL - @Observable + @Environment (iOS 17+)
+@Observable
+@MainActor
+final class AppState {
+    var isAuthenticated = false
+    var currentUser: UserInfo?
+    var isCheckingAuth = true
+    var activeESIMs: [ESIMOrder] = []
+    var subscription: SubscriptionResponse?
+    var rewardsSummary: RewardsSummaryResponse?
+    var partnerOffers: [PartnerOfferResponse] = []
+
+    let authService: AuthService
+    let apiClient: APIClient
+    let apiService: DXBAPIService
+    let tokenManager: TokenManager
+}
+
+// ✅ Injection via @Environment
+struct RootView: View {
+    @State private var appState = AppState()
+
+    var body: some View {
+        Group { ... }
+            .environment(appState)
+    }
+}
+
+// ✅ Consommation dans les vues
+struct MyView: View {
+    @Environment(AppState.self) private var appState
+}
+```
+
+### ❌ Patterns OBSOLÈTES (ne PAS utiliser)
+```swift
+// ❌ NE PAS utiliser - ancien pattern
+@StateObject private var viewModel = SomeViewModel()
+@ObservedObject var vm: SomeVM
+class SomeViewModel: ObservableObject { @Published var ... }
+
+// ❌ NE PAS utiliser NavigationView
+NavigationView { }
+
+// ✅ Utiliser NavigationStack
+NavigationStack { }
 ```
 
 ## 🔧 Configuration API
 
 ```swift
-// ✅ Config.swift - Environnements
-public enum APIEnvironment {
-    case development   // http://localhost:4000/api
-    case staging       // https://staging.vercel.app/api
-    case production    // https://prod.vercel.app/api
+// ✅ Config.swift - URLs Railway (RÉELLES)
+public enum APIConfig {
+    public enum Environment {
+        case development    // http://localhost:4000/api
+        case staging        // https://web-production-14c51.up.railway.app/api
+        case production     // https://web-production-14c51.up.railway.app/api ← NE JAMAIS CHANGER
+    }
 
-    public var baseURL: String {
-        switch self {
-        case .development: return "http://localhost:4000/api"
-        case .staging: return "https://dxb-connect-staging.vercel.app/api"
-        case .production: return "https://your-prod-url.vercel.app/api"
+    public static var current: Environment = .production
+
+    public static var baseURL: URL {
+        switch current {
+        case .development:
+            return URL(string: "http://localhost:4000/api")!
+        case .staging:
+            return URL(string: "https://web-production-14c51.up.railway.app/api")!
+        case .production:
+            return URL(string: "https://web-production-14c51.up.railway.app/api")!
         }
     }
 }
 
-// ✅ DXBClientApp.swift - Config selon build
-#if DEBUG
-APIConfig.current = .development
-#else
-APIConfig.current = .production
-#endif
+// ✅ DXBClientApp.swift - Config actuelle
+@main
+struct DXBClientApp: App {
+    init() {
+        APIConfig.current = .production
+    }
+}
 ```
 
 ## 🔐 Authentification
 
-### Pattern AuthService
+### AuthService (actor + Keychain)
 ```swift
-// ✅ Gestion tokens
-public class AuthService {
-    public func signInWithApple(
-        userIdentifier: String,
-        identityToken: String,
-        userInfo: AppleUserInfo?
-    ) async throws -> AuthResponse {
-        let response = try await apiClient.post(
-            "/auth/apple",
-            body: ["idToken": identityToken, ...]
-        )
-
-        // ✅ Sauvegarder tokens
-        TokenManager.shared.saveTokens(
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken
-        )
-
-        return response
-    }
+// ✅ Pattern RÉEL
+public actor AuthService: AuthServiceProtocol {
+    func isAuthenticated() async -> Bool
+    func getAccessToken() async throws -> String?
+    func getRefreshToken() async throws -> String?
+    func saveTokens(access: String, refresh: String?) async throws
+    func clearTokens() async throws
 }
 ```
 
-### Refresh Token Automatique
+### Sign In via DXBAPIService
 ```swift
-// ✅ TokenManager vérifie expiration
-public class TokenManager {
-    public func ensureValidToken() async throws -> String {
-        if isTokenExpired() {
-            try await refreshToken()
-        }
-        return getAccessToken()
-    }
-}
+// ✅ Auth passe par DXBAPIService
+let response: AuthResponse = try await apiService.signInWithApple(
+    identityToken: token,
+    authorizationCode: code,
+    user: AppleUserInfo(email: email, name: name)
+)
 
-// ✅ APIClient utilise TokenManager
-let token = try await TokenManager.shared.ensureValidToken()
-request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+// ✅ Après login, mettre à jour AppState
+appState.didSignIn(response: response)
+
+// ✅ Sign out
+await appState.signOut()
 ```
 
-## 📡 API Client
+## 📡 API Client (actor)
 
 ```swift
-// ✅ Pattern APIClient.swift
-public class APIClient {
-    public func get<T: Decodable>(
-        _ endpoint: String,
+// ✅ Pattern RÉEL - APIClient est un actor
+public actor APIClient {
+    // Requête avec string endpoint
+    public func request<T: Decodable>(
+        endpoint: String,
+        method: String = "GET",
+        body: [String: Any]? = nil,
         requiresAuth: Bool = true
-    ) async throws -> T {
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+    ) async throws -> T
 
-        if requiresAuth {
-            let token = try await TokenManager.shared.ensureValidToken()
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
+    // Requête avec APIEndpoint enum
+    public func request<T: Decodable>(
+        endpoint: APIEndpoint,
+        method: String = "GET",
+        body: [String: Any]? = nil,
+        requiresAuth: Bool = true
+    ) async throws -> T
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+    // Token management
+    public func setAccessToken(_ token: String?)
+    public func setTokenManager(_ manager: TokenManager)
+}
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-
-        // ✅ Gestion erreurs HTTP
-        guard (200...299).contains(httpResponse.statusCode) else {
-            Logger.api.error("API error: \(httpResponse.statusCode)")
-            throw APIError.httpError(httpResponse.statusCode)
-        }
-
-        return try JSONDecoder().decode(T.self, from: data)
-    }
+// ✅ DXBAPIService charge le token avant chaque requête
+if let token = try await authService.getAccessToken() {
+    await apiClient.setAccessToken(token)
 }
 ```
 
-## 📝 Logging Structuré
+## 📝 Logging
 
 ```swift
-// ✅ Logger.swift - OSLog
-import OSLog
+// ✅ Pattern RÉEL - appLog() (fonction globale)
+appLog("Fetching plans", level: .info, category: .data)
+appLog("Auth failed: \(error.localizedDescription)", level: .error, category: .auth)
 
-public enum Logger {
-    public static let api = OSLog(subsystem: "com.dxb", category: "API")
-    public static let auth = OSLog(subsystem: "com.dxb", category: "Auth")
-    public static let ui = OSLog(subsystem: "com.dxb", category: "UI")
-}
+// ✅ Via AppLogger.shared (actor)
+await AppLogger.shared.logData("Fetched \(plans.count) plans")
+await AppLogger.shared.logAuth("Login successful")
+await AppLogger.shared.logAPIRequest(method: "GET", url: url, statusCode: 200, duration: 0.5)
+await AppLogger.shared.logError(error, message: "Purchase failed", category: .api)
 
-// ✅ Utilisation
-Logger.api.info("Fetching packages")
-Logger.auth.error("Login failed: \(error.localizedDescription)")
+// ✅ Niveaux: .debug, .info, .warning, .error, .critical
+// ✅ Catégories: .api, .auth, .data, .ui, .network, .storage, .general
 
 // ❌ Ne JAMAIS logger
-Logger.api.debug("Token: \(token)")  // ❌ Secret
-Logger.auth.info("Email: \(email)")  // ❌ PII
+appLog("Token: \(token)", category: .auth)  // ❌ Secret
+appLog("Email: \(email)", category: .auth)  // ❌ PII
+```
+
+## 🎨 Design Tokens
+
+### Couleurs
+```swift
+// ✅ AppColors.* (source de vérité dans Theme.swift)
+AppColors.accent          // #BAFF39 (lime)
+AppColors.accentLight     // #D4FF85
+AppColors.textPrimary     // Adaptatif light/dark
+AppColors.textSecondary
+AppColors.textTertiary
+AppColors.textMuted
+AppColors.background      // Adaptatif
+AppColors.backgroundSecondary
+AppColors.surface
+AppColors.border
+AppColors.success / .warning / .error / .info
+
+// ✅ AppTheme.* (alias de compatibilité)
+AppTheme.accent           // → AppColors.accent
+AppTheme.textPrimary      // → AppColors.textPrimary
+```
+
+### Spacing
+```swift
+// ✅ AppSpacing.*
+AppSpacing.xs   // 4pt
+AppSpacing.sm   // 8pt
+AppSpacing.md   // 12pt
+AppSpacing.base // 16pt
+AppSpacing.lg   // 20pt
+AppSpacing.xl   // 24pt
+AppSpacing.xxl  // 32pt
+AppSpacing.xxxl // 48pt
+```
+
+### Border Radius
+```swift
+// ✅ AppRadius.*
+AppRadius.xs   // 6pt
+AppRadius.sm   // 10pt
+AppRadius.md   // 14pt
+AppRadius.lg   // 18pt
+AppRadius.xl   // 22pt
+AppRadius.xxl  // 28pt
+AppRadius.full // 9999pt
+```
+
+### Typography
+```swift
+// ✅ AppFonts.*
+AppFonts.heroAmount()    // 48pt bold rounded
+AppFonts.detailAmount()  // 40pt bold rounded
+AppFonts.sectionTitle()  // 22pt semibold
+AppFonts.cardAmount()    // 18pt semibold
+AppFonts.body()          // 15pt regular
+AppFonts.caption()       // 13pt regular
+AppFonts.small()         // 11pt regular
+AppFonts.navTitle()      // 12pt bold
+AppFonts.tabLabel()      // 14pt medium
+AppFonts.button()        // 14pt bold
+AppFonts.label()         // 10pt bold
+```
+
+### View Modifiers
+```swift
+// ✅ Modifiers disponibles
+.tokenCard()          // Card standard
+.cleanCard()          // Alias tokenCard
+.glassCard()          // Alias tokenCard
+.techCard()           // Alias tokenCard
+.shimmer()            // Effet shimmer loading
+.slideIn(delay: 0.1)  // Animation d'entrée
+
+// ✅ Button Styles
+.buttonStyle(GoldButtonStyle())       // Bouton primary (lime)
+.buttonStyle(PrimaryButtonStyle())    // Alias GoldButtonStyle
+.buttonStyle(SecondaryButtonStyle())  // Bouton secondary
+
+// ✅ Haptics
+HapticFeedback.light()
+HapticFeedback.medium()
+HapticFeedback.success()
+HapticFeedback.error()
+```
+
+### ❌ INTERDIT
+```swift
+// ❌ Jamais de couleurs hardcodées
+Color(hex: "BAFF39")        // ❌ Utiliser AppColors.accent
+.padding(16)                 // ❌ Utiliser AppSpacing.base
+.cornerRadius(14)            // ❌ Utiliser AppRadius.md
+.font(.system(size: 15))     // ❌ Utiliser AppFonts.body()
 ```
 
 ## 🎨 SwiftUI Views
 
-### Structure View
+### Structure type
 ```swift
 // ✅ Pattern standard
-struct PlanListView: View {
-    @StateObject private var viewModel = PlanListViewModel()
-    @State private var selectedPlan: Plan?
+struct SomeView: View {
+    @Environment(AppState.self) private var appState
+    @State private var localState = false
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Group {
-                if viewModel.isLoading {
+                if appState.isDashboardLoading {
                     ProgressView()
-                } else if let error = viewModel.error {
-                    ErrorView(message: error.localizedDescription)
+                        .tint(AppColors.accent)
                 } else {
-                    List(viewModel.plans) { plan in
-                        PlanRow(plan: plan)
-                    }
+                    content
                 }
             }
-            .navigationTitle("Plans eSIM")
         }
         .task {
-            await viewModel.loadPlans()
+            await appState.loadDashboard()
         }
     }
 }
 ```
 
-### Gestion État
+### Chargement parallèle
 ```swift
-// ✅ ViewModel avec @MainActor
-@MainActor
-class PlanListViewModel: ObservableObject {
-    @Published var plans: [Plan] = []
-    @Published var isLoading = false
-    @Published var error: Error?
+// ✅ async let pour charger en parallèle
+func loadDashboard() async {
+    isDashboardLoading = true
 
-    func loadPlans() async {
-        isLoading = true
-        defer { isLoading = false }
+    async let esims = loadESIMs()
+    async let sub = loadSubscription()
+    async let rewards = loadRewards()
 
-        do {
-            plans = try await DXBAPIService.shared.fetchPlans()
-        } catch {
-            self.error = error
-            Logger.ui.error("Failed to load plans: \(error.localizedDescription)")
-        }
-    }
+    await esims
+    await sub
+    await rewards
+
+    isDashboardLoading = false
+}
+```
+
+### Composants réutilisables
+```swift
+// ✅ EmptyStateView
+EmptyStateView(
+    icon: "simcard",
+    title: "Aucune eSIM",
+    subtitle: "Achetez votre première eSIM",
+    actionTitle: "Explorer",
+    action: { }
+)
+
+// ✅ StatusBadge
+StatusBadge(text: "Actif", color: AppColors.success)
+
+// ✅ LoadingOverlay
+LoadingOverlay(message: "Chargement...")
+
+// ✅ CleanArcProgress
+CleanArcProgress(progress: 0.65, lineWidth: 12, size: 160)
+```
+
+## 🔄 Modèles (Models.swift)
+
+```swift
+// ✅ Modèles RÉELS
+public struct Plan: Identifiable, Codable, Hashable {
+    public let id: String           // packageCode
+    public let name: String
+    public let description: String
+    public let dataGB: Int
+    public let durationDays: Int
+    public let priceUSD: Double
+    public let speed: String        // "4G/LTE"
+    public let location: String
+    public let locationCode: String
+}
+
+public struct ESIMOrder: Identifiable, Codable, Hashable {
+    public let id: String
+    public let orderNo: String
+    public let iccid: String
+    public let lpaCode: String
+    public let qrCodeUrl: String
+    public let status: String       // smdpStatus
+    public let packageName: String
+    public let totalVolume: String
+    public let expiredTime: String
+    public let createdAt: Date
+}
+
+public struct AuthResponse: Codable {
+    public let accessToken: String
+    public let refreshToken: String?
+    public let user: UserInfo
+}
+
+public struct UserInfo: Codable {
+    public let id: String
+    public let email: String?
+    public let name: String?
 }
 ```
 
@@ -210,43 +420,22 @@ import XCTest
 final class APIClientTests: XCTestCase {
     func testFetchPlans() async throws {
         let client = APIClient()
-        let plans: [Plan] = try await client.get("/esim/packages")
+        let plans: [Plan] = try await client.request(
+            endpoint: "esim/packages",
+            requiresAuth: true
+        )
         XCTAssertFalse(plans.isEmpty)
     }
 }
 ```
 
-## 🔄 Modèles Partagés iOS/Next.js
-
-```swift
-// ✅ Models.swift - Aligné avec Next.js
-public struct Plan: Identifiable, Codable {
-    public let id: String           // packageCode
-    public let name: String
-    public let dataGB: Int           // Converti depuis bytes
-    public let durationDays: Int
-    public let priceUSD: Double      // Converti depuis centimes
-    public let location: String
-    public let locationCode: String
-}
-
-public struct ESIMOrder: Identifiable, Codable {
-    public let id: String
-    public let orderNo: String
-    public let iccid: String
-    public let lpaCode: String       // Code activation
-    public let qrCodeUrl: String
-    public let status: String        // SMDPStatus
-    public let packageName: String
-    public let totalVolume: String   // "5 GB"
-}
-```
-
 ## 🎯 Best Practices
 
-1. **Toujours utiliser TokenManager** pour auth
-2. **Logger structuré** sans données sensibles
-3. **@MainActor** pour ViewModels
-4. **async/await** pour API calls
-5. **Gestion erreurs** avec do/catch
-6. **Tests unitaires** pour logique critique
+1. **@Observable + @Environment** pour gestion d'état (pas ObservableObject)
+2. **actor** pour services (APIClient, AuthService, DXBAPIService, TokenManager)
+3. **appLog()** pour logging (pas Logger.api.*)
+4. **AppColors/AppSpacing/AppRadius/AppFonts** pour tokens (pas AppTheme.Spacing)
+5. **NavigationStack** (pas NavigationView)
+6. **async let** pour chargement parallèle
+7. **Railway UNIQUEMENT** comme backend (jamais de connexion directe Supabase/eSIM API)
+8. **Keychain** pour tokens (via AuthService actor)

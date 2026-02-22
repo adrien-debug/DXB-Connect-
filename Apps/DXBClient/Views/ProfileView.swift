@@ -2,1359 +2,299 @@ import SwiftUI
 import DXBCore
 
 struct ProfileView: View {
-    @EnvironmentObject private var coordinator: AppCoordinator
-    @State private var showEditProfile = false
-    @State private var showPaymentMethods = false
-    @State private var showOrderHistory = false
-    @State private var showReferFriend = false
-    @State private var showLanguage = false
-    @State private var showAppearance = false
-    @State private var showHelpCenter = false
-    @State private var showTerms = false
-    @State private var showSubscription = false
-
-    private typealias BankingColors = AppTheme.Banking.Colors
-    private typealias BankingTypo = AppTheme.Banking.Typography
-    private typealias BankingRadius = AppTheme.Banking.Radius
-    private typealias BankingSpacing = AppTheme.Banking.Spacing
-
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                BankingColors.backgroundPrimary
-                    .ignoresSafeArea()
-
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: BankingSpacing.base) {
-                        profileHeader
-                        myPlanSection
-                        statsCard
-                        accountSection
-                        preferencesSection
-                        supportSection
-                        signOutButton
-                        appInfo
-                    }
-                    .padding(.horizontal, BankingSpacing.base)
-                    .padding(.bottom, 100)
-                }
-            }
-            .navigationBarHidden(true)
-        }
-    }
-
-    // MARK: - Profile Header
-
-    private var visitedCountryCodes: [String] {
-        coordinator.esimOrders.compactMap { order in
-            let name = order.packageName.lowercased()
-            if name.contains("arab") || name.contains("uae") || name.contains("emirates") { return "AE" }
-            if name.contains("turkey") || name.contains("türkiye") { return "TR" }
-            if name.contains("europe") { return "FR" }
-            if name.contains("usa") || name.contains("united states") { return "US" }
-            if name.contains("japan") { return "JP" }
-            if name.contains("singapore") { return "SG" }
-            if name.contains("uk") || name.contains("kingdom") { return "GB" }
-            if name.contains("australia") { return "AU" }
-            return nil
-        }
-    }
-
-    private var profileHeader: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
-                    .fill(BankingColors.accent)
-                    .frame(height: 140)
-
-                VStack(spacing: 0) {
-                    Spacer()
-                        .frame(height: 80)
-
-                    ZStack {
-                        Circle()
-                            .fill(BankingColors.backgroundPrimary)
-                            .frame(width: 88, height: 88)
-
-                        Circle()
-                            .fill(BankingColors.accent)
-                            .frame(width: 80, height: 80)
-                            .overlay(
-                                Text(String(coordinator.user.name.prefix(1)).uppercased())
-                                    .font(.system(size: 36, weight: .bold))
-                                    .foregroundColor(BankingColors.backgroundPrimary)
-                            )
-                            .shadow(color: BankingColors.accentDark.opacity(0.4), radius: 16, x: 0, y: 8)
-                    }
-                }
-            }
-            .padding(.bottom, BankingSpacing.base)
-
-            VStack(spacing: BankingSpacing.sm) {
-                HStack(spacing: BankingSpacing.sm) {
-                    Text(coordinator.user.name)
-                        .font(BankingTypo.detailAmount())
-                        .foregroundColor(BankingColors.textOnDarkPrimary)
-
-                    if coordinator.user.isPro {
-                        Text("PRO")
-                            .font(BankingTypo.label())
-                            .foregroundColor(BankingColors.backgroundPrimary)
-                            .padding(.horizontal, BankingSpacing.sm)
-                            .padding(.vertical, 4)
-                            .background(
-                                Capsule()
-                                    .fill(BankingColors.accent)
-                            )
-                    }
-                }
-
-                Text(coordinator.user.email)
-                    .font(BankingTypo.body())
-                    .foregroundColor(BankingColors.textOnDarkMuted)
-            }
-        }
-        .padding(.top, 40)
-        .slideIn(delay: 0)
-    }
-
-    // MARK: - My Plan Section
-
-    private var myPlanSection: some View {
-        Button {
-            showSubscription = true
-        } label: {
-            HStack(spacing: BankingSpacing.md) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
-                        .fill(BankingColors.surfaceMedium)
-                        .frame(width: 48, height: 48)
-                    Image(systemName: "crown.fill")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(BankingColors.accentDark)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("My Plan")
-                        .font(BankingTypo.body())
-                        .foregroundColor(BankingColors.textOnLightPrimary)
-
-                    Text(StoreKitManager.shared.activePlanName ?? "No active plan")
-                        .font(BankingTypo.caption())
-                        .foregroundColor(BankingColors.textOnLightMuted)
-                }
-
-                Spacer()
-
-                if StoreKitManager.shared.activePlanName != nil {
-                    Text("-\(StoreKitManager.shared.activeDiscountPercent)%")
-                        .font(BankingTypo.cardAmount())
-                        .foregroundColor(BankingColors.accentDark)
-                } else {
-                    Text("Upgrade")
-                        .font(BankingTypo.button())
-                        .foregroundColor(BankingColors.backgroundPrimary)
-                        .padding(.horizontal, BankingSpacing.md)
-                        .padding(.vertical, BankingSpacing.sm)
-                        .background(Capsule().fill(BankingColors.accent))
-                }
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(BankingColors.textOnLightMuted)
-            }
-            .padding(BankingSpacing.base)
-            .background(
-                RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
-                    .fill(BankingColors.surfaceLight)
-                    .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
-            )
-        }
-        .buttonStyle(.plain)
-        .sheet(isPresented: $showSubscription) {
-            SimPassSubscriptionView()
-                .environmentObject(coordinator)
-        }
-    }
-
-    // MARK: - Stats Card
-
-    private var statsCard: some View {
-        VStack(spacing: 12) {
-            // Mini world map showing visited countries
-            WorldMapView(
-                highlightedCodes: visitedCountryCodes,
-                showConnections: false,
-                accentDots: true,
-                connectionCodes: [],
-                strokeColor: AppTheme.anthracite,
-                strokeOpacity: 0.05,
-                dotColor: AppTheme.accent,
-                showDubaiPulse: true
-            )
-            .frame(height: 120)
-            .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(AppTheme.backgroundPrimary)
-                    .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
-                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-
-            HStack(spacing: 10) {
-                ProfileStatCard(value: "\(coordinator.user.totalESIMs)", label: "eSIMs", icon: "simcard.fill")
-                ProfileStatCard(value: "\(coordinator.user.countriesVisited)", label: "Countries", icon: "globe")
-                ProfileStatCard(value: String(format: "$%.0f", coordinator.user.totalSaved), label: "Saved", icon: "dollarsign.circle.fill")
-            }
-        }
-        .slideIn(delay: 0.1)
-    }
-
-    // MARK: - Account Section
-
-    private var accountSection: some View {
-        SectionCardTech(title: "ACCOUNT") {
-            VStack(spacing: 0) {
-                SettingsRowTech(icon: "person.fill", title: "Edit Profile") {
-                    showEditProfile = true
-                }
-                SettingsDividerTech()
-                SettingsRowTech(icon: "creditcard.fill", title: "Payment Methods") {
-                    showPaymentMethods = true
-                }
-                SettingsDividerTech()
-                SettingsRowTech(icon: "clock.arrow.circlepath", title: "Order History") {
-                    showOrderHistory = true
-                }
-                SettingsDividerTech()
-                SettingsRowTech(icon: "gift.fill", title: "Refer a Friend", badge: "$10") {
-                    showReferFriend = true
-                }
-            }
-        }
-        .slideIn(delay: 0.15)
-        .sheet(isPresented: $showEditProfile) {
-            EditProfileSheet()
-        }
-        .sheet(isPresented: $showPaymentMethods) {
-            PaymentMethodsSheet()
-        }
-        .sheet(isPresented: $showOrderHistory) {
-            OrderHistorySheet()
-        }
-        .sheet(isPresented: $showReferFriend) {
-            ReferFriendSheet()
-        }
-    }
-
-    // MARK: - Preferences Section
-
-    private var preferencesSection: some View {
-        SectionCardTech(title: "PREFERENCES") {
-            VStack(spacing: 0) {
-                SettingsToggleTech(icon: "bell.fill", title: "Notifications", isOn: Binding(
-                    get: { coordinator.user.notificationsEnabled },
-                    set: { coordinator.user.notificationsEnabled = $0 }
-                ))
-                SettingsDividerTech()
-                SettingsRowTech(icon: "globe", title: "Language", value: coordinator.user.language) {
-                    showLanguage = true
-                }
-                SettingsDividerTech()
-                SettingsRowTech(icon: "moon.fill", title: "Appearance", value: coordinator.user.appearance) {
-                    showAppearance = true
-                }
-            }
-        }
-        .slideIn(delay: 0.2)
-        .sheet(isPresented: $showLanguage) {
-            LanguageSheet(selectedLanguage: Binding(
-                get: { coordinator.user.language },
-                set: { coordinator.user.language = $0 }
-            ))
-            .environmentObject(coordinator)
-            .presentationDetents([.medium])
-        }
-        .sheet(isPresented: $showAppearance) {
-            AppearanceSheet(selectedAppearance: Binding(
-                get: { coordinator.user.appearance },
-                set: { coordinator.user.appearance = $0 }
-            ))
-            .presentationDetents([.medium])
-        }
-    }
-
-    // MARK: - Support Section
-
-    private var supportSection: some View {
-        SectionCardTech(title: "SUPPORT") {
-            VStack(spacing: 0) {
-                SettingsRowTech(icon: "questionmark.circle.fill", title: "Help Center") {
-                    showHelpCenter = true
-                }
-                SettingsDividerTech()
-                SettingsRowTech(icon: "envelope.fill", title: "Contact Us") {
-                    if let url = URL(string: "mailto:support@dxbconnect.com") {
-                        UIApplication.shared.open(url)
-                    }
-                }
-                SettingsDividerTech()
-                SettingsRowTech(icon: "doc.text.fill", title: "Terms & Privacy") {
-                    showTerms = true
-                }
-            }
-        }
-        .slideIn(delay: 0.25)
-        .sheet(isPresented: $showHelpCenter) {
-            SupportView()
-        }
-        .sheet(isPresented: $showTerms) {
-            TermsSheet()
-        }
-    }
-
-    // MARK: - Sign Out
+    @Environment(AppState.self) private var appState
 
     @State private var showSignOutConfirm = false
+    @State private var isSigningOut = false
+    @State private var showSupport = false
 
-    private var signOutButton: some View {
-        Button {
-            showSignOutConfirm = true
-        } label: {
-            Text("Sign out")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(AppTheme.error)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 15)
-                .background(
-                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
-                        .fill(AppTheme.error.opacity(0.06))
-                )
-        }
-        .scaleOnPress()
-        .slideIn(delay: 0.3)
-        .alert("Sign Out", isPresented: $showSignOutConfirm) {
-            Button("Cancel", role: .cancel) {}
-            Button("Sign Out", role: .destructive) {
-                Task {
-                    await coordinator.signOut()
+    var body: some View {
+        ZStack {
+            AppColors.background.ignoresSafeArea()
+
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: AppSpacing.lg) {
+                    profileHeader.slideIn(delay: 0)
+                    membershipCard.slideIn(delay: 0.05)
+                    settingsSections.slideIn(delay: 0.1)
+                    signOutButton.slideIn(delay: 0.15)
+                    appInfo
                 }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.top, AppSpacing.base)
+                .padding(.bottom, 120)
             }
+        }
+        .navigationTitle("Profile")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .sheet(isPresented: $showSupport) { SupportView() }
+        .confirmationDialog("Sign Out", isPresented: $showSignOutConfirm) {
+            Button("Sign Out", role: .destructive) { Task { await signOut() } }
+            Button("Cancel", role: .cancel) {}
         } message: {
             Text("Are you sure you want to sign out?")
         }
     }
 
-    // MARK: - App Info
+    // MARK: - Header
 
-    private var appInfo: some View {
-        VStack(spacing: 3) {
-            Text("DXB CONNECT")
-                .font(AppTheme.Typography.label())
-                .tracking(1.5)
-                .foregroundColor(AppTheme.textSecondary)
+    private var profileHeader: some View {
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(AppColors.accent)
+                    .frame(width: 72, height: 72)
+                    .shadow(color: AppColors.accent.opacity(0.3), radius: 16, x: 0, y: 6)
 
-            Text("Version 1.0.0")
-                .font(AppTheme.Typography.label())
-                .foregroundColor(AppTheme.textMuted)
-        }
-        .padding(.top, AppTheme.Spacing.sm)
-    }
-}
+                Text(userInitials)
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundColor(.black)
+            }
 
-// MARK: - Profile Components
+            VStack(spacing: 4) {
+                Text(appState.currentUser?.name ?? "User")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
 
-struct ProfileStatCard: View {
-    let value: String
-    let label: String
-    let icon: String
+                Text(appState.currentUser?.email ?? "")
+                    .font(.system(size: 14))
+                    .foregroundStyle(AppColors.textSecondary)
+            }
 
-    var body: some View {
-        VStack(spacing: AppTheme.Banking.Spacing.sm) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(AppTheme.Banking.Colors.accentDark)
-
-            Text(value)
-                .font(AppTheme.Banking.Typography.cardAmount())
-                .foregroundColor(AppTheme.Banking.Colors.textOnLightPrimary)
-
-            Text(label)
-                .font(AppTheme.Banking.Typography.label())
-                .foregroundColor(AppTheme.Banking.Colors.textOnLightMuted)
+            if let tier = appState.subscription?.plan {
+                tierBadge(tier)
+            }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, AppTheme.Banking.Spacing.lg)
+        .padding(.vertical, AppSpacing.xl)
+        .pulseCard(glow: true)
+    }
+
+    private var userInitials: String {
+        let name = appState.currentUser?.name ?? ""
+        let components = name.split(separator: " ")
+        if components.count >= 2 {
+            return "\(components[0].prefix(1))\(components[1].prefix(1))".uppercased()
+        } else if !name.isEmpty {
+            return String(name.prefix(2)).uppercased()
+        }
+        return "?"
+    }
+
+    private func tierBadge(_ tier: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: AppTheme.tierIcon(tier))
+                .font(.system(size: 12))
+            Text(tier.uppercased())
+                .font(.system(size: 11, weight: .bold))
+                .tracking(1.5)
+        }
+        .foregroundStyle(AppTheme.tierColor(tier))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 6)
         .background(
-            RoundedRectangle(cornerRadius: CGFloat(AppTheme.Banking.Radius.card))
-                .fill(AppTheme.Banking.Colors.surfaceLight)
-                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
+            Capsule()
+                .fill(AppTheme.tierColor(tier).opacity(0.12))
+                .overlay(Capsule().stroke(AppTheme.tierColor(tier).opacity(0.2), lineWidth: 1))
         )
     }
-}
 
-struct ProfileStatTech: View {
-    let value: String
-    let label: String
-    let icon: String
+    // MARK: - Membership
 
-    var body: some View {
-        ProfileStatCard(value: value, label: label, icon: icon)
-    }
-}
-
-struct SectionCardTech<Content: View>: View {
-    let title: String
-    @ViewBuilder let content: () -> Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.system(size: 11, weight: .semibold))
-                .tracking(1.5)
-                .foregroundColor(AppTheme.textTertiary)
-                .padding(.leading, 4)
-
-            content()
-                .background(
-                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
-                        .fill(AppTheme.backgroundPrimary)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
-                                .stroke(AppTheme.border.opacity(0.5), lineWidth: 0.5)
-                        )
-                        .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
-                        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 4)
-                )
-        }
-    }
-}
-
-struct SettingsRowTech: View {
-    let icon: String
-    let title: String
-    var value: String? = nil
-    var badge: String? = nil
-    var action: (() -> Void)? = nil
-
-    var body: some View {
-        Button {
-            HapticFeedback.light()
-            action?()
-        } label: {
+    private var membershipCard: some View {
+        NavigationLink { SubscriptionView() } label: {
             HStack(spacing: 14) {
-                Image(systemName: icon)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(AppTheme.textSecondary)
-                    .frame(width: 24)
+                ZStack {
+                    RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
+                        .fill(AppColors.accent.opacity(0.12))
+                        .frame(width: 44, height: 44)
 
-                Text(title)
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(AppTheme.textPrimary)
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(AppColors.accent)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(appState.subscription != nil ? "My Subscription" : "Become a Member")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text(appState.subscription != nil ? "Manage your plan" : "Up to -30% on eSIMs")
+                        .font(.system(size: 13))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
 
                 Spacer()
-
-                if let badge = badge {
-                    Text(badge)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(AppTheme.accent)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(AppTheme.accent.opacity(0.1)))
-                }
-
-                if let value = value {
-                    Text(value)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(AppTheme.textTertiary)
-                }
 
                 Image(systemName: "chevron.right")
-                    .font(AppTheme.Typography.navTitle())
-                    .foregroundColor(AppTheme.textTertiary)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AppColors.textTertiary)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .contentShape(Rectangle())
+            .bentoCard()
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(title)
     }
-}
 
-struct SettingsToggleTech: View {
-    let icon: String
-    let title: String
-    @Binding var isOn: Bool
+    // MARK: - Settings
 
-    var body: some View {
-        HStack(spacing: AppTheme.Spacing.md) {
-            Image(systemName: icon)
-                .font(AppTheme.Typography.body())
-                .foregroundColor(AppTheme.textSecondary)
-                .frame(width: 24)
+    private var settingsSections: some View {
+        VStack(spacing: AppSpacing.base) {
+            settingsGroup(title: "ACCOUNT", items: [
+                SettingsItem(icon: "person.fill", title: "Personal Information", color: AppColors.accent, action: .none),
+                SettingsItem(icon: "bell.fill", title: "Notifications", color: AppColors.accent, action: .openSettings),
+                SettingsItem(icon: "lock.fill", title: "Security", color: AppColors.accent, action: .none),
+            ])
 
+            settingsGroup(title: "SUPPORT", items: [
+                SettingsItem(icon: "questionmark.circle.fill", title: "Help Center", color: AppColors.accent, action: .showSupport),
+                SettingsItem(icon: "envelope.fill", title: "Contact Us", color: AppColors.accent, action: .email("support@simpass.io")),
+                SettingsItem(icon: "doc.text.fill", title: "Terms of Service", color: AppColors.textSecondary, action: .openURL("https://simpass.io/terms")),
+                SettingsItem(icon: "hand.raised.fill", title: "Privacy Policy", color: AppColors.textSecondary, action: .openURL("https://simpass.io/privacy")),
+            ])
+        }
+    }
+
+    private func settingsGroup(title: String, items: [SettingsItem]) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
             Text(title)
-                .font(AppTheme.Typography.body())
-                .foregroundColor(AppTheme.textPrimary)
-
-            Spacer()
-
-            Toggle("", isOn: $isOn)
-                .tint(AppTheme.accent)
-
-        }
-        .padding(.horizontal, AppTheme.Spacing.md)
-        .padding(.vertical, AppTheme.Spacing.sm)
-    }
-}
-
-struct SettingsDividerTech: View {
-    var body: some View {
-        Rectangle()
-            .fill(AppTheme.border.opacity(0.5))
-            .frame(height: 0.5)
-            .padding(.leading, 54)
-    }
-}
-
-// MARK: - Legacy Compatibility
-
-struct ProfileStatItem: View {
-    let value: String; let label: String; let icon: String
-    var body: some View { ProfileStatTech(value: value, label: label.uppercased(), icon: icon) }
-}
-struct SectionCard<Content: View>: View {
-    let title: String; @ViewBuilder let content: () -> Content
-    var body: some View { SectionCardTech(title: title.uppercased(), content: content) }
-}
-struct SettingsRow: View {
-    let icon: String; let title: String; let color: Color; var value: String? = nil; var badge: String? = nil
-    var body: some View { SettingsRowTech(icon: icon, title: title, value: value, badge: badge) }
-}
-struct SettingsToggle: View {
-    let icon: String; let title: String; let color: Color; @Binding var isOn: Bool
-    var body: some View { SettingsToggleTech(icon: icon, title: title, isOn: $isOn) }
-}
-struct SettingsDivider: View { var body: some View { SettingsDividerTech() } }
-struct StatItem: View {
-    let value: String; let label: String
-    var body: some View { ProfileStatItem(value: value, label: label, icon: "circle.fill") }
-}
-struct MenuRow: View {
-    let icon: String; let title: String; let color: Color; var value: String? = nil; var badge: String? = nil
-    var body: some View { SettingsRow(icon: icon, title: title, color: color, value: value, badge: badge) }
-}
-struct ToggleRow: View {
-    let icon: String; let title: String; let color: Color; @Binding var isOn: Bool
-    var body: some View { SettingsToggle(icon: icon, title: title, color: color, isOn: $isOn) }
-}
-struct ProfileStat: View {
-    let value: String; let label: String; let icon: String
-    var body: some View { ProfileStatItem(value: value, label: label, icon: icon) }
-}
-struct ProfileMenuItem: View {
-    let icon: String; let title: String; let color: Color; var value: String? = nil; var badge: String? = nil
-    var body: some View { SettingsRow(icon: icon, title: title, color: color, value: value, badge: badge) }
-}
-struct ProfileToggleItem: View {
-    let icon: String; let title: String; let color: Color; @Binding var isOn: Bool
-    var body: some View { SettingsToggle(icon: icon, title: title, color: color, isOn: $isOn) }
-}
-
-// MARK: - Edit Profile Sheet
-
-struct EditProfileSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var coordinator: AppCoordinator
-    @State private var name = ""
-    @State private var email = ""
-    @State private var phone = ""
-    @State private var isSaving = false
-
-    private var isFormValid: Bool {
-        let trimmedName = name.trimmingCharacters(in: .whitespaces)
-        let trimmedEmail = email.trimmingCharacters(in: .whitespaces)
-        let emailRegex = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
-        let validEmail = trimmedEmail.range(of: emailRegex, options: .regularExpression) != nil
-        return !trimmedName.isEmpty && validEmail
-    }
-
-    private var validationError: String? {
-        let trimmedName = name.trimmingCharacters(in: .whitespaces)
-        if trimmedName.isEmpty { return "Name is required" }
-        let trimmedEmail = email.trimmingCharacters(in: .whitespaces)
-        let emailRegex = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
-        if trimmedEmail.range(of: emailRegex, options: .regularExpression) == nil {
-            return "Invalid email address"
-        }
-        return nil
-    }
-
-    var body: some View {
-        ZStack {
-            AppTheme.backgroundSecondary.ignoresSafeArea()
+                .font(.system(size: 10, weight: .bold))
+                .tracking(2)
+                .foregroundStyle(AppColors.textTertiary)
+                .padding(.leading, 4)
 
             VStack(spacing: 0) {
-                ProfileSheetHeader(title: "EDIT PROFILE", dismiss: dismiss)
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                    settingsRow(item)
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: AppTheme.Spacing.xl) {
-                        ZStack {
-                            Circle()
-                                .fill(AppTheme.accent)
-                                .frame(width: 88, height: 88)
-
-                            Text(String(name.prefix(1)).uppercased())
-                                .font(.system(size: 36, weight: .bold))
-                                .foregroundColor(AppTheme.anthracite)
-
-                            Button {} label: {
-                                Circle()
-                                    .fill(AppTheme.backgroundPrimary)
-                                    .frame(width: 30, height: 30)
-                                    .overlay(
-                                        Image(systemName: "camera.fill")
-                                            .font(AppTheme.Typography.captionSemibold())
-                                            .foregroundColor(AppTheme.gray900)
-                                    )
-                                    .shadow(color: .black.opacity(0.1), radius: 4)
-                            }
-                            .offset(x: 32, y: 32)
-                        }
-                        .padding(.top, AppTheme.Spacing.base)
-
-                        VStack(spacing: AppTheme.Spacing.md) {
-                            ProfileTextField(label: "FULL NAME", text: $name, icon: "person.fill")
-                            ProfileTextField(label: "EMAIL", text: $email, icon: "envelope.fill", keyboardType: .emailAddress)
-                            ProfileTextField(label: "PHONE", text: $phone, icon: "phone.fill", keyboardType: .phonePad)
-                        }
-                        .padding(.horizontal, AppTheme.Spacing.xl)
-                    }
-                    .padding(.bottom, 100)
-                }
-
-                VStack(spacing: AppTheme.Spacing.sm) {
-                    if let validationError = validationError {
-                        Text(validationError)
-                            .font(AppTheme.Typography.captionMedium())
-                            .foregroundColor(AppTheme.error)
-                            .padding(.horizontal, AppTheme.Spacing.xl)
-                    }
-
-                    Button {
-                        isSaving = true
-                        coordinator.user.name = name.trimmingCharacters(in: .whitespaces)
-                        coordinator.user.email = email.trimmingCharacters(in: .whitespaces)
-                        coordinator.user.phone = phone.trimmingCharacters(in: .whitespaces)
-                        coordinator.savePreferences()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            isSaving = false
-                            HapticFeedback.success()
-                            dismiss()
-                        }
-                    } label: {
-                        HStack {
-                            if isSaving {
-                                ProgressView().tint(.black)
-                            } else {
-                                Text("SAVE CHANGES")
-                                    .font(AppTheme.Typography.caption())
-                                    .tracking(1.2)
-                            }
-                        }
-                        .foregroundColor(AppTheme.anthracite)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(RoundedRectangle(cornerRadius: AppTheme.Radius.lg).fill(isFormValid ? AppTheme.accent : AppTheme.border))
-                    }
-                    .disabled(isSaving || !isFormValid)
-                    .padding(.horizontal, AppTheme.Spacing.xl)
-                    .padding(.bottom, AppTheme.Spacing.xl)
-                }
-                .background(
-                    AppTheme.backgroundSecondary
-                        .shadow(color: .black.opacity(0.04), radius: 8, y: -2)
-                )
-            }
-        }
-        .onAppear {
-            name = coordinator.user.name
-            email = coordinator.user.email
-            phone = coordinator.user.phone
-        }
-    }
-}
-
-// MARK: - Payment Methods Sheet
-
-struct PaymentMethodsSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var showAddCard = false
-
-    var body: some View {
-        ZStack {
-            AppTheme.backgroundSecondary.ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                ProfileSheetHeader(title: "PAYMENT METHODS", dismiss: dismiss)
-
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: AppTheme.Spacing.md) {
-                        PaymentCardRow(brand: "visa", last4: "4242", expiry: "12/27", isDefault: true)
-
-                        Button {
-                            showAddCard = true
-                        } label: {
-                            HStack(spacing: AppTheme.Spacing.md) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: AppTheme.Radius.xs)
-                                        .stroke(AppTheme.border, style: StrokeStyle(lineWidth: 1.5, dash: [5]))
-                                        .frame(width: 48, height: 32)
-
-                                    Image(systemName: "plus")
-                                        .font(AppTheme.Typography.tabLabel())
-                                        .foregroundColor(AppTheme.accent)
-                                }
-
-                                Text("Add New Card")
-                                    .font(AppTheme.Typography.body())
-                                    .foregroundColor(AppTheme.textPrimary)
-
-                                Spacer()
-
-                                Image(systemName: "chevron.right")
-                                    .font(AppTheme.Typography.navTitle())
-                                    .foregroundColor(AppTheme.textSecondary)
-                            }
-                            .padding(AppTheme.Spacing.md)
-                            .background(
-                                RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
-                                    .stroke(AppTheme.border, lineWidth: 1)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.horizontal, AppTheme.Spacing.xl)
-                    .padding(.top, AppTheme.Spacing.lg)
-                }
-            }
-        }
-        .sheet(isPresented: $showAddCard) { AddCardSheet() }
-    }
-}
-
-struct PaymentCardRow: View {
-    let brand: String; let last4: String; let expiry: String; let isDefault: Bool
-
-    var body: some View {
-        HStack(spacing: AppTheme.Spacing.md) {
-            ZStack {
-                RoundedRectangle(cornerRadius: AppTheme.Radius.xs)
-                    .fill(AppTheme.gray100)
-                    .frame(width: 48, height: 32)
-                Image(systemName: "creditcard.fill")
-                    .font(AppTheme.Typography.bodyMedium())
-                    .foregroundColor(AppTheme.textPrimary)
-            }
-
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: AppTheme.Spacing.sm) {
-                    Text("•••• \(last4)")
-                        .font(AppTheme.Typography.body())
-                        .foregroundColor(AppTheme.textPrimary)
-                    if isDefault {
-                        Text("DEFAULT")
-                            .font(AppTheme.Typography.label())
-                            .tracking(0.5)
-                            .foregroundColor(AppTheme.anthracite)
-                            .padding(.horizontal, AppTheme.Spacing.sm)
-                            .padding(.vertical, 3)
-                            .background(Capsule().fill(AppTheme.accent))
-                    }
-                }
-                Text("Expires \(expiry)")
-                    .font(AppTheme.Typography.small())
-                    .foregroundColor(AppTheme.textSecondary)
-            }
-
-            Spacer()
-
-            Button {} label: {
-                Image(systemName: "ellipsis")
-                    .font(AppTheme.Typography.bodyMedium())
-                    .foregroundColor(AppTheme.textSecondary)
-                    .frame(width: 32, height: 32)
-            }
-        }
-        .padding(AppTheme.Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
-                .fill(AppTheme.backgroundPrimary)
-                .shadow(color: Color.black.opacity(0.04), radius: 8, y: 2)
-                .overlay(RoundedRectangle(cornerRadius: AppTheme.Radius.lg).stroke(AppTheme.border, lineWidth: 1))
-        )
-    }
-}
-
-struct AddCardSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var cardNumber = ""
-    @State private var expiry = ""
-    @State private var cvc = ""
-    @State private var name = ""
-
-    var body: some View {
-        ZStack {
-            AppTheme.backgroundSecondary.ignoresSafeArea()
-            VStack(spacing: 0) {
-                ProfileSheetHeader(title: "ADD CARD", dismiss: dismiss)
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: AppTheme.Spacing.md) {
-                        ProfileTextField(label: "CARD NUMBER", text: $cardNumber, icon: "creditcard.fill", keyboardType: .numberPad)
-                        HStack(spacing: AppTheme.Spacing.md) {
-                            ProfileTextField(label: "EXPIRY", text: $expiry, icon: "calendar")
-                            ProfileTextField(label: "CVC", text: $cvc, icon: "lock.fill", keyboardType: .numberPad)
-                        }
-                        ProfileTextField(label: "NAME ON CARD", text: $name, icon: "person.fill")
-                    }
-                    .padding(.horizontal, AppTheme.Spacing.xl)
-                    .padding(.top, AppTheme.Spacing.lg)
-                }
-                VStack {
-                    Button { dismiss() } label: {
-                        Text("ADD CARD")
-                            .font(AppTheme.Typography.caption())
-                            .tracking(1.2)
-                            .foregroundColor(AppTheme.anthracite)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 54)
-                            .background(RoundedRectangle(cornerRadius: AppTheme.Radius.lg).fill(AppTheme.accent))
-                    }
-                    .padding(.horizontal, AppTheme.Spacing.xl)
-                    .padding(.bottom, AppTheme.Spacing.xl)
-                }
-                .background(AppTheme.backgroundSecondary.shadow(color: .black.opacity(0.04), radius: 8, y: -2))
-            }
-        }
-        .presentationDetents([.medium])
-    }
-}
-
-// MARK: - Order History Sheet
-
-struct OrderHistorySheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var coordinator: AppCoordinator
-
-    var body: some View {
-        ZStack {
-            AppTheme.backgroundSecondary.ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                ProfileSheetHeader(title: "ORDER HISTORY", dismiss: dismiss)
-
-                if coordinator.orderHistory.isEmpty {
-                    VStack(spacing: AppTheme.Spacing.base) {
-                        Spacer()
-                        ZStack {
-                            Circle().fill(AppTheme.gray100).frame(width: 72, height: 72)
-                            Image(systemName: "bag")
-                                .font(.system(size: 30, weight: .semibold))
-                                .foregroundColor(AppTheme.textSecondary)
-                        }
-                        VStack(spacing: 6) {
-                            Text("No orders yet")
-                                .font(.system(size: 17, weight: .bold))
-                                .foregroundColor(AppTheme.textPrimary)
-                            Text("Your purchase history will appear here")
-                                .font(AppTheme.Typography.body())
-                                .foregroundColor(AppTheme.textSecondary)
-                        }
-                        Spacer()
-                    }
-                } else {
-                    ScrollView(showsIndicators: false) {
-                        VStack(spacing: AppTheme.Spacing.sm) {
-                            ForEach(Array(coordinator.orderHistory.enumerated()), id: \.element.id) { index, order in
-                                OrderRow(
-                                    name: order.name,
-                                    date: order.date,
-                                    price: String(format: "$%.2f", order.price),
-                                    status: order.status
-                                )
-                                .slideIn(delay: 0.03 * Double(index))
-                            }
-                        }
-                        .padding(.horizontal, AppTheme.Spacing.xl)
-                        .padding(.top, AppTheme.Spacing.base)
-                        .padding(.bottom, 40)
+                    if index < items.count - 1 {
+                        Divider()
+                            .background(AppColors.border)
+                            .padding(.leading, 56)
                     }
                 }
             }
-        }
-    }
-}
-
-struct OrderRow: View {
-    let name: String; let date: String; let price: String; let status: String
-
-    var statusColor: Color {
-        status == "Active" ? AppTheme.success : AppTheme.textSecondary
-    }
-
-    var body: some View {
-        HStack(spacing: AppTheme.Spacing.md) {
-            ZStack {
-                RoundedRectangle(cornerRadius: AppTheme.Radius.sm)
-                    .fill(AppTheme.accent.opacity(0.1))
-                    .frame(width: 44, height: 44)
-                Image(systemName: "simcard.fill")
-                    .font(AppTheme.Typography.cardAmount())
-                    .foregroundColor(AppTheme.accent)
-            }
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(name)
-                    .font(AppTheme.Typography.button())
-                    .foregroundColor(AppTheme.textPrimary)
-                Text(date)
-                    .font(AppTheme.Typography.small())
-                    .foregroundColor(AppTheme.textSecondary)
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 3) {
-                Text(price)
-                    .font(AppTheme.Typography.button())
-                    .foregroundColor(AppTheme.textPrimary)
-                Text(status)
-                    .font(AppTheme.Typography.label())
-                    .tracking(0.5)
-                    .foregroundColor(statusColor)
-            }
-        }
-        .padding(AppTheme.Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
-                .fill(AppTheme.backgroundPrimary)
-                .overlay(RoundedRectangle(cornerRadius: AppTheme.Radius.lg).stroke(AppTheme.border, lineWidth: 1))
-        )
-    }
-}
-
-// MARK: - Refer Friend Sheet
-
-struct ReferFriendSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var copied = false
-    let referralCode = "DXBFRIEND10"
-
-    var body: some View {
-        ZStack {
-            AppTheme.backgroundSecondary.ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                ProfileSheetHeader(title: "REFER A FRIEND", dismiss: dismiss)
-
-                VStack(spacing: 28) {
-                    Spacer()
-
-                    ZStack {
-                        Circle()
-                            .fill(AppTheme.accent.opacity(0.1))
-                            .frame(width: 88, height: 88)
-                        Image(systemName: "gift.fill")
-                            .font(.system(size: 40, weight: .semibold))
-                            .foregroundColor(AppTheme.accent)
-                    }
-
-                    VStack(spacing: AppTheme.Spacing.sm) {
-                        Text("Give $10, Get $10")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(AppTheme.textPrimary)
-                        Text("Share your code with friends.\nThey get $10 off, you earn $10 credit!")
-                            .font(AppTheme.Typography.body())
-                            .foregroundColor(AppTheme.textSecondary)
-                            .multilineTextAlignment(.center)
-                    }
-
-                    VStack(spacing: AppTheme.Spacing.sm) {
-                        Text("YOUR CODE")
-                            .font(AppTheme.Typography.label())
-                            .tracking(1.5)
-                            .foregroundColor(AppTheme.textSecondary)
-
-                        Button {
-                            UIPasteboard.general.string = referralCode
-                            HapticFeedback.success()
-                            copied = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { copied = false }
-                        } label: {
-                            HStack(spacing: AppTheme.Spacing.md) {
-                                Text(referralCode)
-                                    .font(.system(size: 20, weight: .bold, design: .monospaced))
-                                    .foregroundColor(AppTheme.accent)
-                                Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                                    .font(AppTheme.Typography.buttonMedium())
-                                    .foregroundColor(copied ? AppTheme.success : AppTheme.textSecondary)
-                            }
-                            .padding(.horizontal, AppTheme.Spacing.xl)
-                            .padding(.vertical, AppTheme.Spacing.base)
-                            .background(
-                                RoundedRectangle(cornerRadius: AppTheme.Radius.md)
-                                    .fill(AppTheme.accent.opacity(0.1))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: AppTheme.Radius.md)
-                                            .stroke(AppTheme.accent.opacity(0.3), style: StrokeStyle(lineWidth: 1.5, dash: [8]))
-                                    )
-                            )
-                        }
-                    }
-
-                    Spacer()
-
-                    Button {
-                        let text = "Use my code \(referralCode) to get $10 off your first DXB Connect eSIM!"
-                        let av = UIActivityViewController(activityItems: [text], applicationActivities: nil)
-                        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                           let window = windowScene.windows.first {
-                            window.rootViewController?.present(av, animated: true)
-                        }
-                    } label: {
-                        HStack(spacing: AppTheme.Spacing.sm) {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(AppTheme.Typography.bodyMedium())
-                            Text("SHARE CODE")
-                                .font(AppTheme.Typography.caption())
-                                .tracking(1.2)
-                        }
-                        .foregroundColor(AppTheme.anthracite)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(RoundedRectangle(cornerRadius: AppTheme.Radius.lg).fill(AppTheme.accent))
-                    }
-                    .padding(.horizontal, AppTheme.Spacing.xl)
-                    .padding(.bottom, 40)
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Language Sheet
-
-struct LanguageSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var coordinator: AppCoordinator
-    @Binding var selectedLanguage: String
-    let languages = ["English", "Français", "العربية", "Español", "Deutsch", "中文", "日本語"]
-
-    var body: some View {
-        ZStack {
-            AppTheme.backgroundSecondary.ignoresSafeArea()
-            VStack(spacing: 0) {
-                ProfileSheetHeader(title: "LANGUAGE", dismiss: dismiss)
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: AppTheme.Spacing.sm) {
-                        ForEach(languages, id: \.self) { language in
-                            Button {
-                                HapticFeedback.selection()
-                                selectedLanguage = language
-                                coordinator.savePreferences()
-                                dismiss()
-                            } label: {
-                                HStack {
-                                    Text(language)
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(AppTheme.textPrimary)
-                                    Spacer()
-                                    if selectedLanguage == language {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 20, weight: .semibold))
-                                            .foregroundColor(AppTheme.accent)
-                                    }
-                                }
-                                .padding(AppTheme.Spacing.base)
-                                .background(
-                                    RoundedRectangle(cornerRadius: AppTheme.Radius.md)
-                                        .fill(selectedLanguage == language ? AppTheme.accent.opacity(0.1) : AppTheme.backgroundPrimary)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: AppTheme.Radius.md)
-                                                .stroke(selectedLanguage == language ? AppTheme.accent.opacity(0.4) : AppTheme.border, lineWidth: 1)
-                                        )
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, AppTheme.Spacing.xl)
-                    .padding(.top, AppTheme.Spacing.base)
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Appearance Sheet
-
-struct AppearanceSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var coordinator: AppCoordinator
-    @Binding var selectedAppearance: String
-
-    let appearances = [
-        ("Light", "sun.max.fill"),
-        ("Dark", "moon.fill"),
-        ("System", "gear")
-    ]
-
-    var body: some View {
-        ZStack {
-            AppTheme.backgroundSecondary.ignoresSafeArea()
-            VStack(spacing: 0) {
-                ProfileSheetHeader(title: "APPEARANCE", dismiss: dismiss)
-                VStack(spacing: AppTheme.Spacing.md) {
-                    ForEach(appearances, id: \.0) { appearance in
-                        Button {
-                            HapticFeedback.selection()
-                            selectedAppearance = appearance.0
-                            applyAppearance(appearance.0)
-                            coordinator.savePreferences()
-                            dismiss()
-                        } label: {
-                            HStack(spacing: AppTheme.Spacing.md) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: AppTheme.Radius.sm)
-                                        .fill(AppTheme.accent.opacity(0.1))
-                                        .frame(width: 44, height: 44)
-                                    Image(systemName: appearance.1)
-                                        .font(AppTheme.Typography.cardAmount())
-                                        .foregroundColor(AppTheme.accent)
-                                }
-
-                                Text(appearance.0)
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(AppTheme.textPrimary)
-
-                                Spacer()
-
-                                if selectedAppearance == appearance.0 {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 20, weight: .semibold))
-                                        .foregroundColor(AppTheme.accent)
-                                } else {
-                                    Circle()
-                                        .stroke(AppTheme.border, lineWidth: 1.5)
-                                        .frame(width: 20, height: 20)
-                                }
-                            }
-                            .padding(AppTheme.Spacing.md)
-                            .background(
-                                RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
-                                    .fill(AppTheme.backgroundPrimary)
-                                    .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
-                                            .stroke(selectedAppearance == appearance.0 ? AppTheme.accent.opacity(0.4) : AppTheme.border, lineWidth: 1)
-                                    )
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, AppTheme.Spacing.xl)
-                .padding(.top, AppTheme.Spacing.base)
-                Spacer()
-            }
-        }
-    }
-
-    private func applyAppearance(_ mode: String) {
-        let appearanceMode: AppearanceMode
-        switch mode {
-        case "Dark": appearanceMode = .dark
-        case "System": appearanceMode = .system
-        default: appearanceMode = .light
-        }
-        AppTheme.setAppearance(appearanceMode)
-    }
-}
-
-// MARK: - Terms Sheet
-
-struct TermsSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var selectedTab = 0
-
-    var body: some View {
-        ZStack {
-            AppTheme.backgroundSecondary.ignoresSafeArea()
-            VStack(spacing: 0) {
-                ProfileSheetHeader(title: "LEGAL", dismiss: dismiss)
-
-                HStack(spacing: 0) {
-                    ForEach(["Terms", "Privacy"], id: \.self) { tab in
-                        let index = tab == "Terms" ? 0 : 1
-                        Button {
-                            withAnimation { selectedTab = index }
-                        } label: {
-                            Text(tab)
-                                .font(AppTheme.Typography.button())
-                                .foregroundColor(selectedTab == index ? AppTheme.accent : AppTheme.textSecondary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, AppTheme.Spacing.md)
-                                .background(
-                                    VStack {
-                                        Spacer()
-                                        Rectangle()
-                                            .fill(selectedTab == index ? AppTheme.accent : Color.clear)
-                                            .frame(height: 2)
-                                    }
-                                )
-                        }
-                    }
-                }
-                .padding(.horizontal, AppTheme.Spacing.xl)
-
-                Divider()
-
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
-                        if selectedTab == 0 { termsContent } else { privacyContent }
-                    }
-                    .padding(AppTheme.Spacing.xl)
-                }
-            }
-        }
-    }
-
-    private var termsContent: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.base) {
-            Text("Terms of Service")
-                .font(AppTheme.Typography.sectionTitle())
-                .foregroundColor(AppTheme.textPrimary)
-
-            Text("Last updated: February 2026")
-                .font(AppTheme.Typography.small())
-                .foregroundColor(AppTheme.textSecondary)
-
-            Group {
-                legalSection(title: "1. Acceptance of Terms", content: "By accessing and using DXB Connect services, you accept and agree to be bound by the terms and conditions of this agreement.")
-                legalSection(title: "2. Service Description", content: "DXB Connect provides eSIM services for mobile connectivity. Our eSIMs are designed for travelers and provide data connectivity in supported regions.")
-                legalSection(title: "3. User Responsibilities", content: "You are responsible for maintaining the confidentiality of your account and for all activities that occur under your account.")
-                legalSection(title: "4. Refund Policy", content: "Refunds are available within 24 hours of purchase if the eSIM has not been activated. Once activated, refunds are not available.")
-            }
-        }
-    }
-
-    private var privacyContent: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.base) {
-            Text("Privacy Policy")
-                .font(AppTheme.Typography.sectionTitle())
-                .foregroundColor(AppTheme.textPrimary)
-
-            Text("Last updated: February 2026")
-                .font(AppTheme.Typography.small())
-                .foregroundColor(AppTheme.textSecondary)
-
-            Group {
-                legalSection(title: "Information We Collect", content: "We collect information you provide directly, such as name, email, and payment information when you create an account or make a purchase.")
-                legalSection(title: "How We Use Information", content: "We use the information to provide and improve our services, process transactions, and communicate with you about your account.")
-                legalSection(title: "Data Security", content: "We implement industry-standard security measures to protect your personal information from unauthorized access.")
-                legalSection(title: "Your Rights", content: "You have the right to access, correct, or delete your personal information. Contact us at privacy@dxbconnect.com for requests.")
-            }
-        }
-    }
-
-    private func legalSection(title: String, content: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(AppTheme.Typography.body())
-                .foregroundColor(AppTheme.textPrimary)
-            Text(content)
-                .font(AppTheme.Typography.body())
-                .foregroundColor(AppTheme.textSecondary)
-                .lineSpacing(4)
-        }
-    }
-}
-
-// MARK: - Shared Components
-
-struct ProfileSheetHeader: View {
-    let title: String
-    let dismiss: DismissAction
-
-    var body: some View {
-        HStack {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(AppTheme.Typography.tabLabel())
-                    .foregroundColor(AppTheme.textPrimary)
-                    .frame(width: 36, height: 36)
-                    .background(Circle().fill(AppTheme.gray100))
-            }
-            .accessibilityLabel("Fermer")
-
-            Spacer()
-
-            Text(title)
-                .font(AppTheme.Typography.navTitle())
-                .tracking(1.5)
-                .foregroundColor(AppTheme.textSecondary)
-
-            Spacer()
-
-            Color.clear.frame(width: 36, height: 36)
-        }
-        .padding(.horizontal, AppTheme.Spacing.xl)
-        .padding(.top, AppTheme.Spacing.lg)
-    }
-}
-
-struct ProfileTextField: View {
-    let label: String
-    @Binding var text: String
-    var icon: String = "pencil"
-    var keyboardType: UIKeyboardType = .default
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-            Text(label)
-                .font(AppTheme.Typography.label())
-                .tracking(1.2)
-                .foregroundColor(AppTheme.textSecondary)
-
-            HStack(spacing: AppTheme.Spacing.md) {
-                Image(systemName: icon)
-                    .font(AppTheme.Typography.body())
-                    .foregroundColor(AppTheme.accent)
-                    .frame(width: 24)
-
-                TextField("", text: $text)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(AppTheme.primary)
-                    .keyboardType(keyboardType)
-                    .autocorrectionDisabled()
-            }
-            .padding(AppTheme.Spacing.md)
             .background(
-                RoundedRectangle(cornerRadius: AppTheme.Radius.md)
-                    .fill(AppTheme.backgroundPrimary)
+                RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                    .fill(AppColors.surface)
                     .overlay(
-                        RoundedRectangle(cornerRadius: AppTheme.Radius.md)
-                            .stroke(AppTheme.border, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                            .stroke(AppColors.border, lineWidth: 1)
                     )
             )
         }
     }
+
+    private func settingsRow(_ item: SettingsItem) -> some View {
+        Button {
+            handleSettingsAction(item.action)
+        } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
+                        .fill(item.color.opacity(0.12))
+                        .frame(width: 30, height: 30)
+
+                    Image(systemName: item.icon)
+                        .font(.system(size: 13))
+                        .foregroundStyle(item.color)
+                }
+
+                Text(item.title)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(AppColors.textTertiary)
+            }
+            .padding(.horizontal, AppSpacing.base)
+            .padding(.vertical, AppSpacing.md)
+        }
+    }
+
+    private func handleSettingsAction(_ action: SettingsAction) {
+        switch action {
+        case .none:
+            break
+        case .openURL(let urlString):
+            if let url = URL(string: urlString) {
+                UIApplication.shared.open(url)
+            }
+        case .email(let address):
+            if let url = URL(string: "mailto:\(address)") {
+                UIApplication.shared.open(url)
+            }
+        case .openSettings:
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        case .showSupport:
+            showSupport = true
+        }
+    }
+
+    // MARK: - Sign Out
+
+    private var signOutButton: some View {
+        Button { showSignOutConfirm = true } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "rectangle.portrait.and.arrow.right")
+                Text("Sign Out")
+            }
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(AppColors.error)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                    .fill(AppColors.error.opacity(0.08))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                            .stroke(AppColors.error.opacity(0.15), lineWidth: 1)
+                    )
+            )
+        }
+    }
+
+    private var appInfo: some View {
+        VStack(spacing: 6) {
+            Text("SimPass v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0")")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(AppColors.textTertiary)
+            Text("Made with ❤️ in Dubai")
+                .font(.system(size: 11))
+                .foregroundStyle(AppColors.textMuted)
+        }
+        .padding(.top, 8)
+    }
+
+    private func signOut() async {
+        isSigningOut = true
+        await appState.signOut()
+    }
+}
+
+enum SettingsAction {
+    case none
+    case openURL(String)
+    case email(String)
+    case openSettings
+    case showSupport
+}
+
+struct SettingsItem: Identifiable {
+    let id = UUID()
+    let icon: String
+    let title: String
+    let color: Color
+    var action: SettingsAction = .none
 }
 
 #Preview {
-    ProfileView()
-        .environmentObject(AppCoordinator())
+    NavigationStack { ProfileView() }
+        .environment(AppState())
+        .preferredColorScheme(.dark)
 }

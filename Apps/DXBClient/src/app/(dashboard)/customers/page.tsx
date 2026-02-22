@@ -1,18 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabaseAny as supabase } from '@/lib/supabase'
-import StatCard from '@/components/StatCard'
 import DataTable from '@/components/DataTable'
+import StatCard from '@/components/StatCard'
+import { supabaseAny as supabase } from '@/lib/supabase'
 import {
-  Calendar,
   Mail,
-  Smartphone,
   ShoppingBag,
+  Smartphone,
   Users,
   Wifi,
   X
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface ClientProfile {
   id: string
@@ -172,26 +171,25 @@ function ClientDetailModal({
   const [loadingOrders, setLoadingOrders] = useState(true)
 
   useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('esim_orders')
+          .select('*')
+          .eq('user_id', client.id)
+          .order('created_at', { ascending: false })
+          .limit(10)
+
+        if (error) throw error
+        setOrders(data || [])
+      } catch (error) {
+        console.error('[Customers] Error fetching orders:', error)
+      } finally {
+        setLoadingOrders(false)
+      }
+    }
     fetchOrders()
   }, [client.id])
-
-  const fetchOrders = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('esim_orders')
-        .select('*')
-        .eq('user_id', client.id)
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      if (error) throw error
-      setOrders(data || [])
-    } catch (error) {
-      console.error('[Customers] Error fetching orders:', error)
-    } finally {
-      setLoadingOrders(false)
-    }
-  }
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('fr-FR', {
@@ -285,18 +283,17 @@ function ClientDetailModal({
                           ${order.status === 'IN_USE'
                             ? 'bg-emerald-500/10 text-emerald-400'
                             : order.status === 'GOT_RESOURCE'
-                            ? 'bg-blue-500/10 text-blue-400'
-                            : 'bg-zinc-800 text-zinc-300'}
+                              ? 'bg-blue-500/10 text-blue-400'
+                              : 'bg-zinc-800 text-zinc-300'}
                         `}
                       >
                         <span
-                          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                            order.status === 'IN_USE'
+                          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${order.status === 'IN_USE'
                               ? 'bg-green-500'
                               : order.status === 'GOT_RESOURCE'
-                              ? 'bg-blue-500'
-                              : 'bg-gray-500'
-                          }`}
+                                ? 'bg-blue-500'
+                                : 'bg-gray-500'
+                            }`}
                         />
                         {order.status}
                       </span>

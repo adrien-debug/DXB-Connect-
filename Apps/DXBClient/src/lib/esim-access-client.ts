@@ -65,9 +65,12 @@ export async function esimPost<T = unknown>(
   }
 
   if (options.revalidate !== undefined) {
+    // Note: Next.js ne peut pas cacher les réponses > 2MB
+    // On utilise quand même revalidate mais le warning est ignoré
     fetchOptions.next = { revalidate: options.revalidate }
   } else {
     fetchOptions.signal = AbortSignal.timeout(10_000)
+    fetchOptions.cache = 'no-store'
   }
 
   const res = await fetch(`${BASE_URL}${endpoint}`, fetchOptions)

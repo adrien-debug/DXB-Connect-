@@ -22,8 +22,8 @@ public actor AuthService: AuthServiceProtocol {
     
     public func isAuthenticated() async -> Bool {
         do {
-            let token = try await getAccessToken()
-            return token != nil && !token!.isEmpty
+            guard let token = try await getAccessToken() else { return false }
+            return !token.isEmpty
         } catch {
             return false
         }
@@ -52,7 +52,7 @@ public actor AuthService: AuthServiceProtocol {
     // MARK: - Keychain Helpers
     
     private func saveKeychainItem(key: String, value: String) throws {
-        let data = value.data(using: .utf8)!
+        guard let data = value.data(using: .utf8) else { throw KeychainError.saveFailed }
         
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

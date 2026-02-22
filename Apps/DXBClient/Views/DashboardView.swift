@@ -1,185 +1,118 @@
 import SwiftUI
 import DXBCore
+import AVFoundation
 
 struct DashboardView: View {
-    @EnvironmentObject private var coordinator: AppCoordinator
-
-    @State private var wallet: UserWallet?
-    @State private var missions: [MissionItem] = []
-    @State private var hasCheckedInToday = false
-    @State private var isLoadingRewards = true
+    @Environment(AppState.self) private var appState
 
     @State private var heroAnimated = false
-    @State private var ringProgress: CGFloat = 0
-    @State private var statCounters: [CGFloat] = [0, 0, 0]
 
     @State private var showSupport = false
     @State private var showScanner = false
-
-    private typealias BankingColors = AppTheme.Banking.Colors
-    private typealias BankingTypo = AppTheme.Banking.Typography
-    private typealias BankingRadius = AppTheme.Banking.Radius
-    private typealias BankingSpacing = AppTheme.Banking.Spacing
+    @State private var usageCache: [String: ESIMUsage] = [:]
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                BankingColors.backgroundPrimary.ignoresSafeArea()
+        ZStack {
+            PulseBackground()
 
-                ambientGlow
+            VStack(spacing: 0) {
+                smartHeader
+                    .padding(.top, 8)
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        smartHeader
-                            .padding(.top, 8)
+                Spacer()
 
-                        heroDataCard
-                            .padding(.horizontal, BankingSpacing.lg)
-                            .padding(.top, BankingSpacing.xl)
+                heroBalanceCard
+                    .padding(.horizontal, AppSpacing.lg)
 
-                        quickActions
-                            .padding(.horizontal, BankingSpacing.lg)
-                            .padding(.top, BankingSpacing.lg)
+                Spacer()
 
-                        analyticsSection
-                            .padding(.horizontal, BankingSpacing.lg)
-                            .padding(.top, BankingSpacing.xxl)
+                esimCardsRow
 
-                        levelRewardsCard
-                            .padding(.horizontal, BankingSpacing.lg)
-                            .padding(.top, BankingSpacing.xl)
+                Spacer()
 
-                        esimCardsSection
-                            .padding(.horizontal, BankingSpacing.lg)
-                            .padding(.top, BankingSpacing.xl)
+                if appState.subscription == nil {
+                    subscriptionPromoBanner
+                        .padding(.horizontal, AppSpacing.lg)
 
-                        Spacer(minLength: 120)
-                    }
+                    Spacer()
+                }
+
+                if !appState.partnerOffers.isEmpty {
+                    promoOffersSection
+
+                    Spacer()
                 }
             }
-            .navigationBarHidden(true)
-            .task {
-                if !coordinator.hasLoadedInitialData {
-                    await coordinator.loadAllData()
-                }
-                await loadRewardsSummary()
-                animateOnAppear()
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .task {
+            if appState.activeESIMs.isEmpty && !appState.isDashboardLoading {
+                await appState.loadDashboard()
             }
-            .refreshable {
-                await coordinator.loadAllData()
-                await loadRewardsSummary()
-            }
+            await loadUsageData()
         }
         .sheet(isPresented: $showSupport) { SupportView() }
         .sheet(isPresented: $showScanner) { ScannerSheet() }
     }
 
-    // MARK: - Ambient Glow (subtle lime atmosphere)
-
-    private var ambientGlow: some View {
-        ZStack {
-            RadialGradient(
-                colors: [
-                    BankingColors.accent.opacity(0.10),
-                    BankingColors.accent.opacity(0.03),
-                    Color.clear
-                ],
-                center: .top,
-                startRadius: 0,
-                endRadius: 500
-            )
-            .frame(height: 600)
-            .offset(y: -150)
-
-            RadialGradient(
-                colors: [
-                    BankingColors.accent.opacity(0.05),
-                    Color.clear
-                ],
-                center: .center,
-                startRadius: 100,
-                endRadius: 300
-            )
-            .frame(width: 400, height: 400)
-            .offset(y: 200)
-            .blur(radius: 60)
-        }
-        .ignoresSafeArea()
-    }
-
-    // MARK: - Smart Header
+    // MARK: - Header
 
     private var smartHeader: some View {
         HStack(spacing: 14) {
-            // Avatar
-            Button {
-                HapticFeedback.light()
-                coordinator.selectedTab = 4
-            } label: {
-                ZStack {
-                    Circle()
-                        .fill(BankingColors.accent)
-                        .frame(width: 46, height: 46)
+            ZStack {
+                Circle()
+                    .fill(AppColors.accent)
+                    .frame(width: 46, height: 46)
 
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.white.opacity(0.25), Color.clear],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(width: 46, height: 46)
-
-                    Text(String(coordinator.user.name.prefix(1)).uppercased())
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundColor(BankingColors.backgroundPrimary)
-                }
-                .shadow(color: BankingColors.accent.opacity(0.35), radius: 10, x: 0, y: 4)
+                Text(String(firstName.prefix(1)).uppercased())
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundColor(.black)
             }
+            .shadow(color: AppColors.accent.opacity(0.3), radius: 12, x: 0, y: 4)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(greeting)
-                    .font(BankingTypo.caption())
-                    .foregroundColor(BankingColors.textOnDarkMuted)
+                    .font(.system(size: 13))
+                    .foregroundColor(AppColors.textSecondary)
 
-                Text(firstName)
-                    .font(BankingTypo.cardAmount())
-                    .foregroundColor(BankingColors.textOnDarkPrimary)
+                HStack(spacing: 8) {
+                    Text(firstName)
+                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .foregroundColor(AppColors.textPrimary)
+
+                    if let tier = appState.subscription?.plan {
+                        HStack(spacing: 4) {
+                            Image(systemName: AppTheme.tierIcon(tier))
+                                .font(.system(size: 9))
+                            Text(tier.uppercased())
+                                .font(.system(size: 8, weight: .bold))
+                                .tracking(0.8)
+                        }
+                        .foregroundStyle(AppTheme.tierColor(tier))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule()
+                                .fill(AppTheme.tierColor(tier).opacity(0.12))
+                                .overlay(Capsule().stroke(AppTheme.tierColor(tier).opacity(0.2), lineWidth: 1))
+                        )
+                    }
+                }
             }
 
             Spacer()
 
-            // Notification button
-            Button {
+            PulseIconButton(icon: "qrcode.viewfinder") {
                 HapticFeedback.light()
-                coordinator.showNotifications = true
-            } label: {
-                ZStack(alignment: .topTrailing) {
-                    Circle()
-                        .fill(BankingColors.backgroundSecondary)
-                        .frame(width: 42, height: 42)
-                        .overlay(
-                            Circle()
-                                .stroke(BankingColors.textOnDarkMuted.opacity(0.15), lineWidth: 1)
-                        )
+                showScanner = true
+            }
 
-                    Image(systemName: "bell")
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundColor(BankingColors.textOnDarkPrimary)
-                        .frame(width: 42, height: 42)
-
-                    if !coordinator.notifications.isEmpty {
-                        Circle()
-                            .fill(BankingColors.accent)
-                            .frame(width: 10, height: 10)
-                            .overlay(Circle().stroke(BankingColors.backgroundPrimary, lineWidth: 2))
-                            .offset(x: -4, y: 4)
-                    }
-                }
+            PulseIconButton(icon: "bell") {
+                HapticFeedback.light()
+                showSupport = true
             }
         }
-        .padding(.horizontal, BankingSpacing.lg)
+        .padding(.horizontal, AppSpacing.lg)
         .slideIn(delay: 0)
     }
 
@@ -194,70 +127,576 @@ struct DashboardView: View {
     }
 
     private var firstName: String {
-        coordinator.user.name.components(separatedBy: " ").first ?? coordinator.user.name
+        let name = appState.currentUser?.name ?? "User"
+        return name.components(separatedBy: " ").first ?? name
     }
 
-    // MARK: - Hero Data Card (Banking Style — Lime background)
+    // MARK: - Hero Balance Card
 
-    private var heroDataCard: some View {
+    private var heroBalanceCard: some View {
         VStack(spacing: 0) {
-            // Balance header
             VStack(spacing: 4) {
-                Text("Total Balance")
-                    .font(BankingTypo.caption())
-                    .foregroundColor(BankingColors.textOnLightSecondary)
+                HStack {
+                    Image(systemName: "simcard.2.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppColors.accent.opacity(0.8))
+                    Text("Total Data Balance")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(AppColors.textSecondary)
+                        .tracking(0.8)
+                    Spacer()
+                }
 
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(remainingDataDisplay.0)
-                        .font(BankingTypo.heroAmount())
-                        .foregroundColor(BankingColors.textOnLightPrimary)
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundColor(AppColors.textPrimary)
                         .contentTransition(.numericText())
 
                     Text(remainingDataDisplay.1)
-                        .font(BankingTypo.sectionTitle())
-                        .foregroundColor(BankingColors.textOnLightSecondary)
-                }
-            }
-            .padding(.top, BankingSpacing.xl)
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .foregroundColor(AppColors.textSecondary)
 
-            // Quick action buttons (Send / Request style)
-            HStack(spacing: BankingSpacing.md) {
-                heroActionButton(icon: "arrow.up.circle.fill", label: "Send")
-                heroActionButton(icon: "arrow.down.circle.fill", label: "Request")
+                    Spacer()
+
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(AppColors.accent)
+                            .frame(width: 5, height: 5)
+                        Text("\(usagePercent)% used")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(AppColors.accent)
+                    }
+                }
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.white.opacity(0.06))
+                            .frame(height: 3)
+
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(
+                                LinearGradient(
+                                    colors: [AppColors.accent, AppColors.accentLight],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: geo.size.width * CGFloat(usagePercent) / 100, height: 3)
+                            .shadow(color: AppColors.accent.opacity(0.5), radius: 4, x: 0, y: 0)
+                    }
+                }
+                .frame(height: 3)
+                .padding(.top, 2)
             }
-            .padding(.top, BankingSpacing.lg)
-            .padding(.bottom, BankingSpacing.xl)
+            .padding(.horizontal, AppSpacing.base)
+            .padding(.vertical, AppSpacing.md)
+
+            Rectangle()
+                .fill(Color.white.opacity(0.04))
+                .frame(height: 1)
+
+            HStack(spacing: 0) {
+                heroMiniStat(
+                    icon: "wifi",
+                    value: "\(appState.activeESIMs.count)",
+                    label: "eSIMs"
+                )
+
+                Rectangle()
+                    .fill(Color.white.opacity(0.04))
+                    .frame(width: 1, height: 28)
+
+                heroMiniStat(
+                    icon: "checkmark.seal.fill",
+                    value: "\(activeESIMCount)",
+                    label: "Active"
+                )
+
+                Rectangle()
+                    .fill(Color.white.opacity(0.04))
+                    .frame(width: 1, height: 28)
+
+                heroMiniStat(
+                    icon: "globe",
+                    value: countriesCount,
+                    label: "Countries"
+                )
+            }
+            .padding(.vertical, AppSpacing.sm)
         }
-        .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
-                .fill(BankingColors.accent)
-                .shadow(color: BankingColors.accentDark.opacity(0.4), radius: 20, x: 0, y: 10)
+            ZStack {
+                RoundedRectangle(cornerRadius: AppRadius.xl, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            stops: [
+                                .init(color: AppColors.chromeLight, location: 0),
+                                .init(color: AppColors.chromeDark, location: 0.4),
+                                .init(color: AppColors.chromeMid, location: 0.7),
+                                .init(color: AppColors.chromeLight.opacity(0.7), location: 1.0),
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                RoundedRectangle(cornerRadius: AppRadius.xl, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.05), Color.clear],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    )
+
+                RoundedRectangle(cornerRadius: AppRadius.xl, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                AppColors.chromeBorder,
+                                AppColors.chromeHighlight.opacity(0.3),
+                                AppColors.chromeBorder.opacity(0.5),
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            }
         )
+        .shadow(color: AppColors.accent.opacity(0.08), radius: 24, x: 0, y: 12)
+        .shadow(color: Color.black.opacity(0.3), radius: 16, x: 0, y: 8)
         .slideIn(delay: 0.05)
     }
 
-    private func heroActionButton(icon: String, label: String) -> some View {
-        Button {
-            HapticFeedback.light()
-        } label: {
-            HStack(spacing: 6) {
+    private func heroMiniStat(icon: String, value: String, label: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 11))
+                .foregroundColor(AppColors.accent.opacity(0.7))
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(value)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundColor(AppColors.textPrimary)
                 Text(label)
-                    .font(BankingTypo.button())
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(AppColors.textTertiary)
             }
-            .foregroundColor(BankingColors.textOnLightPrimary)
-            .padding(.horizontal, BankingSpacing.lg)
-            .padding(.vertical, BankingSpacing.md)
-            .background(
-                Capsule()
-                    .fill(BankingColors.backgroundPrimary)
-            )
         }
-        .scaleOnPress()
+        .frame(maxWidth: .infinity)
     }
 
+    private var activeESIMCount: Int {
+        appState.activeESIMs.filter {
+            ["RELEASED", "IN_USE", "ENABLED", "ACTIVE"].contains($0.status.uppercased())
+        }.count
+    }
+
+    private var countriesCount: String {
+        let countries = Set(appState.activeESIMs.map { $0.packageName.lowercased() })
+        return "\(countries.count)"
+    }
+
+    // MARK: - eSIM Cards Row
+
+    private var esimCardsRow: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            HStack {
+                PulseSectionHeader(title: "My SIMs")
+                Spacer()
+                if !appState.activeESIMs.isEmpty {
+                    NavigationLink { MyESIMsView() } label: {
+                        Text("View all")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(AppColors.accent)
+                    }
+                }
+            }
+            .padding(.horizontal, AppSpacing.lg)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.md) {
+                    if appState.activeESIMs.isEmpty {
+                        NavigationLink { PlanListView() } label: {
+                            simPlaceholder(region: "Europe", data: "5 GB", icon: "globe.europe.africa.fill")
+                        }.buttonStyle(.plain)
+                        NavigationLink { PlanListView() } label: {
+                            simPlaceholder(region: "USA", data: "10 GB", icon: "globe.americas.fill")
+                        }.buttonStyle(.plain)
+                    } else {
+                        ForEach(Array(appState.activeESIMs.prefix(5).enumerated()), id: \.element.id) { index, esim in
+                            NavigationLink { ESIMDetailView(esim: esim) } label: {
+                                simBadge(esim: esim, isFirst: index == 0)
+                            }
+                            .buttonStyle(.plain)
+                            .scaleOnPress()
+                        }
+                    }
+
+                    NavigationLink { PlanListView() } label: {
+                        addSimBadge
+                    }
+                    .buttonStyle(.plain)
+                    .scaleOnPress()
+                }
+                .padding(.horizontal, AppSpacing.lg)
+            }
+        }
+        .slideIn(delay: 0.1)
+    }
+
+    private func simBadge(esim: ESIMOrder, isFirst: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Text(flagEmoji(for: esim.packageName))
+                    .font(.system(size: 16))
+                Text(esim.packageName)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(isFirst ? AppColors.accent : AppColors.textPrimary)
+                    .lineLimit(1)
+            }
+
+            HStack {
+                Text(isFirst ? "Active" : ESIMStatusHelper.label(esim.status))
+                    .font(.system(size: 8, weight: .bold))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(
+                        Capsule().fill(isFirst ? AppColors.accent : AppColors.textSecondary.opacity(0.3))
+                    )
+                    .foregroundColor(isFirst ? .black : AppColors.textPrimary)
+
+                Spacer()
+
+                Text(esim.totalVolume.isEmpty ? "--" : esim.totalVolume)
+                    .font(.system(size: 9))
+                    .foregroundColor(AppColors.textSecondary)
+            }
+        }
+        .padding(AppSpacing.sm)
+        .frame(width: 130, height: 58)
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                .fill(AppColors.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                        .stroke(isFirst ? AppColors.accent.opacity(0.3) : AppColors.border, lineWidth: 1)
+                )
+        )
+    }
+
+    private func simPlaceholder(region: String, data: String, icon: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(AppColors.textTertiary)
+                Text(region)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(AppColors.textSecondary)
+                    .lineLimit(1)
+            }
+
+            HStack {
+                Text("eSIM")
+                    .font(.system(size: 8, weight: .bold))
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(AppColors.textSecondary.opacity(0.2)))
+                    .foregroundColor(AppColors.textSecondary)
+                Spacer()
+                Text(data)
+                    .font(.system(size: 9))
+                    .foregroundColor(AppColors.textTertiary)
+            }
+        }
+        .padding(AppSpacing.sm)
+        .frame(width: 130, height: 58)
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                .fill(AppColors.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                        .strokeBorder(AppColors.border, style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
+                )
+        )
+    }
+
+    private var addSimBadge: some View {
+        VStack(spacing: 4) {
+            Image(systemName: "plus.circle")
+                .font(.system(size: 18, weight: .light))
+                .foregroundColor(AppColors.accent.opacity(0.6))
+            Text("Get eSIM")
+                .font(.system(size: 8, weight: .semibold))
+                .foregroundColor(AppColors.textTertiary)
+        }
+        .frame(width: 60, height: 58)
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                .fill(AppColors.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                        .strokeBorder(AppColors.accent.opacity(0.15), style: StrokeStyle(lineWidth: 1, dash: [6, 4]))
+                )
+        )
+    }
+
+    // MARK: - Subscription Promo Banner
+
+    private var subscriptionPromoBanner: some View {
+        NavigationLink {
+            SubscriptionView()
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(AppColors.accent.opacity(0.15))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(AppColors.accent)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("SimPass Premium")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                    Text("Up to -30% on eSIMs · From $3.33/mo")
+                        .font(.system(size: 13))
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+
+                Spacer()
+
+                Text("TRY FREE")
+                    .font(.system(size: 11, weight: .bold))
+                    .tracking(0.8)
+                    .foregroundStyle(.black)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Capsule().fill(AppColors.accent))
+            }
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.vertical, AppSpacing.base)
+            .background(
+                RoundedRectangle(cornerRadius: AppRadius.xl, style: .continuous)
+                    .fill(AppColors.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppRadius.xl, style: .continuous)
+                            .stroke(AppColors.accent.opacity(0.2), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .scaleOnPress()
+        .slideIn(delay: 0.15)
+    }
+
+    // MARK: - Partner Offers / Promos
+
+    private var promoOffersSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            PulseSectionHeader(title: "Exclusive Offers")
+                .padding(.horizontal, AppSpacing.lg)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.md) {
+                    ForEach(appState.partnerOffers.prefix(5)) { offer in
+                        promoOfferCard(offer)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.lg)
+            }
+        }
+        .slideIn(delay: 0.18)
+    }
+
+    private func promoOfferCard(_ offer: PartnerOfferResponse) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let imageUrl = offer.image_url, let url = URL(string: imageUrl) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                            .frame(width: 200, height: 100)
+                            .clipped()
+                    default:
+                        ZStack {
+                            Rectangle().fill(AppColors.surfaceSecondary)
+                            Image(systemName: "tag.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(AppColors.accent.opacity(0.3))
+                        }
+                        .frame(width: 200, height: 100)
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(offer.partner_name ?? "Partner")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .lineLimit(1)
+
+                Text(offer.title ?? "Special Offer")
+                    .font(.system(size: 12))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .lineLimit(2)
+            }
+
+            if let discount = offer.discount_percent, discount > 0 {
+                Text("-\(discount)%")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(AppColors.success)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(AppColors.success.opacity(0.12)))
+            }
+        }
+        .frame(width: 200)
+        .bentoCard()
+    }
+
+    // MARK: - My eSIMs Section
+
+    private var myEsimsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            NavigationLink {
+                MyESIMsView()
+            } label: {
+                PulseSectionHeader(
+                    title: "My eSIMs",
+                    action: appState.activeESIMs.isEmpty ? nil : "View all",
+                    onAction: {}
+                )
+            }
+            .buttonStyle(.plain)
+
+            if appState.activeESIMs.isEmpty {
+                emptyESIMCard
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(appState.activeESIMs.prefix(3).enumerated()), id: \.element.id) { index, order in
+                        NavigationLink {
+                            ESIMDetailView(esim: order)
+                        } label: {
+                            esimRow(order: order)
+                        }
+                        .buttonStyle(.plain)
+
+                        if index < min(2, appState.activeESIMs.count - 1) {
+                            Divider()
+                                .background(AppColors.border)
+                                .padding(.leading, 56)
+                        }
+                    }
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                        .fill(AppColors.surface)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                                .stroke(AppColors.border, lineWidth: 1)
+                        )
+                )
+            }
+        }
+        .slideIn(delay: 0.25)
+    }
+
+    private var emptyESIMCard: some View {
+        VStack(spacing: AppSpacing.lg) {
+            ZStack {
+                Circle()
+                    .fill(AppColors.accent.opacity(0.1))
+                    .frame(width: 72, height: 72)
+
+                Image(systemName: "simcard")
+                    .font(.system(size: 30, weight: .medium))
+                    .foregroundColor(AppColors.accent)
+            }
+
+            VStack(spacing: 6) {
+                Text("No eSIMs yet")
+                    .font(AppFonts.bodyMedium())
+                    .foregroundColor(AppColors.textPrimary)
+
+                Text("Get connected worldwide in seconds")
+                    .font(.system(size: 14))
+                    .foregroundColor(AppColors.textSecondary)
+            }
+
+            NavigationLink {
+                PlanListView()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .bold))
+                    Text("Get Started")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(.black)
+                .padding(.horizontal, AppSpacing.xl)
+                .padding(.vertical, AppSpacing.md)
+                .background(
+                    Capsule().fill(AppColors.accent)
+                )
+            }
+            .shadow(color: AppColors.accent.opacity(0.3), radius: 12, x: 0, y: 6)
+            .scaleOnPress()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, AppSpacing.xxxl)
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                .fill(AppColors.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                        .stroke(AppColors.border, lineWidth: 1)
+                )
+        )
+    }
+
+    private func esimRow(order: ESIMOrder) -> some View {
+        let isActive = ["RELEASED", "IN_USE", "ENABLED", "ACTIVE"].contains(order.status.uppercased())
+
+        return HStack(spacing: AppSpacing.md) {
+            Text(flagEmoji(for: order.packageName))
+                .font(.system(size: 24))
+                .frame(width: 40, height: 40)
+                .background(Circle().fill(AppColors.surfaceSecondary))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(order.packageName)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(AppColors.textPrimary)
+                    .lineLimit(1)
+
+                Text(isActive ? "Active" : order.status.capitalized)
+                    .font(.system(size: 13))
+                    .foregroundColor(AppColors.textSecondary)
+            }
+
+            Spacer()
+
+            Text(order.totalVolume.isEmpty ? "—" : order.totalVolume)
+                .font(.system(size: 14))
+                .foregroundColor(isActive ? AppColors.accent : AppColors.textSecondary)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(AppColors.textTertiary)
+        }
+        .padding(.horizontal, AppSpacing.base)
+        .padding(.vertical, AppSpacing.md)
+    }
+
+    // MARK: - Helpers
 
     private var remainingDataDisplay: (String, String) {
         let totalRemaining = totalRemainingGB
@@ -269,769 +708,125 @@ struct DashboardView: View {
     }
 
     private var totalRemainingGB: Double {
-        var total: Int64 = 0
-        for order in coordinator.esimOrders {
-            if let usage = coordinator.usageCache[order.iccid] {
-                total += usage.remainingBytes
-            }
-        }
-        return Double(total) / 1_073_741_824
+        guard !usageCache.isEmpty else { return 0 }
+        let totalRemaining = usageCache.values.reduce(Int64(0)) { $0 + $1.remainingBytes }
+        return Double(totalRemaining) / 1_073_741_824
     }
 
     private var usagePercent: Int {
-        let activeOrders = coordinator.esimOrders.filter {
-            $0.status.uppercased() == "RELEASED" || $0.status.uppercased() == "IN_USE"
+        guard !usageCache.isEmpty else {
+            let active = appState.activeESIMs.filter {
+                ["RELEASED", "IN_USE", "ENABLED", "ACTIVE"].contains($0.status.uppercased())
+            }
+            guard !active.isEmpty else { return 0 }
+            return 0
         }
-        guard !activeOrders.isEmpty else { return 0 }
-
-        var totalUsed: Int64 = 0
-        var totalVolume: Int64 = 0
-        for order in activeOrders {
-            if let usage = coordinator.usageCache[order.iccid] {
-                totalUsed += usage.usedBytes
-                totalVolume += usage.totalBytes
-            }
-        }
-        guard totalVolume > 0 else { return 0 }
-        return Int(Double(totalUsed) / Double(totalVolume) * 100)
-    }
-
-    private var daysRemaining: Int {
-        7
-    }
-
-    private var weeklyUsageData: [CGFloat] {
-        [0.2, 0.4, 0.35, 0.6, 0.5, 0.8, 0.7]
-    }
-
-    // MARK: - Cards Section (Banking Style — horizontal mini cards)
-
-    private var quickActions: some View {
-        VStack(alignment: .leading, spacing: BankingSpacing.md) {
-            Text("Cards")
-                .font(BankingTypo.sectionTitle())
-                .foregroundColor(BankingColors.textOnDarkPrimary)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: BankingSpacing.md) {
-                    // Card 1 — Primary
-                    miniCardView(
-                        balance: "$\(String(format: "%.2f", totalRemainingGB * 10))",
-                        label: "Debit",
-                        lastDigits: "4315",
-                        gradient: [BankingColors.backgroundPrimary, BankingColors.backgroundSecondary]
-                    )
-
-                    // Card 2 — Virtual
-                    miniCardView(
-                        balance: "$\(String(format: "%.2f", totalRemainingGB * 5))",
-                        label: "Virtual",
-                        lastDigits: "5161",
-                        gradient: [BankingColors.backgroundTertiary, BankingColors.backgroundSecondary]
-                    )
-
-                    // Add card button
-                    Button {
-                        HapticFeedback.light()
-                        coordinator.selectedTab = 1
-                    } label: {
-                        VStack {
-                            Image(systemName: "plus")
-                                .font(.system(size: 24, weight: .medium))
-                                .foregroundColor(BankingColors.textOnDarkMuted)
-                        }
-                        .frame(width: 100, height: 70)
-                        .background(
-                            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
-                                .fill(BankingColors.backgroundSecondary)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
-                                        .stroke(BankingColors.borderDark, lineWidth: 1)
-                                )
-                        )
-                    }
-                    .scaleOnPress()
-                }
-            }
-        }
-        .slideIn(delay: 0.1)
-    }
-
-    private func miniCardView(balance: String, label: String, lastDigits: String, gradient: [Color]) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(balance)
-                .font(BankingTypo.cardAmount())
-                .foregroundColor(label == "Debit" ? BankingColors.accent : BankingColors.textOnDarkPrimary)
-
-            HStack {
-                Text(label)
-                    .font(BankingTypo.label())
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(
-                        Capsule()
-                            .fill(label == "Debit" ? BankingColors.accent : BankingColors.textOnDarkMuted.opacity(0.3))
-                    )
-                    .foregroundColor(label == "Debit" ? BankingColors.backgroundPrimary : BankingColors.textOnDarkPrimary)
-
-                Spacer()
-
-                Text("*\(lastDigits)")
-                    .font(BankingTypo.small())
-                    .foregroundColor(BankingColors.textOnDarkMuted)
-            }
-        }
-        .padding(BankingSpacing.md)
-        .frame(width: 140, height: 70)
-        .background(
-            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
-                .fill(
-                    LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
-                        .stroke(BankingColors.borderDark, lineWidth: 1)
-                )
-        )
-    }
-
-    // MARK: - Monthly Budget (Banking Style)
-
-    private var analyticsSection: some View {
-        VStack(alignment: .leading, spacing: BankingSpacing.base) {
-            // Budget card
-            HStack(spacing: BankingSpacing.md) {
-                // Progress pie
-                ZStack {
-                    Circle()
-                        .stroke(BankingColors.surfaceMedium, lineWidth: 6)
-                        .frame(width: 44, height: 44)
-
-                    Circle()
-                        .trim(from: 0, to: CGFloat(usagePercent) / 100)
-                        .stroke(BankingColors.accentDark, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                        .frame(width: 44, height: 44)
-                        .rotationEffect(.degrees(-90))
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Monthly budget")
-                        .font(BankingTypo.body())
-                        .foregroundColor(BankingColors.textOnLightPrimary)
-
-                    Text("$\(String(format: "%.2f", totalRemainingGB * 3)) a day")
-                        .font(BankingTypo.caption())
-                        .foregroundColor(BankingColors.textOnLightMuted)
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text("$\(String(format: "%.2f", totalRemainingGB * 30)) left")
-                        .font(BankingTypo.cardAmount())
-                        .foregroundColor(BankingColors.textOnLightPrimary)
-
-                    Text("of $\(String(format: "%.2f", totalRemainingGB * 100))")
-                        .font(BankingTypo.caption())
-                        .foregroundColor(BankingColors.textOnLightMuted)
-                }
-            }
-            .padding(BankingSpacing.base)
-            .background(
-                RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
-                    .fill(BankingColors.surfaceLight)
-                    .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
-            )
-
-            // Stats grid (Banking style — 2 columns)
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: BankingSpacing.md) {
-                bankingStatCard(icon: "cart.fill", amount: "$\(Int(coordinator.user.totalSaved))", label: "Shopping", percent: "45.2%")
-                bankingStatCard(icon: "airplane", amount: "$\(Int(totalRemainingGB * 20))", label: "Travel", percent: "23.0%")
-                bankingStatCard(icon: "fork.knife", amount: "$48.72", label: "Food", percent: "11.4%")
-                bankingStatCard(icon: "heart.fill", amount: "$34.58", label: "Health", percent: "8.1%")
-            }
-        }
-        .slideIn(delay: 0.15)
-    }
-
-    private func bankingStatCard(icon: String, amount: String, label: String, percent: String) -> some View {
-        HStack(spacing: BankingSpacing.md) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(BankingColors.textOnLightSecondary)
-                .frame(width: 32, height: 32)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(BankingColors.surfaceMedium)
-                )
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(amount)
-                    .font(BankingTypo.cardAmount())
-                    .foregroundColor(BankingColors.textOnLightPrimary)
-
-                Text(label)
-                    .font(BankingTypo.caption())
-                    .foregroundColor(BankingColors.textOnLightMuted)
-            }
-
-            Spacer()
-
-            Text(percent)
-                .font(BankingTypo.caption())
-                .foregroundColor(BankingColors.textOnLightMuted)
-        }
-        .padding(BankingSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
-                .fill(BankingColors.surfaceLight)
-                .overlay(
-                    RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
-                        .stroke(BankingColors.borderLight, lineWidth: 1)
-                )
-        )
-    }
-
-    // MARK: - Recent Transactions (Banking Style)
-
-    private var levelRewardsCard: some View {
-        VStack(alignment: .leading, spacing: BankingSpacing.base) {
-            Text("Recent transactions")
-                .font(BankingTypo.sectionTitle())
-                .foregroundColor(BankingColors.textOnDarkPrimary)
-
-            VStack(spacing: 0) {
-                transactionRow(
-                    icon: "cart.fill",
-                    iconBg: BankingColors.surfaceMedium,
-                    title: coordinator.user.name,
-                    subtitle: "Shopping",
-                    amount: "-$\(String(format: "%.2f", totalRemainingGB * 4))",
-                    time: "6:41 PM",
-                    isNegative: true
-                )
-
-                Divider().background(BankingColors.borderLight)
-
-                transactionRow(
-                    icon: "person.fill",
-                    iconBg: BankingColors.surfaceMedium,
-                    title: "Bob Green",
-                    subtitle: "Transaction",
-                    amount: "+$750.00",
-                    time: "4:17 PM",
-                    isNegative: false
-                )
-
-                Divider().background(BankingColors.borderLight)
-
-                transactionRow(
-                    icon: "bus.fill",
-                    iconBg: BankingColors.surfaceMedium,
-                    title: "Bus tickets",
-                    subtitle: "LA—SF",
-                    amount: "-$47.49",
-                    time: "2:32 PM",
-                    isNegative: true
-                )
-            }
-            .background(
-                RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
-                    .fill(BankingColors.surfaceLight)
-                    .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
-            )
-        }
-        .slideIn(delay: 0.2)
-    }
-
-    private func transactionRow(icon: String, iconBg: Color, title: String, subtitle: String, amount: String, time: String, isNegative: Bool) -> some View {
-        HStack(spacing: BankingSpacing.md) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(BankingColors.textOnLightSecondary)
-                .frame(width: 40, height: 40)
-                .background(
-                    Circle()
-                        .fill(iconBg)
-                )
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(BankingTypo.body())
-                    .foregroundColor(BankingColors.textOnLightPrimary)
-
-                Text(subtitle)
-                    .font(BankingTypo.caption())
-                    .foregroundColor(BankingColors.textOnLightMuted)
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(amount)
-                    .font(BankingTypo.body())
-                    .foregroundColor(isNegative ? BankingColors.textOnLightPrimary : BankingColors.accentDark)
-
-                Text(time)
-                    .font(BankingTypo.caption())
-                    .foregroundColor(BankingColors.textOnLightMuted)
-            }
-        }
-        .padding(.horizontal, BankingSpacing.base)
-        .padding(.vertical, BankingSpacing.md)
-    }
-
-    private var xpProgress: CGFloat {
-        guard xpForNextLevel > 0 else { return 0 }
-        return CGFloat(wallet?.xp_total ?? 0) / CGFloat(xpForNextLevel)
-    }
-
-    private var xpForNextLevel: Int {
-        let level = wallet?.level ?? 1
-        let thresholds = [500, 1500, 3000, 5000, 8000, 12000, 18000, 25000, 35000]
-        if level - 1 < thresholds.count {
-            return thresholds[level - 1]
-        }
-        return 35000 + (level - 9) * 15000
-    }
-
-    // MARK: - eSIM Cards Section (Banking Style)
-
-    private var esimCardsSection: some View {
-        VStack(alignment: .leading, spacing: BankingSpacing.base) {
-            HStack(alignment: .bottom) {
-                Text("My eSIMs")
-                    .font(BankingTypo.sectionTitle())
-                    .foregroundColor(BankingColors.textOnDarkPrimary)
-
-                Spacer()
-
-                if !coordinator.esimOrders.isEmpty {
-                    Button {
-                        coordinator.selectedTab = 3
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text("View all")
-                                .font(BankingTypo.caption())
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 10, weight: .semibold))
-                        }
-                        .foregroundColor(BankingColors.accent)
-                    }
-                }
-            }
-
-            if coordinator.esimOrders.isEmpty {
-                emptyESIMCard
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(coordinator.esimOrders.prefix(3).enumerated()), id: \.element.id) { index, order in
-                        NavigationLink {
-                            ESIMDetailView(order: order)
-                        } label: {
-                            bankingESIMRow(order: order)
-                        }
-                        .buttonStyle(.plain)
-
-                        if index < min(2, coordinator.esimOrders.count - 1) {
-                            Divider().background(BankingColors.borderLight)
-                        }
-                    }
-                }
-                .background(
-                    RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
-                        .fill(BankingColors.surfaceLight)
-                        .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
-                )
-            }
-        }
-        .slideIn(delay: 0.25)
-    }
-
-    private var emptyESIMCard: some View {
-        VStack(spacing: BankingSpacing.lg) {
-            ZStack {
-                Circle()
-                    .fill(BankingColors.accent.opacity(0.15))
-                    .frame(width: 72, height: 72)
-
-                Image(systemName: "simcard")
-                    .font(.system(size: 32, weight: .medium))
-                    .foregroundColor(BankingColors.accent)
-            }
-
-            VStack(spacing: 6) {
-                Text("No eSIMs yet")
-                    .font(BankingTypo.body())
-                    .foregroundColor(BankingColors.textOnLightPrimary)
-
-                Text("Get connected worldwide in seconds")
-                    .font(BankingTypo.caption())
-                    .foregroundColor(BankingColors.textOnLightMuted)
-            }
-
-            Button {
-                coordinator.selectedTab = 1
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .bold))
-                    Text("Get Started")
-                        .font(BankingTypo.button())
-                }
-                .foregroundColor(BankingColors.backgroundPrimary)
-                .padding(.horizontal, BankingSpacing.xl)
-                .padding(.vertical, BankingSpacing.md)
-                .background(
-                    Capsule()
-                        .fill(BankingColors.accent)
-                        .shadow(color: BankingColors.accentDark.opacity(0.4), radius: 12, x: 0, y: 6)
-                )
-            }
-            .scaleOnPress()
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, BankingSpacing.xxxl)
-        .background(
-            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
-                .fill(BankingColors.surfaceLight)
-                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
-        )
-    }
-
-    private func bankingESIMRow(order: ESIMOrder) -> some View {
-        let isActive = order.status.uppercased() == "RELEASED" || order.status.uppercased() == "IN_USE"
-        let usagePercent = coordinator.usagePercentage(for: order)
-        let remainingPercent = max(0, 1.0 - usagePercent)
-
-        return HStack(spacing: BankingSpacing.md) {
-            // Flag
-            Text(flagEmoji(for: order.packageName))
-                .font(.system(size: 28))
-                .frame(width: 40, height: 40)
-                .background(
-                    Circle()
-                        .fill(BankingColors.surfaceMedium)
-                )
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(order.packageName)
-                    .font(BankingTypo.body())
-                    .foregroundColor(BankingColors.textOnLightPrimary)
-                    .lineLimit(1)
-
-                Text(isActive ? "Active" : order.status.capitalized)
-                    .font(BankingTypo.caption())
-                    .foregroundColor(BankingColors.textOnLightMuted)
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("\(Int(remainingPercent * 100))%")
-                    .font(BankingTypo.body())
-                    .foregroundColor(isActive ? BankingColors.accentDark : BankingColors.textOnLightPrimary)
-
-                Text("remaining")
-                    .font(BankingTypo.caption())
-                    .foregroundColor(BankingColors.textOnLightMuted)
-            }
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(BankingColors.textOnLightMuted)
-        }
-        .padding(.horizontal, BankingSpacing.base)
-        .padding(.vertical, BankingSpacing.md)
+        let totalBytes = usageCache.values.reduce(Int64(0)) { $0 + $1.totalBytes }
+        let usedBytes = usageCache.values.reduce(Int64(0)) { $0 + $1.usedBytes }
+        guard totalBytes > 0 else { return 0 }
+        return Int(Double(usedBytes) / Double(totalBytes) * 100)
     }
 
     private func flagEmoji(for packageName: String) -> String {
-        let name = packageName.lowercased()
-        if name.contains("arab") || name.contains("uae") || name.contains("emirates") { return "🇦🇪" }
-        if name.contains("turkey") || name.contains("türkiye") { return "🇹🇷" }
-        if name.contains("europe") { return "🇪🇺" }
-        if name.contains("usa") || name.contains("united states") { return "🇺🇸" }
-        if name.contains("japan") { return "🇯🇵" }
-        if name.contains("uk") || name.contains("kingdom") { return "🇬🇧" }
-        return "🌍"
+        CountryHelper.flagFromName(packageName)
     }
 
     // MARK: - Data Loading
 
-    private func loadRewardsSummary() async {
-        isLoadingRewards = true
-        do {
-            let summary = try await coordinator.currentAPIService.fetchRewardsSummary()
-
-            if let w = summary.wallet {
-                wallet = UserWallet(
-                    xp_total: w.xp_total ?? 0,
-                    level: w.level ?? 1,
-                    points_balance: w.points_balance ?? 0,
-                    points_earned_total: w.points_earned_total ?? 0,
-                    tickets_balance: w.tickets_balance ?? 0,
-                    tier: w.tier ?? "bronze",
-                    streak_days: w.streak_days ?? 0
-                )
-
-                if let lastCheckin = w.last_checkin {
-                    let formatter = ISO8601DateFormatter()
-                    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-                    if let checkinDate = formatter.date(from: lastCheckin) {
-                        hasCheckedInToday = Calendar.current.isDateInToday(checkinDate)
-                    }
+    private func loadUsageData() async {
+        for esim in appState.activeESIMs where !esim.iccid.isEmpty && usageCache[esim.iccid] == nil {
+            do {
+                if let usage = try await appState.apiService.fetchUsage(iccid: esim.iccid) {
+                    usageCache[esim.iccid] = usage
                 }
-            }
-
-            if let m = summary.missions {
-                missions = m.map { md in
-                    MissionItem(
-                        id: md.id,
-                        type: md.type ?? "daily",
-                        title: md.title ?? "",
-                        description: md.description,
-                        xp_reward: md.xp_reward ?? 0,
-                        points_reward: md.points_reward ?? 0,
-                        condition_value: md.condition_value ?? 1,
-                        user_progress: md.user_progress,
-                        user_completed: md.user_completed
-                    )
-                }
-            }
-        } catch {
-            appLogError(error, message: "Failed to load rewards", category: .data)
-        }
-        isLoadingRewards = false
-    }
-
-    private func performCheckin() async {
-        do {
-            _ = try await coordinator.currentAPIService.dailyCheckin()
-            HapticFeedback.success()
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                hasCheckedInToday = true
-            }
-            await loadRewardsSummary()
-        } catch {
-            appLogError(error, message: "Check-in failed", category: .data)
-        }
-    }
-
-    private func animateOnAppear() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.spring(response: 1.2, dampingFraction: 0.8)) {
-                heroAnimated = true
-                ringProgress = CGFloat(usagePercent) / 100.0
+            } catch {
+                appLog("Usage fetch failed for \(esim.iccid): \(error.localizedDescription)", level: .warning, category: .data)
             }
         }
     }
 }
-
-// MARK: - Supporting Views
-
-struct PulsingDotModifier: ViewModifier {
-    @State private var isPulsing = false
-
-    func body(content: Content) -> some View {
-        content
-            .scaleEffect(isPulsing ? 1.3 : 1.0)
-            .opacity(isPulsing ? 0.7 : 1.0)
-            .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isPulsing)
-            .onAppear { isPulsing = true }
-    }
-}
-
-struct SparklineView: View {
-    let data: [CGFloat]
-    @State private var animationProgress: CGFloat = 0
-
-    var body: some View {
-        GeometryReader { geo in
-            let maxVal = data.max() ?? 1
-            let minVal = data.min() ?? 0
-            let range = maxVal - minVal
-            let padding: CGFloat = 4
-
-            let points = data.enumerated().map { index, value in
-                CGPoint(
-                    x: geo.size.width * CGFloat(index) / CGFloat(max(data.count - 1, 1)),
-                    y: padding + (geo.size.height - padding * 2) * (1 - (value - minVal) / max(range, 0.01))
-                )
-            }
-
-            ZStack {
-                Path { path in
-                    path.move(to: CGPoint(x: 0, y: geo.size.height))
-                    for point in points {
-                        path.addLine(to: point)
-                    }
-                    path.addLine(to: CGPoint(x: geo.size.width, y: geo.size.height))
-                    path.closeSubpath()
-                }
-                .fill(
-                    LinearGradient(
-                        colors: [AppTheme.Banking.Colors.accent.opacity(0.4), AppTheme.Banking.Colors.accent.opacity(0.0)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .opacity(animationProgress)
-
-                Path { path in
-                    guard let first = points.first else { return }
-                    path.move(to: first)
-                    for point in points.dropFirst() {
-                        path.addLine(to: point)
-                    }
-                }
-                .trim(from: 0, to: animationProgress)
-                .stroke(AppTheme.Banking.Colors.accent, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
-
-                if let last = points.last {
-                    Circle()
-                        .fill(AppTheme.Banking.Colors.accent)
-                        .frame(width: 5, height: 5)
-                        .position(x: last.x, y: last.y)
-                        .opacity(animationProgress)
-                }
-            }
-        }
-        .onAppear {
-            withAnimation(.easeOut(duration: 0.8)) {
-                animationProgress = 1
-            }
-        }
-    }
-}
-
-struct WeeklyUsageChart: View {
-    let data: [CGFloat]
-    let days = ["M", "T", "W", "T", "F", "S", "S"]
-    @State private var appeared = false
-
-    var body: some View {
-        GeometryReader { geo in
-            let maxVal = data.max() ?? 1
-            let spacing: CGFloat = 6
-            let barWidth: CGFloat = (geo.size.width - CGFloat(data.count - 1) * spacing) / CGFloat(data.count)
-            let chartHeight = geo.size.height - 24
-
-            VStack(spacing: 8) {
-                HStack(alignment: .bottom, spacing: spacing) {
-                    ForEach(Array(data.enumerated()), id: \.offset) { index, value in
-                        let isLast = index == data.count - 1
-                        let barHeight = max(chartHeight * (value / maxVal), 4)
-
-                        RoundedRectangle(cornerRadius: CGFloat(AppTheme.Banking.Radius.chartBar))
-                            .fill(isLast ? AppTheme.Banking.Colors.accent : AppTheme.Banking.Colors.textOnDarkMuted.opacity(0.3))
-                            .frame(width: barWidth, height: appeared ? barHeight : 4)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.75).delay(Double(index) * 0.06), value: appeared)
-                            .shadow(color: isLast ? AppTheme.Banking.Colors.accent.opacity(0.4) : .clear, radius: 6, x: 0, y: 2)
-                    }
-                }
-                .frame(height: chartHeight)
-
-                HStack(spacing: spacing) {
-                    ForEach(Array(days.enumerated()), id: \.offset) { index, day in
-                        Text(day)
-                            .font(AppTheme.Banking.Typography.label())
-                            .foregroundColor(index == days.count - 1 ? AppTheme.Banking.Colors.textOnDarkPrimary : AppTheme.Banking.Colors.textOnDarkMuted)
-                            .frame(width: barWidth)
-                    }
-                }
-            }
-            .onAppear { appeared = true }
-        }
-    }
-}
-
-// MARK: - Dashboard Models
-
-typealias DashboardWallet = UserWallet
-typealias DashboardMission = MissionItem
 
 // MARK: - Scanner Sheet
-
-import AVFoundation
 
 struct ScannerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var scannedCode: String?
     @State private var torchOn = false
+    @State private var showCopied = false
 
     var body: some View {
         ZStack {
-            AppTheme.Banking.Colors.backgroundPrimary.ignoresSafeArea()
+            AppColors.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 HStack {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(AppTheme.Banking.Colors.textOnDarkPrimary)
-                            .frame(width: 40, height: 40)
-                            .background(
-                                Circle()
-                                    .fill(AppTheme.Banking.Colors.backgroundTertiary)
-                                    .overlay(Circle().stroke(Color.white.opacity(0.06), lineWidth: 1))
-                            )
-                    }
-
+                    PulseIconButton(icon: "xmark") { dismiss() }
                     Spacer()
-
                     Text("SCAN QR CODE")
-                        .font(AppTheme.Banking.Typography.label())
+                        .font(.system(size: 10, weight: .bold))
                         .tracking(1.5)
-                        .foregroundColor(AppTheme.Banking.Colors.textOnDarkMuted)
-
+                        .foregroundColor(AppColors.textSecondary)
                     Spacer()
-
-                    Button {
+                    PulseIconButton(icon: torchOn ? "flashlight.on.fill" : "flashlight.off.fill") {
                         torchOn.toggle()
-                    } label: {
-                        Image(systemName: torchOn ? "flashlight.on.fill" : "flashlight.off.fill")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(torchOn ? AppTheme.Banking.Colors.accent : AppTheme.Banking.Colors.textOnDarkPrimary)
-                            .frame(width: 40, height: 40)
-                            .background(
-                                Circle()
-                                    .fill(AppTheme.Banking.Colors.backgroundTertiary)
-                                    .overlay(Circle().stroke(Color.white.opacity(0.06), lineWidth: 1))
-                            )
                     }
                 }
-                .padding(.horizontal, AppTheme.Banking.Spacing.lg)
-                .padding(.top, AppTheme.Banking.Spacing.lg)
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.top, AppSpacing.lg)
 
                 Spacer()
 
                 ZStack {
                     QRScannerView(scannedCode: $scannedCode, torchOn: $torchOn)
                         .frame(width: 280, height: 280)
-                        .clipShape(RoundedRectangle(cornerRadius: CGFloat(AppTheme.Banking.Radius.card)))
+                        .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
 
-                    RoundedRectangle(cornerRadius: CGFloat(AppTheme.Banking.Radius.card))
-                        .stroke(AppTheme.Banking.Colors.accent, lineWidth: 3)
+                    RoundedRectangle(cornerRadius: AppRadius.lg)
+                        .stroke(AppColors.accent, lineWidth: 3)
                         .frame(width: 280, height: 280)
-                        .shadow(color: AppTheme.Banking.Colors.accent.opacity(0.5), radius: 20, x: 0, y: 0)
+                        .shadow(color: AppColors.accent.opacity(0.4), radius: 20)
 
                     ScannerCorners()
                         .frame(width: 280, height: 280)
                 }
 
-                VStack(spacing: 12) {
-                    Text("Position QR code in frame")
-                        .font(AppTheme.Banking.Typography.body())
-                        .foregroundColor(AppTheme.Banking.Colors.textOnDarkPrimary)
+                if let code = scannedCode {
+                    VStack(spacing: AppSpacing.sm) {
+                        Text("QR Code Scanned")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(AppColors.success)
 
-                    Text("Align the eSIM QR code within the scanner area")
-                        .font(AppTheme.Banking.Typography.caption())
-                        .foregroundColor(AppTheme.Banking.Colors.textOnDarkMuted)
-                        .multilineTextAlignment(.center)
+                        Text(code)
+                            .font(.system(size: 13, design: .monospaced))
+                            .foregroundStyle(AppColors.textPrimary)
+                            .lineLimit(3)
+                            .multilineTextAlignment(.center)
+                            .padding(AppSpacing.sm)
+                            .background(AppColors.surface, in: RoundedRectangle(cornerRadius: AppRadius.sm))
+
+                        Button {
+                            UIPasteboard.general.string = code
+                            showCopied = true
+                            HapticFeedback.success()
+                        } label: {
+                            Label(showCopied ? "Copied!" : "Copy LPA Code", systemImage: showCopied ? "checkmark" : "doc.on.doc")
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+                    }
+                    .padding(.top, 20)
+                } else {
+                    VStack(spacing: 8) {
+                        Text("Position QR code in frame")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(AppColors.textPrimary)
+
+                        Text("Align the eSIM QR code within the scanner area")
+                            .font(.system(size: 13))
+                            .foregroundColor(AppColors.textSecondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.top, 40)
                 }
-                .padding(.top, 40)
 
                 Spacer()
             }
@@ -1044,7 +839,7 @@ struct ScannerCorners: View {
         ZStack {
             ForEach([0, 1, 2, 3], id: \.self) { index in
                 CornerShape()
-                    .stroke(AppTheme.Banking.Colors.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .stroke(AppColors.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                     .frame(width: 50, height: 50)
                     .rotationEffect(.degrees(Double(index) * 90))
                     .offset(
@@ -1057,9 +852,7 @@ struct ScannerCorners: View {
 }
 
 struct CornerShape: Shape {
-    var corner: Int = 0
     var length: CGFloat = 20
-
     func path(in rect: CGRect) -> Path {
         var path = Path()
         path.move(to: CGPoint(x: rect.minX, y: rect.minY + length))
@@ -1083,17 +876,11 @@ struct QRScannerView: UIViewControllerRepresentable {
         uiViewController.setTorch(on: torchOn)
     }
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(scannedCode: $scannedCode)
-    }
+    func makeCoordinator() -> Coordinator { Coordinator(scannedCode: $scannedCode) }
 
     class Coordinator: NSObject, QRScannerDelegate {
         @Binding var scannedCode: String?
-
-        init(scannedCode: Binding<String?>) {
-            _scannedCode = scannedCode
-        }
-
+        init(scannedCode: Binding<String?>) { _scannedCode = scannedCode }
         func didScan(code: String) {
             HapticFeedback.success()
             scannedCode = code
@@ -1107,7 +894,6 @@ protocol QRScannerDelegate: AnyObject {
 
 class QRScannerViewController: UIViewController {
     weak var delegate: QRScannerDelegate?
-
     private let captureSession = AVCaptureSession()
     private var previewLayer: AVCaptureVideoPreviewLayer?
 
@@ -1118,32 +904,24 @@ class QRScannerViewController: UIViewController {
 
     private func setupCamera() {
         guard let device = AVCaptureDevice.default(for: .video) else { return }
-
         do {
             let input = try AVCaptureDeviceInput(device: device)
-            if captureSession.canAddInput(input) {
-                captureSession.addInput(input)
-            }
-
+            if captureSession.canAddInput(input) { captureSession.addInput(input) }
             let output = AVCaptureMetadataOutput()
             if captureSession.canAddOutput(output) {
                 captureSession.addOutput(output)
                 output.setMetadataObjectsDelegate(self, queue: .main)
                 output.metadataObjectTypes = [.qr]
             }
-
             previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
             previewLayer?.videoGravity = .resizeAspectFill
             previewLayer?.frame = view.bounds
-            if let layer = previewLayer {
-                view.layer.addSublayer(layer)
-            }
-
+            if let layer = previewLayer { view.layer.addSublayer(layer) }
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 self?.captureSession.startRunning()
             }
         } catch {
-            appLogError(error, message: "Camera setup failed", category: .general)
+            appLog("Camera setup failed: \(error.localizedDescription)", level: .error, category: .general)
         }
     }
 
@@ -1153,15 +931,13 @@ class QRScannerViewController: UIViewController {
     }
 
     func setTorch(on: Bool) {
-        guard let device = AVCaptureDevice.default(for: .video),
-              device.hasTorch else { return }
-
+        guard let device = AVCaptureDevice.default(for: .video), device.hasTorch else { return }
         do {
             try device.lockForConfiguration()
             device.torchMode = on ? .on : .off
             device.unlockForConfiguration()
         } catch {
-            appLogError(error, message: "Torch toggle failed", category: .general)
+            appLog("Torch configuration failed: \(error.localizedDescription)", level: .warning, category: .general)
         }
     }
 }
@@ -1170,7 +946,6 @@ extension QRScannerViewController: AVCaptureMetadataOutputObjectsDelegate {
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
         guard let object = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
               let code = object.stringValue else { return }
-
         captureSession.stopRunning()
         delegate?.didScan(code: code)
     }
@@ -1178,5 +953,6 @@ extension QRScannerViewController: AVCaptureMetadataOutputObjectsDelegate {
 
 #Preview {
     DashboardView()
-        .environmentObject(AppCoordinator())
+        .environment(AppState())
+        .preferredColorScheme(.dark)
 }

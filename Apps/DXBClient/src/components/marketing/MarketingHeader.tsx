@@ -5,6 +5,7 @@ import { Menu, Wifi, X } from 'lucide-react'
 import { useState } from 'react'
 
 const nav = [
+  { href: '/', label: 'Home' },
   { href: '/features', label: 'Features' },
   { href: '/contact', label: 'Contact' },
 ]

@@ -75,9 +75,10 @@ public actor APIClient {
                 token = accessToken
             }
 
-            if let token = token {
-                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            guard let token = token, !token.isEmpty else {
+                throw APIError.unauthorized
             }
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
         // Body

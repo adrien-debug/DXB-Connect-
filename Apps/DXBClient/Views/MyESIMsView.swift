@@ -2,444 +2,260 @@ import SwiftUI
 import DXBCore
 
 struct MyESIMsView: View {
-    @EnvironmentObject private var coordinator: AppCoordinator
-    @State private var selectedFilter = "All"
-    @State private var pollingTask: Task<Void, Never>?
+    @Environment(AppState.self) private var appState
 
-    private typealias BankingColors = AppTheme.Banking.Colors
-    private typealias BankingTypo = AppTheme.Banking.Typography
-    private typealias BankingRadius = AppTheme.Banking.Radius
-    private typealias BankingSpacing = AppTheme.Banking.Spacing
+    @State private var selectedFilter: ESIMFilter = .all
+    @State private var usageCache: [String: ESIMUsage] = [:]
+    @State private var loadingUsage: Set<String> = []
 
-    let filters = ["Active", "All", "Expired"]
-
-    var filteredOrders: [ESIMOrder] {
-        guard selectedFilter != "All" else { return coordinator.esimOrders }
-        return coordinator.esimOrders.filter { order in
-            switch selectedFilter {
-            case "Active": return order.status.uppercased() == "RELEASED" || order.status.uppercased() == "IN_USE"
-            case "Expired": return order.status.uppercased() == "EXPIRED"
-            default: return true
-            }
-        }
+    enum ESIMFilter: String, CaseIterable {
+        case all = "All"
+        case active = "Active"
+        case expired = "Expired"
     }
 
-    private var hasPendingOrders: Bool {
-        coordinator.esimOrders.contains { order in
-            let status = order.status.uppercased()
-            return status == "PENDING" || status == "PENDING_PAYMENT" || status == "PROCESSING"
+    private var filteredESIMs: [ESIMOrder] {
+        switch selectedFilter {
+        case .all:     return appState.activeESIMs
+        case .active:  return appState.activeESIMs.filter { isActive($0.status) }
+        case .expired: return appState.activeESIMs.filter { !isActive($0.status) }
         }
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                BankingColors.backgroundPrimary
-                    .ignoresSafeArea()
+        ZStack {
+            AppColors.background.ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    headerSection
-                    filterSection
-                    contentSection
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                    statsHeader.slideIn(delay: 0)
+                    filterPills.slideIn(delay: 0.05)
+                    esimsList.slideIn(delay: 0.1)
                 }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.top, AppSpacing.base)
+                .padding(.bottom, 120)
             }
-            .navigationBarHidden(true)
-            .navigationDestination(for: ESIMOrder.self) { order in
-                ESIMDetailView(order: order)
-            }
-            .refreshable {
-                await coordinator.loadESIMs()
-            }
-            .task {
-                if !coordinator.hasLoadedInitialData {
-                    await coordinator.loadESIMs()
+            .refreshable { await appState.loadDashboard() }
+        }
+        .navigationTitle("My eSIMs")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                NavigationLink {
+                    PlanListView()
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(AppColors.accent)
                 }
-            }
-            .onChange(of: hasPendingOrders) { _, hasPending in
-                if hasPending {
-                    startPollingForPendingOrders()
-                } else {
-                    stopPolling()
-                }
-            }
-            .onAppear {
-                if hasPendingOrders {
-                    startPollingForPendingOrders()
-                }
-            }
-            .onDisappear {
-                stopPolling()
             }
         }
     }
 
-    private func startPollingForPendingOrders() {
-        stopPolling()
+    // MARK: - Stats
 
-        pollingTask = Task {
-            var attempts = 0
-            let maxAttempts = 10
-
-            while !Task.isCancelled && attempts < maxAttempts {
-                let delay = min(5 + attempts * 5, 30)
-                try? await Task.sleep(nanoseconds: UInt64(delay) * 1_000_000_000)
-                guard !Task.isCancelled else { break }
-                await coordinator.loadESIMs()
-                attempts += 1
-                if !hasPendingOrders { break }
-            }
+    private var statsHeader: some View {
+        HStack(spacing: AppSpacing.md) {
+            statBox(value: "\(appState.activeESIMs.count)", label: "Total", icon: "simcard.fill", color: AppColors.accent)
+            statBox(value: "\(activeCount)", label: "Active", icon: "checkmark.circle.fill", color: AppColors.accent)
+            statBox(value: "\(countriesCount)", label: "Countries", icon: "globe", color: AppColors.accent)
         }
     }
 
-    private func stopPolling() {
-        pollingTask?.cancel()
-        pollingTask = nil
-    }
+    private func statBox(value: String, label: String, icon: String, color: Color) -> some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundStyle(color)
 
-    // MARK: - Header
+            Text(value)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
 
-    private var headerSection: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("My eSIMs")
-                    .font(BankingTypo.heroAmount())
-                    .foregroundColor(BankingColors.textOnDarkPrimary)
-
-                if !coordinator.esimOrders.isEmpty {
-                    Text("\(coordinator.esimOrders.count) plan\(coordinator.esimOrders.count > 1 ? "s" : "")")
-                        .font(BankingTypo.caption())
-                        .foregroundColor(BankingColors.textOnDarkMuted)
-                }
-            }
-
-            Spacer()
-
-            Button {
-                coordinator.selectedTab = 1
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus")
-                        .font(BankingTypo.label())
-                    Text("New")
-                        .font(BankingTypo.button())
-                }
-                .foregroundColor(BankingColors.backgroundPrimary)
-                .padding(.horizontal, BankingSpacing.lg)
-                .padding(.vertical, BankingSpacing.md)
-                .background(
-                    Capsule()
-                        .fill(BankingColors.accent)
-                )
-            }
-            .scaleOnPress()
-            .accessibilityLabel("Acheter un nouveau plan")
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(AppColors.textSecondary)
         }
-        .padding(.horizontal, BankingSpacing.lg)
-        .padding(.top, 56)
-        .padding(.bottom, BankingSpacing.base)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .chromeCard()
     }
 
-    // MARK: - Filter
+    private var activeCount: Int {
+        appState.activeESIMs.filter { isActive($0.status) }.count
+    }
 
-    private var filterSection: some View {
-        HStack(spacing: 6) {
-            ForEach(filters, id: \.self) { filter in
-                TechChip(
-                    title: filter,
-                    isSelected: selectedFilter == filter
-                ) {
-                    HapticFeedback.selection()
-                    withAnimation(.spring(response: 0.3)) {
-                        selectedFilter = filter
-                    }
+    private var countriesCount: Int {
+        Set(appState.activeESIMs.map { $0.packageName }).count
+    }
+
+    // MARK: - Filters
+
+    private var filterPills: some View {
+        HStack(spacing: 8) {
+            ForEach(ESIMFilter.allCases, id: \.self) { filter in
+                let isSelected = selectedFilter == filter
+                Button {
+                    withAnimation(.spring(response: 0.3)) { selectedFilter = filter }
+                } label: {
+                    Text(filter.rawValue)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(isSelected ? .black : AppColors.textSecondary)
+                    .padding(.horizontal, AppSpacing.base)
+                    .padding(.vertical, AppSpacing.sm)
+                        .background(
+                            Capsule()
+                                .fill(isSelected ? AppColors.accent : AppColors.surface)
+                                .overlay(
+                                    Capsule().stroke(isSelected ? Color.clear : AppColors.border, lineWidth: 1)
+                                )
+                        )
                 }
             }
             Spacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 12)
     }
 
-    // MARK: - Content
-
-    @ViewBuilder
-    private var contentSection: some View {
-        if coordinator.isLoadingESIMs {
-            loadingView
-        } else if coordinator.esimOrders.isEmpty {
-            emptyView
-        } else {
-            esimsList
-        }
-    }
+    // MARK: - List
 
     private var esimsList: some View {
-        ScrollView(showsIndicators: false) {
-            LazyVStack(spacing: 10) {
-                ForEach(Array(filteredOrders.enumerated()), id: \.element.id) { index, order in
-                    NavigationLink(value: order) {
-                        EsimCardTech(order: order)
+        VStack(spacing: 10) {
+            if appState.isDashboardLoading {
+                ForEach(0..<3, id: \.self) { _ in esimLoadingCard }
+            } else if filteredESIMs.isEmpty {
+                emptyState
+            } else {
+                ForEach(filteredESIMs) { esim in
+                    NavigationLink { ESIMDetailView(esim: esim) } label: {
+                        esimCard(esim)
                     }
                     .buttonStyle(.plain)
-                    .slideIn(delay: 0.03 * Double(index))
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 100)
         }
     }
 
-    private var loadingView: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: AppTheme.Spacing.md) {
-                ForEach(0..<3, id: \.self) { index in
-                    ShimmerPlaceholder(cornerRadius: 20)
-                        .frame(height: 140)
-                        .padding(.horizontal, 16)
-                        .bounceIn(delay: Double(index) * 0.1)
-                }
-            }
-            .padding(.top, AppTheme.Spacing.md)
-        }
-    }
-
-    private var emptyView: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: BankingSpacing.xxl) {
-                ZStack {
-                    Circle()
-                        .fill(BankingColors.accent.opacity(0.08))
-                        .frame(width: 120, height: 120)
-
-                    Circle()
-                        .fill(BankingColors.accent.opacity(0.15))
-                        .frame(width: 88, height: 88)
-
-                    Image(systemName: "simcard")
-                        .font(.system(size: 36, weight: .medium))
-                        .foregroundColor(BankingColors.accent)
-                }
-
-                VStack(spacing: BankingSpacing.md) {
-                    Text("No eSIMs yet")
-                        .font(BankingTypo.detailAmount())
-                        .foregroundColor(BankingColors.textOnDarkPrimary)
-
-                    Text("Get your first eSIM and stay\nconnected in 190+ countries")
-                        .font(BankingTypo.body())
-                        .foregroundColor(BankingColors.textOnDarkMuted)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(5)
-                }
-
-                Button {
-                    coordinator.selectedTab = 1
-                } label: {
-                    HStack(spacing: 8) {
-                        Text("Browse plans")
-                            .font(BankingTypo.button())
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 13, weight: .bold))
-                    }
-                    .foregroundColor(BankingColors.backgroundPrimary)
-                    .padding(.horizontal, BankingSpacing.xxl)
-                    .padding(.vertical, BankingSpacing.base)
-                    .background(
-                        Capsule()
-                            .fill(BankingColors.accent)
-                            .shadow(color: BankingColors.accentDark.opacity(0.4), radius: 12, x: 0, y: 4)
-                    )
-                }
-                .accessibilityLabel("Voir les plans disponibles")
-                .scaleOnPress()
-            }
-
-            Spacer()
-        }
-        .padding()
-    }
-}
-
-// MARK: - eSIM Card (Banking Style)
-
-struct EsimCardTech: View {
-    let order: ESIMOrder
-    @EnvironmentObject private var coordinator: AppCoordinator
-
-    private typealias BankingColors = AppTheme.Banking.Colors
-    private typealias BankingTypo = AppTheme.Banking.Typography
-    private typealias BankingRadius = AppTheme.Banking.Radius
-    private typealias BankingSpacing = AppTheme.Banking.Spacing
-
-    private var statusColor: Color {
-        switch order.status.uppercased() {
-        case "RELEASED", "IN_USE": return BankingColors.accentDark
-        case "EXPIRED": return BankingColors.textOnLightMuted
-        case "PENDING", "PENDING_PAYMENT", "PROCESSING": return AppTheme.warning
-        default: return BankingColors.textOnLightMuted
-        }
-    }
-
-    private var statusText: String {
-        switch order.status.uppercased() {
-        case "RELEASED": return "ACTIVE"
-        case "IN_USE": return "IN USE"
-        case "EXPIRED": return "EXPIRED"
-        case "PENDING", "PENDING_PAYMENT": return "PENDING"
-        case "PROCESSING": return "PROCESSING"
-        default: return order.status.uppercased()
-        }
-    }
-
-    private var isActive: Bool {
-        let s = order.status.uppercased()
-        return s == "RELEASED" || s == "IN_USE"
-    }
-
-    private var daysRemaining: Int {
-        guard !order.expiredTime.isEmpty else { return 0 }
-        let dateFormatter = ISO8601DateFormatter()
-        dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
-        if let expiryDate = dateFormatter.date(from: order.expiredTime) {
-            let days = Calendar.current.dateComponents([.day], from: Date(), to: expiryDate).day ?? 0
-            return max(0, days)
-        }
-
-        let fallbackFormatter = DateFormatter()
-        fallbackFormatter.dateFormat = "yyyy-MM-dd"
-        if let expiryDate = fallbackFormatter.date(from: String(order.expiredTime.prefix(10))) {
-            let days = Calendar.current.dateComponents([.day], from: Date(), to: expiryDate).day ?? 0
-            return max(0, days)
-        }
-        return 0
-    }
-
-    private var daysRemainingText: String {
-        let days = daysRemaining
-        if days == 0 { return "Expired" }
-        if days == 1 { return "1 day left" }
-        return "\(days) days left"
-    }
-
-    private var usagePercentage: Double {
-        coordinator.usagePercentage(for: order)
-    }
-
-    var body: some View {
-        HStack(spacing: BankingSpacing.md) {
-            // Icon
+    private func esimCard(_ esim: ESIMOrder) -> some View {
+        HStack(spacing: AppSpacing.md) {
             ZStack {
                 Circle()
-                    .fill(BankingColors.surfaceMedium)
-                    .frame(width: 44, height: 44)
+                    .fill(statusColor(esim.status).opacity(0.1))
+                    .frame(width: 48, height: 48)
 
                 Image(systemName: "simcard.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(isActive ? BankingColors.accentDark : BankingColors.textOnLightMuted)
+                    .font(.system(size: 18))
+                    .foregroundStyle(statusColor(esim.status))
             }
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(order.packageName)
-                    .font(BankingTypo.body())
-                    .foregroundColor(BankingColors.textOnLightPrimary)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(esim.packageName)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(AppColors.textPrimary)
                     .lineLimit(1)
 
-                HStack(spacing: 6) {
-                    Text(order.totalVolume)
-                        .font(BankingTypo.caption())
-                        .foregroundColor(BankingColors.textOnLightMuted)
-
-                    Text("·")
-                        .foregroundColor(BankingColors.textOnLightMuted)
-
-                    Text(daysRemainingText)
-                        .font(BankingTypo.caption())
-                        .foregroundColor(BankingColors.textOnLightMuted)
-                }
+                Text(esim.totalVolume.isEmpty ? "Activation pending" : esim.totalVolume)
+                    .font(.system(size: 13))
+                    .foregroundStyle(AppColors.textSecondary)
             }
 
             Spacer()
 
             VStack(alignment: .trailing, spacing: 4) {
-                Text(statusText)
-                    .font(BankingTypo.label())
-                    .foregroundColor(isActive ? BankingColors.backgroundPrimary : statusColor)
-                    .padding(.horizontal, BankingSpacing.sm)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule().fill(isActive ? BankingColors.accent : statusColor.opacity(0.15))
-                    )
+                StatusBadge(text: statusLabel(esim.status), color: statusColor(esim.status))
 
-                Text("\(Int(usagePercentage * 100))% used")
-                    .font(BankingTypo.caption())
-                    .foregroundColor(BankingColors.textOnLightMuted)
+                if let usage = usageCache[esim.iccid] {
+                    Text("\(Int(usage.usagePercentage * 100))% used")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(AppColors.textTertiary)
+                }
             }
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(BankingColors.textOnLightMuted)
+                .foregroundStyle(AppColors.textTertiary)
         }
-        .padding(.horizontal, BankingSpacing.base)
-        .padding(.vertical, BankingSpacing.md)
+        .padding(AppSpacing.base)
         .background(
-            RoundedRectangle(cornerRadius: CGFloat(BankingRadius.card))
-                .fill(BankingColors.surfaceLight)
-                .shadow(color: AppTheme.Banking.Shadow.card.color, radius: AppTheme.Banking.Shadow.card.radius, x: AppTheme.Banking.Shadow.card.x, y: AppTheme.Banking.Shadow.card.y)
+            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                .fill(AppColors.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                        .stroke(AppColors.border, lineWidth: 1)
+                )
         )
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(order.packageName), \(statusText), \(order.totalVolume)")
-        .accessibilityHint("Double-tap pour voir les détails")
-        .contentShape(Rectangle())
+        .task { await loadUsage(for: esim) }
     }
-}
 
-// Compatibility
-struct EsimCard: View {
-    let order: ESIMOrder
-    var body: some View { EsimCardTech(order: order) }
-}
-struct ESIMCard: View {
-    let order: ESIMOrder
-    var body: some View { EsimCardTech(order: order) }
-}
-struct UltraEsimCard: View {
-    let order: ESIMOrder
-    var body: some View { EsimCardTech(order: order) }
-}
-struct MiniStat: View {
-    let icon: String
-    let label: String
-    var body: some View {
-        Label(label, systemImage: icon)
-            .font(AppTheme.Banking.Typography.caption())
-            .foregroundColor(AppTheme.Banking.Colors.textOnLightMuted)
-    }
-}
-
-// MARK: - ViewModel
-
-@MainActor
-final class MyESIMsViewModel: ObservableObject {
-    @Published var orders: [ESIMOrder] = []
-    @Published var isLoading = false
-    @Published var error: String?
-
-    func loadOrders(apiService: DXBAPIServiceProtocol) async {
-        isLoading = true
-        error = nil
-        do {
-            orders = try await apiService.fetchMyESIMs()
-        } catch {
-            self.error = error.localizedDescription
+    private var esimLoadingCard: some View {
+        HStack(spacing: AppSpacing.md) {
+            Circle().fill(AppColors.surfaceSecondary).frame(width: 48, height: 48)
+            VStack(alignment: .leading, spacing: 6) {
+                RoundedRectangle(cornerRadius: AppRadius.xs).fill(AppColors.surfaceSecondary).frame(width: 130, height: 14)
+                RoundedRectangle(cornerRadius: AppRadius.xs).fill(AppColors.surfaceSecondary).frame(width: 80, height: 10)
+            }
+            Spacer()
         }
-        isLoading = false
+        .padding(AppSpacing.base)
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                .fill(AppColors.surface)
+                .overlay(RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous).stroke(AppColors.border, lineWidth: 1))
+        )
+        .shimmer()
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            EmptyStateView(
+                icon: "simcard",
+                title: "No eSIMs found",
+                subtitle: "Purchase your first eSIM to get started"
+            )
+
+            NavigationLink {
+                PlanListView()
+            } label: {
+                Text("Browse Plans")
+            }
+            .buttonStyle(PrimaryButtonStyle(isSmall: true))
+        }
+        .pulseCard()
+    }
+
+    // MARK: - Helpers
+
+    private func loadUsage(for esim: ESIMOrder) async {
+        guard !esim.iccid.isEmpty, usageCache[esim.iccid] == nil, !loadingUsage.contains(esim.iccid) else { return }
+        loadingUsage.insert(esim.iccid)
+        do {
+            guard let usage = try await appState.apiService.fetchUsage(iccid: esim.iccid) else {
+                loadingUsage.remove(esim.iccid)
+                return
+            }
+            usageCache[esim.iccid] = usage
+            loadingUsage.remove(esim.iccid)
+        } catch {
+            loadingUsage.remove(esim.iccid)
+        }
+    }
+
+    private func isActive(_ status: String) -> Bool {
+        ESIMStatusHelper.isActive(status)
+    }
+
+    private func statusLabel(_ status: String) -> String {
+        ESIMStatusHelper.label(status)
+    }
+
+    private func statusColor(_ status: String) -> Color {
+        ESIMStatusHelper.color(status)
     }
 }
 
 #Preview {
-    MyESIMsView()
-        .environmentObject(AppCoordinator())
+    NavigationStack { MyESIMsView() }
+        .environment(AppState())
+        .preferredColorScheme(.dark)
 }

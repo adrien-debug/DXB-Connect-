@@ -1,285 +1,492 @@
 import SwiftUI
 import DXBCore
 
-struct SimPassSubscriptionView: View {
-    @EnvironmentObject private var coordinator: AppCoordinator
-    @StateObject private var storeKit = StoreKitManager.shared
-    @State private var selectedPeriod: BillingPeriod = .monthly
-    @State private var showError = false
-    @State private var errorMessage = ""
+struct SubscriptionView: View {
+    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
-    private typealias BankingColors = AppTheme.Banking.Colors
-    private typealias BankingTypo = AppTheme.Banking.Typography
-    private typealias BankingRadius = AppTheme.Banking.Radius
-    private typealias BankingSpacing = AppTheme.Banking.Spacing
+    @State private var selectedPlan: SubPlan = .elite
+    @State private var selectedBilling: BillingPeriod = .annual
+    @State private var isSubscribing = false
+    @State private var subscriptionError: String?
+    @State private var showChangePlan = false
+    @State private var showCancelConfirm = false
 
-    enum BillingPeriod {
-        case monthly, yearly
+    enum SubPlan: String, CaseIterable {
+        case privilege, elite, black
+
+        var displayName: String {
+            switch self {
+            case .privilege: return "Privilege"
+            case .elite:     return "Elite"
+            case .black:     return "Black"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .privilege: return "shield.checkered"
+            case .elite:     return "crown.fill"
+            case .black:     return "diamond.fill"
+            }
+        }
+
+        var color: Color {
+            switch self {
+            case .privilege: return .cyan
+            case .elite:     return .purple
+            case .black:     return AppColors.accent
+            }
+        }
+
+        var discount: Int {
+            switch self {
+            case .privilege: return 10
+            case .elite:     return 20
+            case .black:     return 30
+            }
+        }
+
+        var monthlyPrice: Double {
+            switch self {
+            case .privilege: return 4.99
+            case .elite:     return 9.99
+            case .black:     return 19.99
+            }
+        }
+
+        var annualPrice: Double {
+            switch self {
+            case .privilege: return 39.99
+            case .elite:     return 79.99
+            case .black:     return 159.99
+            }
+        }
+
+        var features: [String] {
+            switch self {
+            case .privilege: return ["-10% on all eSIM plans", "Priority support", "Partner offers access", "Privilege badge"]
+            case .elite:     return ["-20% on all eSIM plans", "VIP 24/7 support", "Premium partner offers", "Gold Elite badge", "Early access to new destinations"]
+            case .black:     return ["-30% on all eSIM plans", "Dedicated concierge", "Exclusive partner offers", "Diamond Black badge", "VIP event invitations", "2x bonus points"]
+            }
+        }
     }
+
+    enum BillingPeriod: String, CaseIterable {
+        case monthly = "Monthly"
+        case annual = "Annual"
+        var savings: String {
+            switch self {
+            case .monthly: return ""
+            case .annual:  return "Save 33%"
+            }
+        }
+    }
+
+    private var currentSubscription: SubscriptionResponse? { appState.subscription }
 
     var body: some View {
-        NavigationStack {
+        ZStack {
+            AppColors.background.ignoresSafeArea()
+
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: AppSpacing.lg) {
+                    heroSection.slideIn(delay: 0)
+
+                    if currentSubscription == nil {
+                        billingToggle.slideIn(delay: 0.05)
+                        planSelector.slideIn(delay: 0.08)
+                        selectedPlanDetails.slideIn(delay: 0.1)
+                        subscribeButton.slideIn(delay: 0.12)
+                    } else {
+                        currentPlanCard.slideIn(delay: 0.05)
+                        managementOptions.slideIn(delay: 0.08)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.bottom, 120)
+            }
+
+            if isSubscribing {
+                LoadingOverlay(message: "Processing...")
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("SUBSCRIPTION")
+                    .font(.system(size: 11, weight: .bold))
+                    .tracking(2)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+        }
+    }
+
+    // MARK: - Hero
+
+    private var heroSection: some View {
+        VStack(spacing: 14) {
             ZStack {
-                BankingColors.backgroundPrimary.ignoresSafeArea()
+                Circle()
+                    .fill(AppColors.accent.opacity(0.1))
+                    .frame(width: 80, height: 80)
+                    .blur(radius: 15)
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: BankingSpacing.xl) {
-                        headerSection
-                        periodToggle
-                        plansSection
-                        featuresComparison
-                        restoreButton
-                    }
-                    .padding(.horizontal, BankingSpacing.lg)
-                    .padding(.bottom, 40)
-                }
+                Image(systemName: "crown.fill")
+                    .font(.system(size: 38))
+                    .foregroundStyle(AppColors.accent)
             }
-            .navigationTitle("SimPass Plans")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark")
-                            .font(BankingTypo.button())
-                            .foregroundColor(BankingColors.textOnDarkPrimary)
-                    }
-                }
-            }
-            .task { await storeKit.loadProducts() }
-            .alert("Error", isPresented: $showError) {
-                Button("OK") {}
-            } message: {
-                Text(errorMessage)
+
+            VStack(spacing: 6) {
+                Text("SimPass Premium")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                Text("Travel connected at reduced prices")
+                    .font(.system(size: 15))
+                    .foregroundStyle(AppColors.textSecondary)
             }
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, AppSpacing.xl)
     }
 
-    // MARK: - Header
+    // MARK: - Billing Toggle
 
-    private var headerSection: some View {
-        VStack(spacing: BankingSpacing.sm) {
-            Text("Unlock Premium Benefits")
-                .font(BankingTypo.detailAmount())
-                .foregroundColor(BankingColors.textOnDarkPrimary)
-
-            Text("Save on every eSIM purchase\nand unlock exclusive travel perks")
-                .font(BankingTypo.body())
-                .foregroundColor(BankingColors.textOnDarkMuted)
-                .multilineTextAlignment(.center)
-        }
-        .padding(.top, BankingSpacing.base)
-    }
-
-    // MARK: - Period Toggle
-
-    private var periodToggle: some View {
-        HStack(spacing: 0) {
-            periodButton(title: "Monthly", period: .monthly)
-            periodButton(title: "Yearly (-17%)", period: .yearly)
-        }
-        .background(BankingColors.backgroundTertiary)
-        .clipShape(Capsule())
-    }
-
-    private func periodButton(title: String, period: BillingPeriod) -> some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                selectedPeriod = period
-            }
-        } label: {
-            Text(title)
-                .font(BankingTypo.button())
-                .foregroundColor(selectedPeriod == period ? BankingColors.backgroundPrimary : BankingColors.textOnDarkMuted)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(
-                    selectedPeriod == period
-                        ? Capsule().fill(BankingColors.accent)
-                        : Capsule().fill(Color.clear)
-                )
-        }
-    }
-
-    // MARK: - Plans
-
-    private var plansSection: some View {
-        VStack(spacing: BankingSpacing.md) {
-            planCard(
-                name: "Privilege",
-                discount: 15,
-                monthlyPrice: "$9.99",
-                yearlyPrice: "$99/yr",
-                features: ["15% off all eSIMs", "Global perks access"],
-                color: BankingColors.accentDark,
-                isPopular: false
-            )
-
-            planCard(
-                name: "Elite",
-                discount: 30,
-                monthlyPrice: "$19.99",
-                yearlyPrice: "$199/yr",
-                features: ["30% off all eSIMs", "Priority support", "Monthly raffle entry"],
-                color: BankingColors.accent,
-                isPopular: true
-            )
-
-            planCard(
-                name: "Black",
-                discount: 50,
-                monthlyPrice: "$39.99",
-                yearlyPrice: "$399/yr",
-                features: ["50% off (1x/month)", "30% off remaining", "VIP lounge access", "Premium transfers"],
-                color: BankingColors.accentLight,
-                isPopular: false
-            )
-        }
-    }
-
-    private func planCard(name: String, discount: Int, monthlyPrice: String, yearlyPrice: String, features: [String], color: Color, isPopular: Bool) -> some View {
-        VStack(alignment: .leading, spacing: BankingSpacing.md) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: BankingSpacing.sm) {
-                        Text(name)
-                            .font(BankingTypo.sectionTitle())
-                            .foregroundColor(BankingColors.textOnLightPrimary)
-
-                        if isPopular {
-                            Text("POPULAR")
-                                .font(BankingTypo.label())
-                                .foregroundColor(BankingColors.backgroundPrimary)
-                                .padding(.horizontal, BankingSpacing.sm)
-                                .padding(.vertical, 3)
-                                .background(Capsule().fill(BankingColors.accent))
+    private var billingToggle: some View {
+        HStack(spacing: 4) {
+            ForEach(BillingPeriod.allCases, id: \.self) { period in
+                let isSelected = selectedBilling == period
+                Button {
+                    withAnimation(.spring(response: 0.3)) { selectedBilling = period }
+                } label: {
+                    VStack(spacing: 3) {
+                        Text(period.rawValue)
+                            .font(.system(size: 14, weight: .semibold))
+                        if !period.savings.isEmpty {
+                            Text(period.savings)
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(isSelected ? .black.opacity(0.6) : AppColors.success)
                         }
                     }
+                    .foregroundStyle(isSelected ? .black : AppColors.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
+                            .fill(isSelected ? AppColors.accent : Color.clear)
+                    )
+                }
+            }
+        }
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                .fill(AppColors.surface)
+                .overlay(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous).stroke(AppColors.border, lineWidth: 1))
+        )
+    }
 
-                    Text(selectedPeriod == .monthly ? monthlyPrice + "/mo" : yearlyPrice)
-                        .font(BankingTypo.body())
-                        .foregroundColor(BankingColors.textOnLightMuted)
+    // MARK: - Plan Selector
+
+    private var planSelector: some View {
+        HStack(spacing: AppSpacing.md) {
+            ForEach(SubPlan.allCases, id: \.self) { plan in
+                planCard(plan)
+            }
+        }
+    }
+
+    private func planCard(_ plan: SubPlan) -> some View {
+        let isSelected = selectedPlan == plan
+        let perMonth = selectedBilling == .annual ? plan.annualPrice / 12 : plan.monthlyPrice
+
+        return Button {
+            withAnimation(.spring(response: 0.3)) { selectedPlan = plan }
+        } label: {
+            VStack(spacing: 10) {
+                Image(systemName: plan.icon)
+                    .font(.system(size: 22))
+                    .foregroundStyle(plan.color)
+
+                Text(plan.displayName)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(AppColors.textPrimary)
+
+                VStack(spacing: 1) {
+                    Text("$\(String(format: "%.2f", perMonth))")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundStyle(isSelected ? AppColors.accent : AppColors.textPrimary)
+                    Text("/mo")
+                        .font(.system(size: 10))
+                        .foregroundStyle(AppColors.textTertiary)
                 }
 
-                Spacer()
+                Text("-\(plan.discount)%")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(plan.color)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(plan.color.opacity(0.12)))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .background(
+                RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                    .fill(AppColors.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                            .stroke(isSelected ? plan.color : AppColors.border, lineWidth: isSelected ? 2 : 1)
+                    )
+            )
+            .shadow(color: isSelected ? plan.color.opacity(0.15) : Color.clear, radius: 12, x: 0, y: 6)
+        }
+    }
 
-                Text("-\(discount)%")
-                    .font(BankingTypo.detailAmount())
-                    .foregroundColor(color)
+    // MARK: - Details
+
+    private var selectedPlanDetails: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text(selectedPlan.displayName)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+                Spacer()
+                Text("Benefits")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(AppColors.textTertiary)
             }
 
-            VStack(alignment: .leading, spacing: BankingSpacing.sm) {
-                ForEach(features, id: \.self) { feature in
-                    HStack(spacing: BankingSpacing.sm) {
+            VStack(spacing: 10) {
+                ForEach(selectedPlan.features, id: \.self) { feature in
+                    HStack(spacing: 10) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(color)
+                            .font(.system(size: 15))
+                            .foregroundStyle(selectedPlan.color)
                         Text(feature)
-                            .font(BankingTypo.body())
-                            .foregroundColor(BankingColors.textOnLightPrimary)
+                            .font(.system(size: 14))
+                            .foregroundStyle(AppColors.textSecondary)
+                        Spacer()
                     }
                 }
             }
-
-            let isActive = storeKit.activePlanName == name
-            Button {
-                Task { await subscribeToPlan(name: name) }
-            } label: {
-                Text(isActive ? "Current Plan" : "Subscribe")
-                    .font(BankingTypo.button())
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .foregroundColor(isActive ? BankingColors.textOnLightMuted : BankingColors.backgroundPrimary)
-                    .background(
-                        RoundedRectangle(cornerRadius: CGFloat(BankingRadius.medium))
-                            .fill(isActive ? BankingColors.surfaceMedium : color)
-                    )
-            }
-            .disabled(isActive || storeKit.isLoading)
         }
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(AppTheme.backgroundPrimary)
-                .overlay(
-                    isPopular
-                        ? RoundedRectangle(cornerRadius: 20).stroke(color, lineWidth: 2)
-                        : RoundedRectangle(cornerRadius: 20).stroke(AppTheme.border.opacity(0.3), lineWidth: 0.5)
-                )
-                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
-        )
+        .pulseCard()
     }
 
-    // MARK: - Features Comparison
+    // MARK: - Subscribe
 
-    private var featuresComparison: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("All plans include")
-                .font(AppTheme.Typography.bodyMedium())
-                .foregroundColor(AppTheme.textPrimary)
-
-            ForEach(["Automatic billing", "Cancel anytime", "Instant activation", "Global partner perks"], id: \.self) { feature in
+    private var subscribeButton: some View {
+        VStack(spacing: 10) {
+            if let error = subscriptionError {
                 HStack(spacing: 8) {
-                    Image(systemName: "checkmark")
-                        .font(AppTheme.Typography.navTitle())
-                        .foregroundColor(AppTheme.accent)
-                    Text(feature)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(AppTheme.textSecondary)
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(AppColors.error)
+                    Text(error).font(.system(size: 13)).foregroundStyle(AppColors.textPrimary)
+                }
+                .padding(10)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: AppRadius.sm).fill(AppColors.error.opacity(0.08))
+                        .overlay(RoundedRectangle(cornerRadius: AppRadius.sm).stroke(AppColors.error.opacity(0.15), lineWidth: 1))
+                )
+            }
+
+            let price = selectedBilling == .annual ? selectedPlan.annualPrice : selectedPlan.monthlyPrice
+
+            Button { Task { await subscribe() } } label: {
+                HStack(spacing: 8) {
+                    Text("Subscribe for $\(String(format: "%.2f", price))")
+                    Text(selectedBilling == .annual ? "/year" : "/mo")
+                        .opacity(0.6)
+                }
+            }
+            .buttonStyle(PrimaryButtonStyle())
+
+            HStack(spacing: 4) {
+                Image(systemName: "lock.fill").font(.system(size: 9))
+                Text("Cancel anytime. Secure payment via Stripe.")
+                    .font(.system(size: 11))
+            }
+            .foregroundStyle(AppColors.textTertiary)
+        }
+    }
+
+    // MARK: - Current Plan
+
+    private var currentPlanCard: some View {
+        VStack(spacing: 14) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Current Plan")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(AppColors.textSecondary)
+                    HStack(spacing: 8) {
+                        Image(systemName: AppTheme.tierIcon(currentSubscription?.plan ?? ""))
+                            .font(.system(size: 20))
+                            .foregroundStyle(AppTheme.tierColor(currentSubscription?.plan ?? ""))
+                        Text((currentSubscription?.plan ?? "Free").capitalized)
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppColors.textPrimary)
+                    }
+                }
+                Spacer()
+                StatusBadge(
+                    text: currentSubscription?.status ?? "active",
+                    color: currentSubscription?.status == "active" ? AppColors.success : AppColors.warning
+                )
+            }
+
+            Divider().background(AppColors.border)
+
+            HStack(spacing: 20) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Discount").font(.system(size: 11)).foregroundStyle(AppColors.textSecondary)
+                    Text("-\(currentSubscription?.discount_percent ?? 0)%")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.success)
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Billing").font(.system(size: 11)).foregroundStyle(AppColors.textSecondary)
+                    Text((currentSubscription?.billing_period ?? "monthly").capitalized)
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppColors.textPrimary)
+                }
+                Spacer()
+            }
+
+            if let endDate = currentSubscription?.current_period_end {
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar").font(.system(size: 12))
+                    Text("Next renewal: \(formatDate(endDate))").font(.system(size: 13))
+                }
+                .foregroundStyle(AppColors.textSecondary)
+            }
+        }
+        .pulseCard()
+    }
+
+    // MARK: - Management
+
+    private var managementOptions: some View {
+        VStack(spacing: 10) {
+            Button { showChangePlan = true } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "arrow.up.circle.fill")
+                    Text("Change Plan")
+                }
+            }
+            .buttonStyle(PrimaryButtonStyle())
+
+            Button { showCancelConfirm = true } label: {
+                Text("Cancel Subscription")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(AppColors.error)
+            }
+            .padding(.top, 6)
+        }
+        .sheet(isPresented: $showChangePlan) {
+            NavigationStack {
+                changePlanSheet
+            }
+        }
+        .confirmationDialog("Cancel Subscription", isPresented: $showCancelConfirm) {
+            Button("Cancel Subscription", role: .destructive) {
+                Task { await cancelSubscription() }
+            }
+            Button("Keep Subscription", role: .cancel) {}
+        } message: {
+            Text("Your subscription will remain active until the end of the current billing period. Are you sure?")
+        }
+    }
+
+    private var changePlanSheet: some View {
+        ZStack {
+            AppColors.background.ignoresSafeArea()
+
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: AppSpacing.lg) {
+                    billingToggle
+                    planSelector
+                    selectedPlanDetails
+
+                    Button { Task { await changePlan() } } label: {
+                        let price = selectedBilling == .annual ? selectedPlan.annualPrice : selectedPlan.monthlyPrice
+                        HStack(spacing: 8) {
+                            Text("Switch to \(selectedPlan.displayName) for $\(String(format: "%.2f", price))")
+                            Text(selectedBilling == .annual ? "/year" : "/mo")
+                                .opacity(0.6)
+                        }
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
+                }
+                .padding(AppSpacing.lg)
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("CHANGE PLAN")
+                    .font(.system(size: 11, weight: .bold))
+                    .tracking(2)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button { showChangePlan = false } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(AppColors.textTertiary)
                 }
             }
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
-                .fill(AppTheme.gray100)
-        )
     }
 
-    // MARK: - Restore
-
-    private var restoreButton: some View {
-        Button {
-            Task { await storeKit.restorePurchases() }
-        } label: {
-            Text("Restore Purchases")
-                .font(AppTheme.Typography.tabLabel())
-                .foregroundColor(AppTheme.textTertiary)
+    private func changePlan() async {
+        isSubscribing = true; subscriptionError = nil
+        do {
+            let billing = selectedBilling == .annual ? "annual" : "monthly"
+            _ = try await appState.apiService.createSubscription(plan: selectedPlan.rawValue, billingPeriod: billing)
+            await appState.loadDashboard()
+            isSubscribing = false; showChangePlan = false
+        } catch {
+            subscriptionError = "Unable to change plan"; isSubscribing = false
         }
+    }
+
+    private func cancelSubscription() async {
+        isSubscribing = true
+        subscriptionError = nil
+        do {
+            try await appState.apiService.cancelSubscription()
+            await appState.loadDashboard()
+        } catch {
+            subscriptionError = "Unable to cancel subscription. Please contact support."
+            appLog("Cancel subscription failed: \(error.localizedDescription)", level: .error, category: .data)
+        }
+        isSubscribing = false
     }
 
     // MARK: - Actions
 
-    private func subscribeToPlan(name: String) async {
-        let suffix = selectedPeriod == .monthly ? "monthly" : "yearly"
-        let productId = "com.simpass.\(name.lowercased()).\(suffix)"
-
-        guard let product = storeKit.products.first(where: { $0.id == productId }) else {
-            errorMessage = "Product not available"
-            showError = true
-            return
-        }
-
+    private func subscribe() async {
+        isSubscribing = true; subscriptionError = nil
         do {
-            let _ = try await storeKit.purchase(product)
-
-            // Sync subscription with backend
-            let billingPeriod = selectedPeriod == .monthly ? "monthly" : "yearly"
-            let _ = try? await coordinator.currentAPIService.createSubscription(
-                plan: name.lowercased(),
-                billingPeriod: billingPeriod
-            )
-
-            HapticFeedback.success()
+            let billing = selectedBilling == .annual ? "annual" : "monthly"
+            _ = try await appState.apiService.createSubscription(plan: selectedPlan.rawValue, billingPeriod: billing)
+            await appState.loadDashboard()
+            isSubscribing = false; dismiss()
         } catch {
-            errorMessage = error.localizedDescription
-            showError = true
+            subscriptionError = "Unable to create subscription"; isSubscribing = false
         }
+    }
+
+    private func formatDate(_ raw: String) -> String {
+        DateFormatHelper.formatISO(raw)
     }
 }
 
 #Preview {
-    SimPassSubscriptionView()
-        .environmentObject(AppCoordinator())
+    NavigationStack { SubscriptionView() }
+        .environment(AppState())
+        .preferredColorScheme(.dark)
 }

@@ -2,91 +2,162 @@
 
 ## Token Definitions
 
-Tous les design tokens sont définis dans `Apps/DXBClient/Views/Theme.swift` via la struct `AppTheme`.
+Tous les design tokens sont définis dans `Apps/DXBClient/Views/Theme.swift`.
 
-### Couleurs
+### Couleurs (AppColors)
 ```swift
-AppTheme.accent          // #CDFF00 (lime)
-AppTheme.gray50..gray900 // Zinc scale
-AppTheme.textPrimary     // Adaptatif light/dark
-AppTheme.textSecondary
-AppTheme.textTertiary
-AppTheme.backgroundPrimary / Secondary / Tertiary
-AppTheme.success / warning / error / info
+// Global
+AppColors.accent          // #BAFF39 (lime)
+AppColors.accentLight     // #D4FF85
+AppColors.accentSoft      // #EDFFC4
+AppColors.brandGray       // #6E6E6E
+AppColors.white           // #FFFFFF
+
+// Semantic
+AppColors.success         // #16A34A
+AppColors.warning         // #D97706
+AppColors.error           // #DC2626
+AppColors.info            // #2563EB
+
+// Adaptatif light/dark
+AppColors.background          // light: #FFFFFF / dark: #404040
+AppColors.backgroundSecondary // light: #FAFAFA / dark: #4A4A4A
+AppColors.surface             // light: #FFFFFF / dark: #4A4A4A
+AppColors.textPrimary         // light: #6E6E6E / dark: #FFFFFF
+AppColors.textSecondary       // light: #A3A3A3 / dark: #D4D4D4
+AppColors.textTertiary        // light: #D4D4D4 / dark: #A3A3A3
+AppColors.textMuted           // light: #E5E5E5 / dark: #808080
+AppColors.border              // light: #E5E5E5 / dark: #5C5C5C
+
+// Legacy mapping
+AppColors.navy            // #404040 (Dark BG)
+AppColors.navyLight       // #4A4A4A (Secondary Dark BG)
 ```
 
-### Spacing
+### Alias de compatibilité (AppTheme)
 ```swift
-AppTheme.Spacing.xs   // 4pt
-AppTheme.Spacing.sm   // 8pt
-AppTheme.Spacing.md   // 12pt
-AppTheme.Spacing.base // 16pt
-AppTheme.Spacing.lg   // 20pt
-AppTheme.Spacing.xl   // 24pt
-AppTheme.Spacing.xxl  // 32pt
-AppTheme.Spacing.xxxl // 48pt
+AppTheme.accent           // → AppColors.accent
+AppTheme.background       // → AppColors.background
+AppTheme.card             // → AppColors.surface
+AppTheme.cardBorder       // → AppColors.border
+AppTheme.textPrimary      // → AppColors.textPrimary
+AppTheme.textSecondary    // → AppColors.textSecondary
+AppTheme.textTertiary     // → AppColors.textTertiary
+AppTheme.textMuted        // → AppColors.textMuted
+AppTheme.success/warning/error/info
+AppTheme.surfaceElevated  // → AppColors.backgroundSecondary
+AppTheme.gold             // → AppColors.accent (legacy)
+AppTheme.goldLight        // → AppColors.accentLight (legacy)
 ```
 
-### Border Radius
+### Spacing (AppSpacing)
 ```swift
-AppTheme.Radius.xs   // 6pt
-AppTheme.Radius.sm   // 10pt
-AppTheme.Radius.md   // 14pt
-AppTheme.Radius.lg   // 18pt
-AppTheme.Radius.xl   // 22pt
-AppTheme.Radius.xxl  // 28pt
-AppTheme.Radius.full // 9999pt
+AppSpacing.xs   // 4pt
+AppSpacing.sm   // 8pt
+AppSpacing.md   // 12pt
+AppSpacing.base // 16pt
+AppSpacing.lg   // 20pt
+AppSpacing.xl   // 24pt
+AppSpacing.xxl  // 32pt
+AppSpacing.xxxl // 48pt
 ```
 
-### Typography
+### Border Radius (AppRadius)
 ```swift
-AppTheme.Typography.heroAmount()    // 48pt bold rounded
-AppTheme.Typography.sectionTitle()  // 22pt semibold
-AppTheme.Typography.body()          // 15pt regular
-AppTheme.Typography.caption()       // 13pt regular
-AppTheme.Typography.button()        // 14pt bold
-AppTheme.Typography.label()         // 10pt bold
+AppRadius.xs   // 6pt
+AppRadius.sm   // 10pt
+AppRadius.md   // 14pt
+AppRadius.lg   // 18pt
+AppRadius.xl   // 22pt
+AppRadius.xxl  // 28pt
+AppRadius.full // 9999pt
+```
+
+### Typography (AppFonts)
+```swift
+AppFonts.heroAmount()    // 48pt bold rounded (SFProRounded-Bold)
+AppFonts.detailAmount()  // 40pt bold rounded
+AppFonts.sectionTitle()  // 22pt semibold (SFProDisplay-Semibold)
+AppFonts.cardAmount()    // 18pt semibold
+AppFonts.body()          // 15pt regular (SFProText-Regular)
+AppFonts.caption()       // 13pt regular
+AppFonts.small()         // 11pt regular
+AppFonts.navTitle()      // 12pt bold
+AppFonts.tabLabel()      // 14pt medium
+AppFonts.button()        // 14pt bold
+AppFonts.label()         // 10pt bold
+
+// Fallback si fonts custom non chargées
+AppFonts.systemHero      // Font.system(size: 48, weight: .bold, design: .rounded)
+AppFonts.systemBody      // Font.system(size: 15, weight: .regular)
 ```
 
 ## Component Library
 
-Composants dans `Apps/DXBClient/Views/` :
+### Composants réutilisables (Theme.swift)
 
-| Composant | Fichier | Description |
-|-----------|---------|-------------|
+| Composant | Usage |
+|-----------|-------|
+| `GoldButtonStyle` / `PrimaryButtonStyle` | Bouton primary lime (#BAFF39 + texte noir) |
+| `SecondaryButtonStyle` / `GhostButtonStyle` | Bouton secondary |
+| `TokenCardStyle` / `.tokenCard()` | Card standard avec shadow |
+| `LoadingOverlay(message:)` | Overlay de chargement |
+| `StatusBadge(text:, color:)` | Badge de statut |
+| `EmptyStateView(icon:, title:, subtitle:)` | État vide |
+| `CleanArcProgress(progress:)` | Jauge circulaire |
+| `ShimmerModifier` / `.shimmer()` | Effet loading skeleton |
+| `SlideInModifier` / `.slideIn(delay:)` | Animation d'entrée |
+| `ScaleOnPressStyle` / `.scaleOnPress()` | Feedback tactile press |
+| `HapticFeedback.light/medium/heavy/success/error()` | Retours haptiques |
+| `GoldPalette.gradient` | Gradient accent linear |
+| `GoldPalette.glowGradient` | Gradient accent radial |
+
+### Vues principales (Apps/DXBClient/Views/)
+
+| Vue | Fichier | Description |
+|-----|---------|-------------|
+| RootView | RootView.swift | Point d'entrée + splash |
+| MainTabView | MainTabView.swift | Navigation tabs |
 | DashboardView | DashboardView.swift | Home page principale |
 | AuthView | AuthView.swift | Login/Register |
 | PlanListView | PlanListView.swift | Liste des plans eSIM |
 | PlanDetailView | PlanDetailView.swift | Détail d'un plan |
 | PaymentSheetView | PaymentSheetView.swift | Checkout/Paiement |
 | PaymentSuccessView | PaymentSuccessView.swift | Confirmation achat |
+| CryptoPaymentView | CryptoPaymentView.swift | Paiement crypto |
 | MyESIMsView | MyESIMsView.swift | Liste des eSIMs |
 | ESIMDetailView | ESIMDetailView.swift | Détail eSIM + QR |
 | ProfileView | ProfileView.swift | Profil utilisateur |
+| RewardsHubView | RewardsHubView.swift | Hub rewards |
+| RewardsView | RewardsView.swift | Détails rewards |
+| SubscriptionView | SubscriptionView.swift | Abonnement SimPass |
 | SupportView | SupportView.swift | FAQ + Contact |
+| DesignShowcaseView | DesignShowcaseView.swift | Showcase tokens |
 
 ## Styling Approach
 
-- **Framework** : SwiftUI natif
-- **Tokens** : Struct statique `AppTheme` avec `adaptiveColor()` pour light/dark
-- **Modifiers** : `.techCard()`, `.glassCard()`, `.premiumCard()`
-- **Animations** : `.slideIn()`, `.scaleOnPress()`, `.floating()`, `.shimmer()`
+- **Framework** : SwiftUI natif (iOS 17+)
+- **Tokens** : Enums statiques `AppColors`, `AppSpacing`, `AppRadius`, `AppFonts`
+- **Adaptatif** : `Color(light:, dark:)` helper pour light/dark mode
+- **View Modifiers** : `.tokenCard()`, `.shimmer()`, `.slideIn()`
+- **Button Styles** : `GoldButtonStyle`, `SecondaryButtonStyle`
 
 ## Règles de Design
 
 ### OBLIGATOIRE
-- Toujours utiliser `AppTheme.*` pour couleurs, spacing, radius, typo
+- Toujours utiliser `AppColors.*` pour couleurs
+- Toujours utiliser `AppSpacing.*` pour spacing
+- Toujours utiliser `AppRadius.*` pour border radius
+- Toujours utiliser `AppFonts.*` pour typographie
 - JAMAIS de `Color(hex: "...")` hardcodé dans les vues
-- Les backgrounds utilisent `AppTheme.backgroundSecondary`
-- Les cards utilisent `AppTheme.gray900` + `AppTheme.gray800` border
+- Les backgrounds utilisent `AppColors.background` ou `.backgroundSecondary`
+- Les cards utilisent `.tokenCard()` modifier
 
 ### Palette
-- Accent : Lime `#CDFF00` (`AppTheme.accent`)
-- Fond : Dark `#0A0A0A` → `#18181B`
-- Texte : White → `#71717A` → `#A1A1AA`
-- Success : Green `#16A34A`
-- Warning : Orange `#D97706`
-- Error : Red `#DC2626`
+- Accent : Lime `#BAFF39` (`AppColors.accent`)
+- Fond : `#FFFFFF` (light) / `#404040` (dark)
+- Texte : Adaptatif via `AppColors.textPrimary/Secondary/Tertiary`
+- Success : `#16A34A` / Warning : `#D97706` / Error : `#DC2626`
 
 ### Figma Tokens
 Fichier JSON exportable : `scripts/figma-tokens.json`
@@ -97,7 +168,7 @@ Compatible avec Tokens Studio for Figma.
 - SF Symbols (natif Apple)
 - Convention : `Image(systemName: "...")`
 - Tailles standard : 11-20pt
-- Couleur : `AppTheme.accent` ou `AppTheme.textTertiary`
+- Couleur : `AppColors.accent` ou `AppColors.textTertiary`
 
 ## Asset Management
 

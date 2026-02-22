@@ -1,309 +1,100 @@
 import SwiftUI
 
-// MARK: - Theme Mode Manager
+// MARK: - Pulse Design System
+// Dark-only fintech aesthetic: #0A0A0A background, #141414 cards, #BAFF39 lime accent
 
-enum AppearanceMode: String {
-    case light = "Light"
-    case dark = "Dark"
-    case system = "System"
+// MARK: - Colors
+
+enum AppColors {
+    // Accent
+    static let accent = Color(hex: "BAFF39")
+    static let accentLight = Color(hex: "D4FF85")
+    static let accentSoft = Color(hex: "EDFFC4")
+    static let brandGray = Color(hex: "6E6E6E")
+    static let white = Color(hex: "FFFFFF")
+
+    // Semantic
+    static let success = Color(hex: "22C55E")
+    static let warning = Color(hex: "F59E0B")
+    static let error = Color(hex: "EF4444")
+    static let info = Color(hex: "3B82F6")
+
+    // Pulse Dark-Only Palette
+    static let background = Color(hex: "0A0A0A")
+    static let backgroundSecondary = Color(hex: "111111")
+    static let surface = Color(hex: "141414")
+    static let surfaceSecondary = Color(hex: "1A1A1A")
+    static let surfaceElevated = Color(hex: "1E1E1E")
+
+    static let textPrimary = Color.white
+    static let textSecondary = Color(hex: "808080")
+    static let textTertiary = Color(hex: "4A4A4A")
+    static let textMuted = Color(hex: "333333")
+
+    static let border = Color(hex: "1E1E1E")
+    static let borderLight = Color(hex: "2A2A2A")
+
+    // Chrome palette
+    static let chromeLight = Color(hex: "3A3A3A")
+    static let chromeMid = Color(hex: "2A2A2A")
+    static let chromeDark = Color(hex: "1A1A1A")
+    static let chromeHighlight = Color(hex: "4A4A4A")
+    static let chromeBorder = Color(hex: "444444")
+    static let chromeSheen = Color.white.opacity(0.06)
+
+    // Legacy mapping
+    static let navy = Color(hex: "0A0A0A")
+    static let navyLight = Color(hex: "141414")
 }
 
-// MARK: - Dynamic Theme with Dark Mode Support
+// MARK: - Typography
 
-struct AppTheme {
-    // MARK: - Spacing Scale (8pt Grid System)
+enum AppFonts {
+    static func heroAmount() -> Font { .system(size: 48, weight: .bold, design: .rounded) }
+    static func detailAmount() -> Font { .system(size: 40, weight: .bold, design: .rounded) }
+    static func largeTitle() -> Font { .system(size: 28, weight: .bold, design: .rounded) }
+    static func sectionTitle() -> Font { .system(size: 22, weight: .semibold, design: .rounded) }
+    static func cardTitle() -> Font { .system(size: 20, weight: .semibold, design: .rounded) }
+    static func cardAmount() -> Font { .system(size: 18, weight: .semibold, design: .rounded) }
+    static func body() -> Font { .system(size: 15, weight: .regular) }
+    static func bodyMedium() -> Font { .system(size: 15, weight: .medium) }
+    static func caption() -> Font { .system(size: 13, weight: .regular) }
+    static func small() -> Font { .system(size: 11, weight: .regular) }
+    static func navTitle() -> Font { .system(size: 12, weight: .bold) }
+    static func tabLabel() -> Font { .system(size: 14, weight: .medium) }
+    static func button() -> Font { .system(size: 14, weight: .bold) }
+    static func label() -> Font { .system(size: 10, weight: .bold) }
 
-    enum Spacing {
-        static let xs: CGFloat = 4
-        static let sm: CGFloat = 8
-        static let md: CGFloat = 12
-        static let base: CGFloat = 16
-        static let lg: CGFloat = 20
-        static let xl: CGFloat = 24
-        static let xxl: CGFloat = 32
-        static let xxxl: CGFloat = 48
-    }
-
-    // MARK: - Corner Radius Scale
-
-    enum Radius {
-        static let xs: CGFloat = 8
-        static let sm: CGFloat = 12
-        static let md: CGFloat = 16
-        static let lg: CGFloat = 20
-        static let xl: CGFloat = 24
-        static let xxl: CGFloat = 28
-        static let full: CGFloat = 9999
-    }
-
-    // MARK: - Typography Presets (Aurora)
-
-    enum Typography {
-        static func display() -> Font { .system(size: 52, weight: .bold, design: .rounded) }
-        static func heroStat() -> Font { .system(size: 44, weight: .bold, design: .rounded) }
-        static func heroAmount() -> Font { .system(size: 42, weight: .bold, design: .rounded) }
-        static func detailAmount() -> Font { .system(size: 32, weight: .bold, design: .rounded) }
-        static func headline() -> Font { .system(size: 26, weight: .semibold, design: .rounded) }
-
-        static func title1() -> Font { .system(size: 22, weight: .semibold, design: .rounded) }
-        static func title2() -> Font { .system(size: 18, weight: .semibold, design: .rounded) }
-        static func sectionTitle() -> Font { .system(size: 20, weight: .semibold, design: .rounded) }
-        static func cardAmount() -> Font { .system(size: 18, weight: .semibold, design: .rounded) }
-        static func cardTitle() -> Font { .system(size: 20, weight: .bold, design: .rounded) }
-
-        static func bodyLarge() -> Font { .system(size: 17, weight: .regular) }
-        static func body() -> Font { .system(size: 15, weight: .regular) }
-        static func bodyMedium() -> Font { .system(size: 15, weight: .medium) }
-        static func bodySemibold() -> Font { .system(size: 15, weight: .semibold) }
-
-        static func caption() -> Font { .system(size: 13, weight: .regular) }
-        static func captionMedium() -> Font { .system(size: 13, weight: .medium) }
-        static func captionSemibold() -> Font { .system(size: 13, weight: .semibold) }
-        static func small() -> Font { .system(size: 11, weight: .regular) }
-        static func smallMedium() -> Font { .system(size: 11, weight: .medium) }
-        static func smallBold() -> Font { .system(size: 11, weight: .bold) }
-
-        static func navTitle() -> Font { .system(size: 12, weight: .bold) }
-        static func tabLabel() -> Font { .system(size: 10, weight: .medium) }
-        static func button() -> Font { .system(size: 14, weight: .semibold) }
-        static func buttonLarge() -> Font { .system(size: 17, weight: .semibold) }
-        static func buttonMedium() -> Font { .system(size: 15, weight: .semibold) }
-        static func buttonSmall() -> Font { .system(size: 13, weight: .semibold) }
-        static func label() -> Font { .system(size: 10, weight: .bold) }
-        static func overline() -> Font { .system(size: 11, weight: .bold) }
-        static func mono() -> Font { .system(size: 13, weight: .medium, design: .monospaced) }
-
-        static func icon(size: CGFloat) -> Font { .system(size: size, weight: .medium) }
-        static func iconBold(size: CGFloat) -> Font { .system(size: size, weight: .bold) }
-        static func iconSemibold(size: CGFloat) -> Font { .system(size: size, weight: .semibold) }
-    }
-
-    // MARK: - Banking UI Tokens
-
-    enum Banking {
-        enum Spacing {
-            static let xs: CGFloat = AppTheme.Spacing.xs
-            static let sm: CGFloat = AppTheme.Spacing.sm
-            static let md: CGFloat = AppTheme.Spacing.md
-            static let base: CGFloat = AppTheme.Spacing.base
-            static let lg: CGFloat = AppTheme.Spacing.lg
-            static let xl: CGFloat = AppTheme.Spacing.xl
-            static let xxl: CGFloat = AppTheme.Spacing.xxl
-            static let xxxl: CGFloat = AppTheme.Spacing.xxxl
-        }
-
-        enum Radius {
-            static let chartBar: CGFloat = 8
-            static let small: CGFloat = 10
-            static let medium: CGFloat = 14
-            static let card: CGFloat = 18
-            static let pill: CGFloat = 9999
-        }
-
-        enum Typography {
-            static func heroAmount() -> Font { .system(size: 36, weight: .bold) }
-            static func detailAmount() -> Font { .system(size: 32, weight: .bold) }
-            static func sectionTitle() -> Font { .system(size: 16, weight: .semibold) }
-            static func cardAmount() -> Font { .system(size: 18, weight: .semibold) }
-            static func body() -> Font { .system(size: 14, weight: .regular) }
-            static func caption() -> Font { .system(size: 12, weight: .regular) }
-            static func small() -> Font { .system(size: 11, weight: .regular) }
-            static func navTitle() -> Font { .system(size: 12, weight: .semibold) }
-            static func tabLabel() -> Font { .system(size: 13, weight: .medium) }
-            static func button() -> Font { .system(size: 14, weight: .semibold) }
-            static func label() -> Font { .system(size: 10, weight: .semibold) }
-        }
-
-        enum Colors {
-            static var accent: Color { Color(hex: "D6FB51") }
-            static var accentLight: Color { Color(hex: "E0FC7C") }
-            static var accentSoft: Color { Color(hex: "EAFDA8") }
-            static var accentDark: Color { Color(hex: "B0CE46") }
-            static var accentDeep: Color { Color(hex: "8AA13B") }
-
-            static var backgroundPrimary: Color { Color(hex: "191919") }
-            static var backgroundSecondary: Color { Color(hex: "2A2A2A") }
-            static var backgroundTertiary: Color { Color(hex: "404040") }
-
-            static var surfaceLight: Color { Color(hex: "F3F3F2") }
-            static var surfaceMedium: Color { Color(hex: "E2E2E1") }
-            static var surfaceHeavy: Color { Color(hex: "D0D0CF") }
-
-            static var textOnDarkPrimary: Color { Color(hex: "FFFFFF") }
-            static var textOnDarkSecondary: Color { Color(hex: "D0D0CF") }
-            static var textOnDarkMuted: Color { Color(hex: "9C9C9B") }
-
-            static var textOnLightPrimary: Color { Color(hex: "191919") }
-            static var textOnLightSecondary: Color { Color(hex: "656463") }
-            static var textOnLightMuted: Color { Color(hex: "A09F9D") }
-
-            static var border: Color { Color(hex: "D0D0CF") }
-            static var borderLight: Color { Color(hex: "E2E2E1") }
-            static var borderDark: Color { Color(hex: "404040") }
-        }
-
-        enum Shadow {
-            static let card = (color: Color.black.opacity(0.12), radius: CGFloat(16), x: CGFloat(0), y: CGFloat(6))
-        }
-    }
-
-    // MARK: - Core Brand Colors
-    // Accent #BAFF39, Ink #0B0F1A, White #FFFFFF
-
-    static var neonGreen: Color { Color(hex: "BAFF39") }
-    static var darkGray: Color { Color(hex: "0B0F1A") }
-    static var pureWhite: Color { Color(hex: "FFFFFF") }
-
-    // MARK: - Premium Dark Surfaces (Aurora)
-
-    static var surface1: Color { Color(hex: "0F172A") }
-    static var surface2: Color { Color(hex: "111C2F") }
-    static var surface3: Color { Color(hex: "16233D") }
-    static var surfaceGlass: Color { Color.white.opacity(0.06) }
-
-    // MARK: - Brand Ink
-
-    static var anthracite: Color { Color(hex: "0B0F1A") }
-    static var anthraciteLight: Color { Color(hex: "1F2937") }
-    static var anthraciteDark: Color { Color(hex: "06090F") }
-
-    // MARK: - Color Helpers
-
-    static func color(_ hex: String) -> Color { Color(hex: hex) }
-
-    // MARK: - Accent Color (#BAFF39)
-
-    static var accent: Color { Color(hex: "BAFF39") }
-    static var accentLight: Color { Color(hex: "BAFF39").opacity(0.7) }
-    static var accentSoft: Color { Color(hex: "BAFF39").opacity(0.18) }
-
-    // MARK: - Primary colors (Ink / white)
-
-    static var primary: Color { adaptiveColor(light: "0B0F1A", dark: "F8FAFC") }
-    static var primaryLight: Color { adaptiveColor(light: "1F2937", dark: "F8FAFC") }
-    static var primaryDark: Color { adaptiveColor(light: "06090F", dark: "E2E8F0") }
-    static var primarySoft: Color { adaptiveColor(light: "F1F5F9", dark: "1F2937") }
-
-    // MARK: - Grayscale (slate)
-
-    static var gray50: Color { Color(hex: "F8FAFC") }
-    static var gray100: Color { Color(hex: "F1F5F9") }
-    static var gray200: Color { Color(hex: "E2E8F0") }
-    static var gray300: Color { Color(hex: "CBD5E1") }
-    static var gray400: Color { Color(hex: "94A3B8") }
-    static var gray500: Color { Color(hex: "64748B") }
-    static var gray600: Color { Color(hex: "475569") }
-    static var gray700: Color { Color(hex: "334155") }
-    static var gray800: Color { Color(hex: "1F2937") }
-    static var gray900: Color { Color(hex: "0F172A") }
-
-    // MARK: - Semantic Colors
-
-    static var success: Color { Color(hex: "34D399") }
-    static var successLight: Color { Color(hex: "34D399").opacity(0.15) }
-    static var warning: Color { Color(hex: "F59E0B") }
-    static var warningLight: Color { Color(hex: "F59E0B").opacity(0.12) }
-    static var error: Color { Color(hex: "F87171") }
-    static var errorLight: Color { Color(hex: "F87171").opacity(0.15) }
-    static var info: Color { Color(hex: "60A5FA") }
-
-    // MARK: - Backgrounds
-
-    static var backgroundPrimary: Color { adaptiveColor(light: "F8FAFC", dark: "0B0F1A") }
-    static var backgroundSecondary: Color { adaptiveColor(light: "F1F5F9", dark: "111827") }
-    static var backgroundTertiary: Color { adaptiveColor(light: "E2E8F0", dark: "1F2937") }
-
-    // MARK: - Surfaces
-
-    static var surfaceLight: Color { adaptiveColor(light: "FFFFFF", dark: "16233D") }
-    static var surfaceMedium: Color { adaptiveColor(light: "F8FAFC", dark: "1B2A44") }
-    static var surfaceHeavy: Color { adaptiveColor(light: "E2E8F0", dark: "0F172A") }
-
-    // MARK: - Text
-
-    static var textPrimary: Color { adaptiveColor(light: "0B0F1A", dark: "F8FAFC") }
-    static var textSecondary: Color { adaptiveColor(light: "475569", dark: "94A3B8") }
-    static var textTertiary: Color { adaptiveColor(light: "64748B", dark: "64748B") }
-    static var textMuted: Color { adaptiveColor(light: "94A3B8", dark: "64748B") }
-
-    // MARK: - Borders
-
-    static var border: Color { adaptiveColor(light: "E2E8F0", dark: "23304A") }
-    static var borderLight: Color { adaptiveColor(light: "F1F5F9", dark: "1B2A44") }
-    static var borderDark: Color { adaptiveColor(light: "CBD5E1", dark: "0F172A") }
-
-    // MARK: - Gradient helpers
-
-    static var accentGradientStart: Color { Color(hex: "BAFF39") }
-    static var accentGradientEnd: Color { Color(hex: "BAFF39").opacity(0.6) }
-    static var heroGradient: Color { backgroundPrimary }
-
-    // MARK: - Glass surfaces
-
-    static var glassLight: Color { Color.white.opacity(0.08) }
-    static var glassMedium: Color { Color.white.opacity(0.06) }
-    static var glassDark: Color { Color.white.opacity(0.04) }
-
-    // Compatibility aliases
-    static var brand: Color { accent }
-    static var brandGradient: Color { accent }
-    static var deepVioletGradient: Color { primary }
-    static var lightVioletGradient: Color { backgroundPrimary }
-    static var cardGradient: Color { backgroundPrimary }
-    static var glassViolet: Color { backgroundPrimary }
-    static var accent1: Color { accent }
-    static var accent2: Color { Color(hex: "1F2937") }
-    static var accent3: Color { Color(hex: "334155") }
-    static var accent4: Color { accent }
-    static var accent5: Color { accent }
-    static var violet50: Color { gray50 }
-    static var violet100: Color { gray100 }
-    static var violet200: Color { gray200 }
-    static var violet300: Color { gray300 }
-    static var violet400: Color { gray400 }
-    static var violet500: Color { gray500 }
-    static var violet600: Color { gray600 }
-    static var violet700: Color { gray700 }
-    static var violet800: Color { gray800 }
-    static var violet900: Color { gray900 }
-
-    // MARK: - Theme State
-
-    private static var currentMode: AppearanceMode = .light
-
-    static func setAppearance(_ mode: AppearanceMode) {
-        currentMode = mode
-        NotificationCenter.default.post(name: .themeDidChange, object: nil)
-    }
-
-    static var isDarkMode: Bool {
-        switch currentMode {
-        case .light: return false
-        case .dark: return true
-        case .system: return UITraitCollection.current.userInterfaceStyle == .dark
-        }
-    }
-
-    private static func adaptiveColor(light: String, dark: String) -> Color {
-        Color(UIColor { traitCollection in
-            let useDark: Bool
-            switch currentMode {
-            case .light: useDark = false
-            case .dark: useDark = true
-            case .system: useDark = traitCollection.userInterfaceStyle == .dark
-            }
-            return UIColor(Color(hex: useDark ? dark : light))
-        })
-    }
+    static let systemHero = Font.system(size: 48, weight: .bold, design: .rounded)
+    static let systemBody = Font.system(size: 15, weight: .regular)
 }
 
-// MARK: - Notification for Theme Changes
+// MARK: - Spacing
 
-extension Notification.Name {
-    static let themeDidChange = Notification.Name("themeDidChange")
+enum AppSpacing {
+    static let xs: CGFloat = 4
+    static let sm: CGFloat = 8
+    static let md: CGFloat = 12
+    static let base: CGFloat = 16
+    static let lg: CGFloat = 20
+    static let xl: CGFloat = 24
+    static let xxl: CGFloat = 32
+    static let xxxl: CGFloat = 48
 }
 
-// MARK: - Color Extension
+// MARK: - Border Radius
+
+enum AppRadius {
+    static let xs: CGFloat = 6
+    static let sm: CGFloat = 10
+    static let md: CGFloat = 14
+    static let lg: CGFloat = 20
+    static let xl: CGFloat = 24
+    static let xxl: CGFloat = 28
+    static let full: CGFloat = 9999
+}
+
+// MARK: - Color Hex Init
 
 extension Color {
     init(hex: String) {
@@ -312,248 +103,189 @@ extension Color {
         Scanner(string: hex).scanHexInt64(&int)
         let a, r, g, b: UInt64
         switch hex.count {
-        case 3: (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default: (a, r, g, b) = (255, 0, 0, 0)
+        case 3:
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6:
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8:
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
         }
-        self.init(.sRGB, red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, opacity: Double(a) / 255)
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
+
+    init(light: Color, dark: Color) {
+        self.init(uiColor: UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
+        })
     }
 }
 
-// MARK: - Card Modifiers
+// MARK: - Legacy Compatibility
 
-struct TechCard: ViewModifier {
-    var padding: CGFloat = 20
-    var cornerRadius: CGFloat = 20
+enum AppTheme {
+    static let accent = AppColors.accent
+    static let background = AppColors.background
+    static let card = AppColors.surface
+    static let cardBorder = AppColors.border
+    static let textPrimary = AppColors.textPrimary
+    static let textSecondary = AppColors.textSecondary
+    static let textTertiary = AppColors.textTertiary
+    static let textMuted = AppColors.textMuted
+
+    static let success = AppColors.success
+    static let warning = AppColors.warning
+    static let error = AppColors.error
+    static let info = AppColors.info
+
+    static let surfaceElevated = AppColors.surfaceElevated
+    static let surfacePressed = Color.white.opacity(0.03)
+
+    static let gold = AppColors.accent
+    static let goldLight = AppColors.accentLight
+    static let goldDeep = AppColors.navy
+    static let goldDark = AppColors.navyLight
+
+    static func tierColor(_ tier: String) -> Color {
+        switch tier.lowercased() {
+        case "privilege": return .cyan
+        case "elite":     return .purple
+        case "black":     return AppColors.accent
+        default:          return textSecondary
+        }
+    }
+
+    static func tierIcon(_ tier: String) -> String {
+        switch tier.lowercased() {
+        case "privilege": return "shield.checkered"
+        case "elite":     return "crown.fill"
+        case "black":     return "diamond.fill"
+        default:          return "person.fill"
+        }
+    }
+}
+
+enum GoldPalette {
+    static let gold = AppColors.accent
+    static let goldLight = AppColors.accentLight
+    static let goldDeep = AppColors.navy
+    static let goldDark = AppColors.navyLight
+    static let goldMuted = AppColors.textMuted
+
+    static var gradient: LinearGradient {
+        LinearGradient(
+            colors: [AppColors.accent, AppColors.accentLight],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    static var glowGradient: RadialGradient {
+        RadialGradient(
+            colors: [AppColors.accent.opacity(0.20), Color.clear],
+            center: .center,
+            startRadius: 20,
+            endRadius: 120
+        )
+    }
+}
+
+// MARK: - Pulse Card Modifier
+
+struct PulseCardModifier: ViewModifier {
+    var padding: CGFloat = AppSpacing.lg
+    var cornerRadius: CGFloat = AppRadius.lg
+    var glow: Bool = false
 
     func body(content: Content) -> some View {
         content
             .padding(padding)
             .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(
-                        LinearGradient(
-                            colors: [AppTheme.surfaceLight, AppTheme.surfaceMedium],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(AppColors.surface)
                     .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(AppTheme.border.opacity(0.6), lineWidth: 0.8)
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .stroke(AppColors.border, lineWidth: 1)
                     )
-                    .shadow(color: AppTheme.surface1.opacity(0.6), radius: 12, x: 0, y: 8)
-                    .shadow(color: Color.black.opacity(0.15), radius: 24, x: 0, y: 18)
+            )
+            .shadow(
+                color: glow ? AppColors.accent.opacity(0.08) : Color.clear,
+                radius: glow ? 20 : 0,
+                x: 0, y: glow ? 8 : 0
             )
     }
 }
 
-struct GlassCard: ViewModifier {
-    var padding: CGFloat = 20
-    var cornerRadius: CGFloat = 20
-    var opacity: Double = 1.0
+struct BentoCardModifier: ViewModifier {
+    var padding: CGFloat = AppSpacing.base
+    var cornerRadius: CGFloat = AppRadius.lg
 
     func body(content: Content) -> some View {
         content
             .padding(padding)
             .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(AppColors.surface)
                     .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .fill(AppTheme.surfaceGlass.opacity(opacity))
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .stroke(AppColors.border, lineWidth: 1)
                     )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(AppTheme.border.opacity(0.4), lineWidth: 0.8)
-                    )
-                    .shadow(color: Color.black.opacity(0.2), radius: 16, x: 0, y: 12)
             )
     }
 }
 
-struct PremiumCard: ViewModifier {
-    var padding: CGFloat = 20
-    var cornerRadius: CGFloat = 24
+struct ChromeCardModifier: ViewModifier {
+    var padding: CGFloat = AppSpacing.base
+    var cornerRadius: CGFloat = AppRadius.lg
+    var accentGlow: Bool = false
 
     func body(content: Content) -> some View {
         content
             .padding(padding)
-            .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(
-                        LinearGradient(
-                            colors: [AppTheme.surfaceLight, AppTheme.surfaceHeavy],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [AppTheme.accent.opacity(0.35), AppTheme.border.opacity(0.6)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    )
-                    .shadow(color: AppTheme.surface1.opacity(0.6), radius: 14, x: 0, y: 10)
-                    .shadow(color: Color.black.opacity(0.2), radius: 26, x: 0, y: 20)
-            )
-    }
-}
-
-extension View {
-    func techCard(padding: CGFloat = 20, cornerRadius: CGFloat = 20) -> some View {
-        modifier(TechCard(padding: padding, cornerRadius: cornerRadius))
-    }
-
-    func glassCard(padding: CGFloat = 20, cornerRadius: CGFloat = 20, opacity: Double = 1.0) -> some View {
-        modifier(GlassCard(padding: padding, cornerRadius: cornerRadius, opacity: opacity))
-    }
-
-    func premiumCard(padding: CGFloat = 20, cornerRadius: CGFloat = 24) -> some View {
-        modifier(PremiumCard(padding: padding, cornerRadius: cornerRadius))
-    }
-
-    func cleanCard(cornerRadius: CGFloat = 20, shadow: Bool = true) -> some View {
-        modifier(TechCard(padding: 0, cornerRadius: cornerRadius))
-    }
-
-    func premiumGlass(cornerRadius: CGFloat = 20) -> some View {
-        modifier(GlassCard(padding: 0, cornerRadius: cornerRadius))
-    }
-}
-
-// MARK: - Animations
-
-struct ScaleOnPress: ViewModifier {
-    @State private var isPressed = false
-
-    func body(content: Content) -> some View {
-        content
-            .scaleEffect(isPressed ? 0.975 : 1)
-            .opacity(isPressed ? 0.9 : 1)
-            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
-            .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
-                isPressed = pressing
-            }, perform: {})
-    }
-}
-
-struct SlideIn: ViewModifier {
-    @State private var appeared = false
-    let delay: Double
-
-    func body(content: Content) -> some View {
-        content
-            .offset(y: appeared ? 0 : 16)
-            .opacity(appeared ? 1 : 0)
-            .onAppear {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.78).delay(delay)) {
-                    appeared = true
-                }
-            }
-    }
-}
-
-// MARK: - Floating Animation
-struct Floating: ViewModifier {
-    let duration: Double
-    let distance: CGFloat
-    @State private var isFloating = false
-
-    func body(content: Content) -> some View {
-        content
-            .offset(y: isFloating ? -distance : distance)
-            .animation(
-                .easeInOut(duration: duration).repeatForever(autoreverses: true),
-                value: isFloating
-            )
-            .onAppear { isFloating = true }
-    }
-}
-
-// MARK: - Shimmer Effect
-struct Shimmer: ViewModifier {
-    @State private var phase: CGFloat = 0
-
-    func body(content: Content) -> some View {
-        content
-            .overlay(
-                GeometryReader { geo in
-                    LinearGradient(
-                        colors: [
-                            .clear,
-                            .white.opacity(0.4),
-                            .clear
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                    .frame(width: geo.size.width * 2)
-                    .offset(x: -geo.size.width + phase * geo.size.width * 3)
-                    .animation(.linear(duration: 1.5).repeatForever(autoreverses: false), value: phase)
-                }
-            )
-            .mask(content)
-            .onAppear { phase = 1 }
-    }
-}
-
-// MARK: - Pulse Glow Effect
-struct PulseGlow: ViewModifier {
-    var color: Color = AppTheme.accent
-    var radius: CGFloat = 20
-    @State private var isGlowing = false
-
-    func body(content: Content) -> some View {
-        content
-            .shadow(color: color.opacity(isGlowing ? 0.6 : 0.2), radius: isGlowing ? radius : radius / 2, x: 0, y: isGlowing ? 8 : 4)
-            .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: isGlowing)
-            .onAppear { isGlowing = true }
-    }
-}
-
-// MARK: - Glow Button
-struct GlowButton: ViewModifier {
-    var color: Color = AppTheme.accent
-    var cornerRadius: CGFloat = 18
-    @State private var isGlowing = false
-
-    func body(content: Content) -> some View {
-        content
-            .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(color)
-                    .shadow(color: color.opacity(isGlowing ? 0.7 : 0.3), radius: isGlowing ? 24 : 12, x: 0, y: isGlowing ? 10 : 5)
-            )
-            .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: isGlowing)
-            .onAppear { isGlowing = true }
-    }
-}
-
-// MARK: - Glassmorphism
-struct Glassmorphism: ViewModifier {
-    var cornerRadius: CGFloat = 24
-    var blur: CGFloat = 20
-    var opacity: Double = 0.15
-
-    func body(content: Content) -> some View {
-        content
             .background(
                 ZStack {
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(.ultraThinMaterial)
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(AppTheme.surfaceLight.opacity(opacity))
-                    RoundedRectangle(cornerRadius: cornerRadius)
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                stops: [
+                                    .init(color: AppColors.chromeLight, location: 0),
+                                    .init(color: AppColors.chromeDark, location: 0.45),
+                                    .init(color: AppColors.chromeMid, location: 0.7),
+                                    .init(color: AppColors.chromeLight.opacity(0.8), location: 1.0),
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+
+                    // Top sheen highlight
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    AppColors.chromeSheen,
+                                    Color.clear,
+                                ],
+                                startPoint: .top,
+                                endPoint: .center
+                            )
+                        )
+
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .stroke(
                             LinearGradient(
-                                colors: [.white.opacity(0.5), .white.opacity(0.1)],
+                                colors: [
+                                    AppColors.chromeBorder,
+                                    AppColors.chromeHighlight.opacity(0.3),
+                                    AppColors.chromeBorder.opacity(0.6),
+                                ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
@@ -561,141 +293,316 @@ struct Glassmorphism: ViewModifier {
                         )
                 }
             )
-    }
-}
-
-// MARK: - Bounce In Animation
-struct BounceIn: ViewModifier {
-    @State private var appeared = false
-    let delay: Double
-
-    func body(content: Content) -> some View {
-        content
-            .scaleEffect(appeared ? 1 : 0.5)
-            .opacity(appeared ? 1 : 0)
-            .onAppear {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.6).delay(delay)) {
-                    appeared = true
-                }
-            }
-    }
-}
-
-// MARK: - 3D Flip
-struct FlipCard: ViewModifier {
-    @Binding var isFlipped: Bool
-    var axis: (x: CGFloat, y: CGFloat, z: CGFloat) = (0, 1, 0)
-
-    func body(content: Content) -> some View {
-        content
-            .rotation3DEffect(
-                .degrees(isFlipped ? 180 : 0),
-                axis: axis
+            .shadow(
+                color: accentGlow ? AppColors.accent.opacity(0.06) : Color.black.opacity(0.25),
+                radius: accentGlow ? 16 : 8,
+                x: 0, y: 4
             )
-            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isFlipped)
     }
 }
 
 extension View {
-    func floating(duration: Double = 3, distance: CGFloat = 6) -> some View {
-        modifier(Floating(duration: duration, distance: distance))
+    func pulseCard(glow: Bool = false) -> some View {
+        modifier(PulseCardModifier(glow: glow))
     }
-    func scaleOnPress() -> some View { modifier(ScaleOnPress()) }
-    func slideIn(delay: Double = 0) -> some View { modifier(SlideIn(delay: delay)) }
-    func bounceIn(delay: Double = 0) -> some View { modifier(BounceIn(delay: delay)) }
-    func pulse(color: Color = AppTheme.accent, radius: CGFloat = 20) -> some View {
-        modifier(PulseGlow(color: color, radius: radius))
+
+    func bentoCard(padding: CGFloat = AppSpacing.base) -> some View {
+        modifier(BentoCardModifier(padding: padding))
     }
-    func shimmer() -> some View { modifier(Shimmer()) }
-    func glowButton(color: Color = AppTheme.accent, cornerRadius: CGFloat = 18) -> some View {
-        modifier(GlowButton(color: color, cornerRadius: cornerRadius))
+
+    func chromeCard(padding: CGFloat = AppSpacing.base, accentGlow: Bool = false) -> some View {
+        modifier(ChromeCardModifier(padding: padding, accentGlow: accentGlow))
     }
-    func glassmorphism(cornerRadius: CGFloat = 24, blur: CGFloat = 20, opacity: Double = 0.15) -> some View {
-        modifier(Glassmorphism(cornerRadius: cornerRadius, blur: blur, opacity: opacity))
+
+    // Legacy support
+    func tokenCard() -> some View {
+        modifier(PulseCardModifier())
     }
-    func flipCard(isFlipped: Binding<Bool>) -> some View {
-        modifier(FlipCard(isFlipped: isFlipped))
+
+    func cleanCard(padding: CGFloat = AppSpacing.lg, cornerRadius: CGFloat = AppRadius.lg) -> some View {
+        modifier(PulseCardModifier(padding: padding, cornerRadius: cornerRadius))
+    }
+
+    func glassCard(padding: CGFloat = AppSpacing.lg, cornerRadius: CGFloat = AppRadius.lg, goldAccent: Bool = false) -> some View {
+        modifier(PulseCardModifier(padding: padding, cornerRadius: cornerRadius, glow: goldAccent))
+    }
+
+    func techCard(padding: CGFloat = AppSpacing.lg, cornerRadius: CGFloat = AppRadius.lg, goldAccent: Bool = false, showScanLine: Bool = false) -> some View {
+        modifier(PulseCardModifier(padding: padding, cornerRadius: cornerRadius, glow: goldAccent))
+    }
+
+    func navyCard(padding: CGFloat = AppSpacing.lg, cornerRadius: CGFloat = AppRadius.lg) -> some View {
+        modifier(PulseCardModifier(padding: padding, cornerRadius: cornerRadius))
     }
 }
 
-// MARK: - Blur Background
+// MARK: - Button Styles
 
-struct BlurView: UIViewRepresentable {
-    let style: UIBlurEffect.Style
+struct GoldButtonStyle: ButtonStyle {
+    var isSmall = false
 
-    func makeUIView(context: Context) -> UIVisualEffectView {
-        UIVisualEffectView(effect: UIBlurEffect(style: style))
-    }
-
-    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {}
-}
-
-// MARK: - Accent Button
-
-struct NeonButton: ViewModifier {
-    var color: Color = AppTheme.accent
-    var cornerRadius: CGFloat = 16
-
-    func body(content: Content) -> some View {
-        content
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: isSmall ? 14 : 16, weight: .semibold))
+            .foregroundStyle(.black)
+            .padding(.horizontal, isSmall ? 20 : 28)
+            .padding(.vertical, isSmall ? 12 : 16)
+            .frame(maxWidth: isSmall ? nil : .infinity)
             .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(color)
+                RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                    .fill(AppColors.accent)
             )
+            .shadow(color: AppColors.accent.opacity(0.3), radius: 12, x: 0, y: 6)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
-struct AccentBorderCard: ViewModifier {
-    var isActive: Bool = false
-    var cornerRadius: CGFloat = 18
+typealias PrimaryButtonStyle = GoldButtonStyle
+
+struct SecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(AppColors.textPrimary)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
+                    .fill(AppColors.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous)
+                            .stroke(AppColors.border, lineWidth: 1)
+                    )
+            )
+            .opacity(configuration.isPressed ? 0.7 : 1)
+    }
+}
+
+typealias GhostButtonStyle = SecondaryButtonStyle
+
+// Keep old TokenCardStyle for any remaining references
+struct TokenCardStyle: ViewModifier {
+    var padding: CGFloat = AppSpacing.lg
+    var cornerRadius: CGFloat = AppRadius.lg
 
     func body(content: Content) -> some View {
         content
+            .padding(padding)
             .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(AppTheme.backgroundPrimary)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(AppColors.surface)
                     .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(
-                                isActive ? AppTheme.accent.opacity(0.4) : AppTheme.border,
-                                lineWidth: 1
-                            )
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .stroke(AppColors.border, lineWidth: 1)
                     )
             )
     }
 }
 
-struct ProgressBarStyle: ViewModifier {
-    let progress: Double
-    var height: CGFloat = 4
-    var trackColor: Color = AppTheme.gray800
-    var fillColor: Color = AppTheme.accent
+// MARK: - Loading Overlay
 
-    func body(content: Content) -> some View {
-        content.overlay(
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: height / 2)
-                        .fill(trackColor)
-                        .frame(height: height)
+struct LoadingOverlay: View {
+    let message: String
 
-                    RoundedRectangle(cornerRadius: height / 2)
-                        .fill(fillColor)
-                        .frame(width: geo.size.width * min(max(progress, 0), 1), height: height)
-                }
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.60)
+                .ignoresSafeArea()
+
+            VStack(spacing: AppSpacing.lg) {
+                ProgressView()
+                    .scaleEffect(1.2)
+                    .tint(AppColors.accent)
+
+                Text(message)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(AppColors.textSecondary)
             }
-            .frame(height: height)
+            .padding(AppSpacing.xxl)
+            .background(
+                RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                    .fill(AppColors.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                            .stroke(AppColors.border, lineWidth: 1)
+                    )
+            )
+        }
+    }
+}
+
+// MARK: - Status Badge
+
+struct StatusBadge: View {
+    let text: String
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+
+            Text(text)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(color)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(color.opacity(0.12))
+                .overlay(
+                    Capsule().stroke(color.opacity(0.2), lineWidth: 1)
+                )
         )
     }
 }
 
-extension View {
-    func neonButton(color: Color = AppTheme.accent, cornerRadius: CGFloat = 16) -> some View {
-        modifier(NeonButton(color: color, cornerRadius: cornerRadius))
-    }
+// MARK: - Empty State
 
-    func accentBorderCard(isActive: Bool = false, cornerRadius: CGFloat = 18) -> some View {
-        modifier(AccentBorderCard(isActive: isActive, cornerRadius: cornerRadius))
+struct EmptyStateView: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    var actionTitle: String?
+    var action: (() -> Void)?
+
+    var body: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(AppColors.accent.opacity(0.1))
+                    .frame(width: 72, height: 72)
+
+                Image(systemName: icon)
+                    .font(.system(size: 30, weight: .medium))
+                    .foregroundStyle(AppColors.accent)
+            }
+
+            VStack(spacing: 6) {
+                Text(title)
+                    .font(AppFonts.cardAmount())
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Text(subtitle)
+                    .font(AppFonts.body())
+                    .foregroundStyle(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 260)
+            }
+
+            if let actionTitle, let action {
+                Button(actionTitle, action: action)
+                    .buttonStyle(PrimaryButtonStyle(isSmall: true))
+                    .padding(.top, 8)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+}
+
+// MARK: - Arc Progress
+
+struct CleanArcProgress: View {
+    let progress: Double
+    var lineWidth: CGFloat = 10
+    var size: CGFloat = 160
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(AppColors.border, lineWidth: lineWidth)
+
+            Circle()
+                .trim(from: 0, to: min(progress, 1.0))
+                .stroke(
+                    AngularGradient(
+                        colors: [AppColors.accent, AppColors.accentLight],
+                        center: .center,
+                        startAngle: .degrees(0),
+                        endAngle: .degrees(360)
+                    ),
+                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+                .shadow(color: AppColors.accent.opacity(0.4), radius: 8, x: 0, y: 0)
+                .animation(.easeInOut(duration: 0.8), value: progress)
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+// MARK: - Shimmer
+
+struct ShimmerModifier: ViewModifier {
+    @State private var phase: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { geo in
+                    LinearGradient(
+                        colors: [.clear, Color.white.opacity(0.08), .clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: geo.size.width * 2)
+                    .offset(x: -geo.size.width + phase * geo.size.width * 2)
+                }
+                .mask(content)
+            )
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    phase = 1
+                }
+            }
+    }
+}
+
+extension View {
+    func shimmer() -> some View {
+        modifier(ShimmerModifier())
+    }
+}
+
+// MARK: - Slide In Animation
+
+struct SlideInModifier: ViewModifier {
+    let delay: Double
+    @State private var appeared = false
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared ? 0 : 20)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(delay), value: appeared)
+            .onAppear { appeared = true }
+    }
+}
+
+extension View {
+    func slideIn(delay: Double = 0) -> some View {
+        modifier(SlideInModifier(delay: delay))
+    }
+}
+
+// MARK: - Scale On Press
+
+struct ScaleOnPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+extension View {
+    func scaleOnPress() -> some View {
+        self.buttonStyle(ScaleOnPressStyle())
     }
 }
 
@@ -705,283 +612,210 @@ enum HapticFeedback {
     static func light() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
+
     static func medium() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
+
+    static func heavy() {
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+    }
+
     static func success() {
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
-    static func selection() {
-        UISelectionFeedbackGenerator().selectionChanged()
+
+    static func error() {
+        UINotificationFeedbackGenerator().notificationOccurred(.error)
     }
 }
 
-// MARK: - Confetti Effect
+// MARK: - Pulse Background
 
-struct ConfettiParticle: Identifiable {
-    let id = UUID()
-    var position: CGPoint
-    var color: Color
-    var rotation: Double
-    var scale: CGFloat
-    var velocity: CGVector
-    var angularVelocity: Double
-}
-
-struct ConfettiView: View {
-    @State private var particles: [ConfettiParticle] = []
-    @State private var isAnimating = false
-    let colors: [Color] = [
-        AppTheme.accent,
-        AppTheme.success,
-        .yellow,
-        .orange,
-        .pink,
-        .purple,
-        .cyan
-    ]
+struct PulseBackground: View {
+    var showGlow: Bool = true
 
     var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                ForEach(particles) { particle in
-                    ConfettiPiece(particle: particle)
-                }
-            }
-            .onAppear {
-                createParticles(in: geo.size)
-            }
-        }
-        .allowsHitTesting(false)
-    }
+        ZStack {
+            AppColors.background.ignoresSafeArea()
 
-    private func createParticles(in size: CGSize) {
-        let centerX = size.width / 2
-        particles = (0..<60).map { _ in
-            ConfettiParticle(
-                position: CGPoint(x: centerX + CGFloat.random(in: -50...50), y: -20),
-                color: colors.randomElement()!,
-                rotation: Double.random(in: 0...360),
-                scale: CGFloat.random(in: 0.5...1.2),
-                velocity: CGVector(
-                    dx: CGFloat.random(in: -8...8),
-                    dy: CGFloat.random(in: 8...18)
-                ),
-                angularVelocity: Double.random(in: -15...15)
-            )
+            if showGlow {
+                RadialGradient(
+                    colors: [
+                        AppColors.accent.opacity(0.06),
+                        AppColors.accent.opacity(0.02),
+                        Color.clear
+                    ],
+                    center: .top,
+                    startRadius: 0,
+                    endRadius: 500
+                )
+                .frame(height: 600)
+                .offset(y: -200)
+                .ignoresSafeArea()
+            }
         }
-        isAnimating = true
     }
 }
 
-struct ConfettiPiece: View {
-    let particle: ConfettiParticle
-    @State private var position: CGPoint
-    @State private var rotation: Double
-    @State private var opacity: Double = 1
+// MARK: - Pulse Section Header
 
-    init(particle: ConfettiParticle) {
-        self.particle = particle
-        _position = State(initialValue: particle.position)
-        _rotation = State(initialValue: particle.rotation)
-    }
+struct PulseSectionHeader: View {
+    let title: String
+    var action: String?
+    var onAction: (() -> Void)?
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 2)
-            .fill(particle.color)
-            .frame(width: 8 * particle.scale, height: 12 * particle.scale)
-            .rotationEffect(.degrees(rotation))
-            .position(position)
-            .opacity(opacity)
-            .onAppear {
-                withAnimation(.linear(duration: 3)) {
-                    position.x += particle.velocity.dx * 60
-                    position.y += particle.velocity.dy * 60
-                    rotation += particle.angularVelocity * 60
-                }
-                withAnimation(.linear(duration: 3).delay(1.5)) {
-                    opacity = 0
+        HStack(alignment: .bottom) {
+            Text(title)
+                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .foregroundColor(AppColors.textPrimary)
+
+            Spacer()
+
+            if let action, let onAction {
+                Button(action: onAction) {
+                    HStack(spacing: 4) {
+                        Text(action)
+                            .font(.system(size: 13, weight: .medium))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                    .foregroundColor(AppColors.accent)
                 }
             }
+        }
     }
 }
 
-// MARK: - Animated Mesh Gradient Header
+// MARK: - Shared Helpers
 
-struct AnimatedMeshGradient: View {
-    @State private var animate = false
-
-    var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                // Gradient orbs that move slowly
-                ForEach(0..<4, id: \.self) { index in
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    gradientColor(for: index).opacity(0.5),
-                                    gradientColor(for: index).opacity(0)
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: geo.size.width * 0.4
-                            )
-                        )
-                        .frame(width: geo.size.width * 0.8, height: geo.size.width * 0.8)
-                        .offset(
-                            x: animate ? orbOffset(index: index, axis: .x, size: geo.size) : -orbOffset(index: index, axis: .x, size: geo.size),
-                            y: animate ? orbOffset(index: index, axis: .y, size: geo.size) : -orbOffset(index: index, axis: .y, size: geo.size)
-                        )
-                        .animation(
-                            .easeInOut(duration: Double(4 + index))
-                                .repeatForever(autoreverses: true),
-                            value: animate
-                        )
-                }
-            }
-            .frame(width: geo.size.width, height: geo.size.height)
-        }
-        .onAppear { animate = true }
+enum ESIMStatusHelper {
+    static func isActive(_ status: String) -> Bool {
+        ["ENABLED", "IN_USE", "ACTIVE", "RELEASED"].contains(status.uppercased())
     }
 
-    private func gradientColor(for index: Int) -> Color {
-        let colors: [Color] = [
-            AppTheme.accent.opacity(0.3),
-            AppTheme.accent.opacity(0.15),
-            Color(hex: "E5E5E5"),
-            Color(hex: "F5F5F5")
+    static func label(_ status: String) -> String {
+        switch status.uppercased() {
+        case "ENABLED", "IN_USE", "ACTIVE", "RELEASED": return "Active"
+        case "DISABLED": return "Suspended"
+        case "PENDING": return "Pending"
+        default: return "Expired"
+        }
+    }
+
+    static func color(_ status: String) -> Color {
+        switch status.uppercased() {
+        case "ENABLED", "IN_USE", "ACTIVE", "RELEASED": return AppColors.success
+        case "PENDING": return AppColors.warning
+        case "DISABLED": return AppColors.textTertiary
+        default: return AppColors.error
+        }
+    }
+}
+
+enum CountryHelper {
+    static func flag(for locationOrCode: String) -> String {
+        if locationOrCode.count == 2 {
+            return flagFromCode(locationOrCode)
+        }
+        return flagFromName(locationOrCode)
+    }
+
+    static func flagFromCode(_ code: String) -> String {
+        guard code.count == 2 else { return "🌍" }
+        let base: UInt32 = 127397
+        var flag = ""
+        for scalar in code.uppercased().unicodeScalars {
+            if let unicode = UnicodeScalar(base + scalar.value) {
+                flag.append(String(unicode))
+            }
+        }
+        return flag.isEmpty ? "🌍" : flag
+    }
+
+    static func flagFromName(_ name: String) -> String {
+        let n = name.lowercased()
+        let map: [(keys: [String], emoji: String)] = [
+            (["arab", "uae", "emirates", "dubai"], "🇦🇪"),
+            (["turkey", "türkiye"], "🇹🇷"),
+            (["europe"], "🇪🇺"),
+            (["united states", "usa"], "🇺🇸"),
+            (["japan"], "🇯🇵"),
+            (["united kingdom", "uk"], "🇬🇧"),
+            (["france"], "🇫🇷"),
+            (["germany"], "🇩🇪"),
+            (["thai"], "🇹🇭"),
+            (["singapore"], "🇸🇬"),
+            (["italy"], "🇮🇹"),
+            (["spain"], "🇪🇸"),
+            (["australia"], "🇦🇺"),
+            (["canada"], "🇨🇦"),
+            (["brazil"], "🇧🇷"),
+            (["india"], "🇮🇳"),
+            (["china"], "🇨🇳"),
+            (["south korea", "korea"], "🇰🇷"),
+            (["mexico"], "🇲🇽"),
+            (["global"], "🌍"),
+            (["asia"], "🌏"),
         ]
-        return colors[index % colors.count]
-    }
-
-    private enum Axis { case x, y }
-
-    private func orbOffset(index: Int, axis: Axis, size: CGSize) -> CGFloat {
-        let baseOffset: CGFloat = axis == .x ? size.width * 0.15 : size.height * 0.15
-        let multiplier: CGFloat = CGFloat((index % 2 == 0) ? 1 : -1)
-        return baseOffset * multiplier * CGFloat(index + 1) * 0.3
+        for entry in map {
+            for key in entry.keys {
+                if n.contains(key) { return entry.emoji }
+            }
+        }
+        return "🌐"
     }
 }
 
-// MARK: - Shimmer Placeholder
+enum DateFormatHelper {
+    static func formatISO(_ raw: String, locale: String = "en_US") -> String {
+        guard !raw.isEmpty else { return "--" }
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let date = iso.date(from: raw) ?? ISO8601DateFormatter().date(from: raw)
+        guard let date else { return String(raw.prefix(10)) }
+        return format(date, locale: locale)
+    }
 
-struct ShimmerPlaceholder: View {
-    var cornerRadius: CGFloat = 12
-    @State private var phase: CGFloat = 0
+    static func format(_ date: Date, locale: String = "en_US") -> String {
+        let df = DateFormatter()
+        df.dateFormat = "dd MMM yyyy"
+        df.locale = Locale(identifier: locale)
+        return df.string(from: date)
+    }
+}
+
+// MARK: - Pulse Icon Button
+
+struct PulseIconButton: View {
+    let icon: String
+    var badge: Bool = false
+    let action: () -> Void
 
     var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius)
-            .fill(AppTheme.gray800)
-            .overlay(
-                GeometryReader { geo in
-                    LinearGradient(
-                        colors: [
-                            .clear,
-                            .white.opacity(0.2),
-                            .clear
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
+        Button(action: action) {
+            ZStack(alignment: .topTrailing) {
+                Circle()
+                    .fill(AppColors.surface)
+                    .frame(width: 42, height: 42)
+                    .overlay(
+                        Circle().stroke(AppColors.border, lineWidth: 1)
                     )
-                    .frame(width: geo.size.width)
-                    .offset(x: -geo.size.width + phase * geo.size.width * 2)
-                }
-            )
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            .onAppear {
-                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-                    phase = 1
-                }
-            }
-    }
-}
 
-// MARK: - Animated Tab Icon
+                Image(systemName: icon)
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(AppColors.textPrimary)
+                    .frame(width: 42, height: 42)
 
-struct AnimatedTabIcon: View {
-    let systemName: String
-    let isSelected: Bool
-    @State private var bounce = false
-
-    var body: some View {
-        Image(systemName: systemName)
-            .font(.system(size: 22, weight: isSelected ? .semibold : .regular))
-            .foregroundColor(isSelected ? AppTheme.accent : AppTheme.textSecondary)
-            .scaleEffect(bounce ? 1.2 : 1.0)
-            .symbolEffect(.bounce, value: isSelected)
-            .onChange(of: isSelected) { _, newValue in
-                if newValue {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                        bounce = true
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            bounce = false
-                        }
-                    }
-                    HapticFeedback.selection()
+                if badge {
+                    Circle()
+                        .fill(AppColors.accent)
+                        .frame(width: 10, height: 10)
+                        .overlay(Circle().stroke(AppColors.background, lineWidth: 2))
+                        .offset(x: -4, y: 4)
                 }
             }
-    }
-}
-
-// MARK: - Premium Glow Card
-
-struct PremiumGlowCard: ViewModifier {
-    var glowColor: Color = AppTheme.accent
-    var cornerRadius: CGFloat = 24
-    @State private var glowIntensity: CGFloat = 0.3
-
-    func body(content: Content) -> some View {
-        content
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(AppTheme.surfaceLight)
-
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    glowColor.opacity(0.6),
-                                    glowColor.opacity(0.2),
-                                    .clear
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1.5
-                        )
-                }
-                .shadow(color: glowColor.opacity(glowIntensity), radius: 20, x: 0, y: 10)
-            )
-            .onAppear {
-                withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
-                    glowIntensity = 0.5
-                }
-            }
-    }
-}
-
-extension View {
-    func premiumGlowCard(glowColor: Color = AppTheme.accent, cornerRadius: CGFloat = 24) -> some View {
-        modifier(PremiumGlowCard(glowColor: glowColor, cornerRadius: cornerRadius))
-    }
-}
-
-// MARK: - Rounded Corner Shape
-
-struct RoundedCorner: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(
-            roundedRect: rect,
-            byRoundingCorners: corners,
-            cornerRadii: CGSize(width: radius, height: radius)
-        )
-        return Path(path.cgPath)
+        }
     }
 }

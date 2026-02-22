@@ -36,15 +36,16 @@ node scripts/sync-figma-tokens.js
 
 ### 3. Tokens de Design Actuels
 
-#### Couleurs (Pulse Theme)
+#### Couleurs (Theme.swift = source de vérité code)
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `accent` | `#CDFF00` | `#CDFF00` | Lime principal |
-| `primary` | `#09090B` | `#FAFAFA` | Texte/fond principal |
-| `gray50-900` | Zinc scale | Inversé | Grayscale |
-| `success` | `#16A34A` | `#4ADE80` | États positifs |
-| `error` | `#DC2626` | `#F87171` | États erreur |
+| Token | Light | Dark | Code Swift |
+|-------|-------|------|------------|
+| `accent` | `#BAFF39` | `#BAFF39` | `AppColors.accent` |
+| `accentLight` | `#D4FF85` | `#D4FF85` | `AppColors.accentLight` |
+| `background` | `#FFFFFF` | `#404040` | `AppColors.background` |
+| `textPrimary` | `#6E6E6E` | `#FFFFFF` | `AppColors.textPrimary` |
+| `success` | `#16A34A` | `#16A34A` | `AppColors.success` |
+| `error` | `#DC2626` | `#DC2626` | `AppColors.error` |
 
 #### Spacing
 
@@ -67,9 +68,10 @@ xl: 22px, xxl: 28px, full: 9999px
 1. **Toujours utiliser les tokens** :
    ```swift
    // ✅ iOS
-   .foregroundColor(AppTheme.accent)
-   .padding(AppTheme.Spacing.base)
-   .cornerRadius(AppTheme.Radius.md)
+   .foregroundColor(AppColors.accent)
+   .padding(AppSpacing.base)
+   .cornerRadius(AppRadius.md)
+   .font(AppFonts.body())
    ```
 
    ```css
@@ -82,9 +84,10 @@ xl: 22px, xxl: 28px, full: 9999px
 2. **Ne JAMAIS hardcoder** :
    ```swift
    // ❌ INTERDIT
-   .foregroundColor(Color(hex: "CDFF00"))
+   .foregroundColor(Color(hex: "BAFF39"))
    .padding(16)
    .cornerRadius(14)
+   .font(.system(size: 15))
    ```
 
 3. **Synchroniser régulièrement** :
@@ -101,7 +104,7 @@ xl: 22px, xxl: 28px, full: 9999px
 **iOS** :
 ```swift
 Button("Action") { }
-  .buttonStyle(.primary) // Utilise AppTheme.accent
+  .buttonStyle(GoldButtonStyle())  // ou PrimaryButtonStyle()
 ```
 
 **Web** :
@@ -188,12 +191,12 @@ Avant de coder une nouvelle feature UI :
 // iOS
 struct NewComponent: View {
     var body: some View {
-        VStack(spacing: AppTheme.Spacing.md) {
+        VStack(spacing: AppSpacing.md) {
             Text("Title")
-                .font(AppTheme.Typography.sectionTitle())
-                .foregroundColor(AppTheme.textPrimary)
+                .font(AppFonts.sectionTitle())
+                .foregroundColor(AppColors.textPrimary)
         }
-        .techCard()
+        .tokenCard()
     }
 }
 ```

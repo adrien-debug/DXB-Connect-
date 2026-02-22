@@ -68,7 +68,7 @@ public struct UserInfo: Codable {
     public let name: String?
 }
 
-public struct AppleUserInfo {
+public struct AppleUserInfo: Sendable {
     public let email: String?
     public let name: String?
     

@@ -8,7 +8,7 @@ public actor TokenManager {
     private var apiClient: APIClient?
     private var tokenExpiryDate: Date?
     private let refreshThreshold: TimeInterval = 300
-    private var isRefreshing = false
+    private var refreshTask: Task<String?, Error>?
 
     public init(authService: AuthServiceProtocol) {
         self.authService = authService
@@ -35,8 +35,8 @@ public actor TokenManager {
     }
 
     private func refreshToken() async throws -> String? {
-        guard !isRefreshing else {
-            return try await authService.getAccessToken()
+        if let existing = refreshTask {
+            return try await existing.value
         }
 
         guard let refreshTokenValue = try await authService.getRefreshToken() else {
@@ -47,26 +47,31 @@ public actor TokenManager {
             throw TokenError.refreshFailed
         }
 
-        isRefreshing = true
-        defer { isRefreshing = false }
-
         let body: [String: Any] = ["refreshToken": refreshTokenValue]
 
-        do {
-            let response: AuthResponse = try await client.request(
-                endpoint: "auth/refresh",
-                method: "POST",
-                body: body,
-                requiresAuth: false
-            )
+        let task = Task<String?, Error> {
+            defer { refreshTask = nil }
 
-            try await authService.saveTokens(access: response.accessToken, refresh: response.refreshToken)
-            await client.setAccessToken(response.accessToken)
+            do {
+                let response: AuthResponse = try await client.request(
+                    endpoint: "auth/refresh",
+                    method: "POST",
+                    body: body,
+                    requiresAuth: false
+                )
 
-            return response.accessToken
-        } catch {
-            throw TokenError.refreshFailed
+                try await authService.saveTokens(access: response.accessToken, refresh: response.refreshToken)
+                await client.setAccessToken(response.accessToken)
+
+                return response.accessToken
+            } catch {
+                appLog("Token refresh failed: \(error.localizedDescription)", level: .error, category: .auth)
+                throw TokenError.refreshFailed
+            }
         }
+
+        refreshTask = task
+        return try await task.value
     }
 
     /// Extrait la date d'expiration d'un JWT
