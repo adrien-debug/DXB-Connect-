@@ -105,6 +105,10 @@ public actor APIClient {
             if httpResponse.statusCode == 401 {
                 throw APIError.unauthorized
             }
+            if let errorBody = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let errorMessage = errorBody["error"] as? String {
+                throw APIError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
+            }
             throw APIError.httpError(statusCode: httpResponse.statusCode)
         }
 
@@ -120,6 +124,7 @@ public actor APIClient {
 public enum APIError: LocalizedError {
     case invalidResponse
     case httpError(statusCode: Int)
+    case serverError(statusCode: Int, message: String)
     case unauthorized
     case networkError(Error)
 
@@ -129,6 +134,8 @@ public enum APIError: LocalizedError {
             return "Invalid server response"
         case .httpError(let statusCode):
             return "Server error (\(statusCode))"
+        case .serverError(_, let message):
+            return message
         case .unauthorized:
             return "Please sign in again"
         case .networkError(let error):

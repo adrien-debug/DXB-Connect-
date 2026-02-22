@@ -22,7 +22,9 @@ const applePaySchema = z.object({
 
 function getStripePriceId(plan: string, period: string): string | null {
   const key = `STRIPE_${plan.toUpperCase()}_PRICE_${period.toUpperCase()}`
-  return process.env[key] || null
+  const val = process.env[key]
+  if (!val || val === 'price_xxx' || !val.startsWith('price_')) return null
+  return val
 }
 
 /**
@@ -39,7 +41,8 @@ export async function POST(request: Request) {
     const body = await request.json()
     const validated = applePaySchema.parse(body)
 
-    if (!process.env.STRIPE_SECRET_KEY) {
+    const stripeKey = process.env.STRIPE_SECRET_KEY
+    if (!stripeKey || !stripeKey.startsWith('sk_') || stripeKey.length <= 20) {
       console.error('[subscriptions/apple-pay] Stripe not configured')
       return NextResponse.json(
         { success: false, error: 'Payment service unavailable' },
@@ -47,7 +50,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2026-01-28.clover' })
+    const stripe = new Stripe(stripeKey, { apiVersion: '2026-01-28.clover' })
     const supabase = await createClient() as SupabaseAny
 
     // Vérifier pas d'abo actif

@@ -255,6 +255,10 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
     }
 
     public func purchasePlan(planId: String) async throws -> ESIMOrder {
+        if let token = try await authService.getAccessToken() {
+            await apiClient.setAccessToken(token)
+        }
+
         let body: [String: Any] = ["packageCode": planId]
 
         let response: PurchaseResponse = try await apiClient.request(
@@ -480,10 +484,6 @@ public actor DXBAPIService: DXBAPIServiceProtocol {
     // MARK: - Offers (SimPass)
 
     public func fetchOffers(country: String? = nil, category: String? = nil, tier: String? = nil) async throws -> [PartnerOfferResponse] {
-        if let token = try await authService.getAccessToken() {
-            await apiClient.setAccessToken(token)
-        }
-
         var queryParts: [String] = []
         if let c = country { queryParts.append("country=\(c)") }
         if let cat = category { queryParts.append("category=\(cat)") }

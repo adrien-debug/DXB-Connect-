@@ -20,11 +20,14 @@ const createSchema = z.object({
 
 function getStripePriceId(plan: string, period: string): string | null {
   const key = `STRIPE_${plan.toUpperCase()}_PRICE_${period.toUpperCase()}`
-  return process.env[key] || null
+  const val = process.env[key]
+  if (!val || val === 'price_xxx' || !val.startsWith('price_')) return null
+  return val
 }
 
 function isStripeConfigured(): boolean {
-  return !!(process.env.STRIPE_SECRET_KEY)
+  const key = process.env.STRIPE_SECRET_KEY
+  return !!(key && key.startsWith('sk_') && key.length > 20)
 }
 
 /**
@@ -182,7 +185,14 @@ export async function POST(request: Request) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: 'Invalid input', details: err.errors }, { status: 400 })
     }
-    console.error('[subscriptions/create] Unexpected error')
+    if (err instanceof Stripe.errors.StripeError) {
+      console.error('[subscriptions/create] Stripe error:', { type: err.type, code: err.code })
+      return NextResponse.json(
+        { success: false, error: 'Payment processing failed. Please try again or contact support.' },
+        { status: 502 }
+      )
+    }
+    console.error('[subscriptions/create] Unexpected error:', { type: typeof err, message: err instanceof Error ? err.message : 'unknown' })
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

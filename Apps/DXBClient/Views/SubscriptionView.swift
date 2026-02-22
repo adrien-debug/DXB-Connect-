@@ -536,7 +536,11 @@ struct SubscriptionView: View {
             await appState.loadDashboard()
             isSubscribing = false; showChangePlan = false
         } catch {
-            subscriptionError = "Unable to change plan"; isSubscribing = false
+            subscriptionError = error.localizedDescription
+            isSubscribing = false
+            #if DEBUG
+            print("[Subscription] Change plan failed: \(error)")
+            #endif
         }
     }
 
@@ -610,7 +614,11 @@ struct SubscriptionView: View {
             await appState.loadDashboard()
             isSubscribing = false; dismiss()
         } catch {
-            subscriptionError = "Unable to create subscription"; isSubscribing = false
+            subscriptionError = error.localizedDescription
+            isSubscribing = false
+            #if DEBUG
+            print("[Subscription] Create failed: \(error)")
+            #endif
         }
     }
 

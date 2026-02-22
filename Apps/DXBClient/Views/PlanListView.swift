@@ -493,7 +493,7 @@ struct PlanListView: View {
                     .foregroundStyle(AppColors.accent)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Save up to 30%")
+                    Text("Save up to 50%")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(AppColors.textPrimary)
                     Text("Subscribe to SimPass Premium")

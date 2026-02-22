@@ -861,6 +861,29 @@ enum DateFormatHelper {
     }
 }
 
+// MARK: - Offer Helpers
+
+enum OfferHelper {
+    static func categoryIcon(_ category: String?) -> String {
+        switch category {
+        case "activity": return "figure.hiking"
+        case "transport": return "car.fill"
+        case "food": return "fork.knife"
+        case "hotel": return "bed.double.fill"
+        case "lounge": return "cup.and.saucer.fill"
+        case "insurance": return "shield.checkered"
+        default: return "sparkles"
+        }
+    }
+
+    static func flagEmoji(for countryCode: String) -> String {
+        let base: UInt32 = 127397
+        return countryCode.uppercased().unicodeScalars.compactMap {
+            UnicodeScalar(base + $0.value).map(String.init)
+        }.joined()
+    }
+}
+
 // MARK: - Pulse Icon Button
 
 struct PulseIconButton: View {

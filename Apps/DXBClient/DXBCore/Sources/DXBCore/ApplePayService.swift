@@ -79,7 +79,7 @@ public final class ApplePayService: NSObject, @unchecked Sendable {
         )
         
         let total = PKPaymentSummaryItem(
-            label: "DXB Connect",
+            label: "SimPass",
             amount: NSDecimalNumber(value: amount),
             type: .final
         )

@@ -55,31 +55,55 @@ public enum APIEndpoint {
 
     // Auth
     case authApple
+    case authLogin
+    case authRegister
     case authEmailSendOTP
     case authEmailVerify
+    case authRefresh
+    case authResetPassword
 
     // eSIM
     case esimPackages
     case esimOrders
+    case esimStock
     case esimPurchase
+    case esimPurchaseApplePay
     case esimBalance
     case esimUsage
     case esimTopup
     case esimSuspend
     case esimCancel
 
-    // Auth
-    case authRefresh
-    case authResetPassword
+    // Offers
+    case offers
+    case offerClick(id: String)
+
+    // Subscriptions
+    case subscriptionsMe
+    case subscriptionsCreate
+    case subscriptionsCreateApplePay
+    case subscriptionsCancel
+
+    // Rewards
+    case rewardsSummary
+    case rewardsCheckin
+    case raffleEnter(id: String)
 
     // Checkout
     case checkout
     case checkoutConfirm
+    case checkoutCrypto
+    case checkoutCryptoStatus(id: String)
+
+    // Promo
+    case promoValidate
 
     public var path: String {
         switch self {
         // Auth
         case .authApple: return "auth/apple"
+        case .authLogin: return "auth/login"
+        case .authRegister: return "auth/register"
         case .authEmailSendOTP: return "auth/email/send-otp"
         case .authEmailVerify: return "auth/email/verify"
         case .authRefresh: return "auth/refresh"
@@ -88,16 +112,38 @@ public enum APIEndpoint {
         // eSIM
         case .esimPackages: return "esim/packages"
         case .esimOrders: return "esim/orders"
+        case .esimStock: return "esim/stock"
         case .esimPurchase: return "esim/purchase"
+        case .esimPurchaseApplePay: return "esim/purchase/apple-pay"
         case .esimBalance: return "esim/balance"
         case .esimUsage: return "esim/usage"
         case .esimTopup: return "esim/topup"
         case .esimSuspend: return "esim/suspend"
         case .esimCancel: return "esim/cancel"
 
+        // Offers
+        case .offers: return "offers"
+        case .offerClick(let id): return "offers/\(id)/click"
+
+        // Subscriptions
+        case .subscriptionsMe: return "subscriptions/me"
+        case .subscriptionsCreate: return "subscriptions/create"
+        case .subscriptionsCreateApplePay: return "subscriptions/create-apple-pay"
+        case .subscriptionsCancel: return "subscriptions/cancel"
+
+        // Rewards
+        case .rewardsSummary: return "rewards/summary"
+        case .rewardsCheckin: return "rewards/checkin"
+        case .raffleEnter(let id): return "rewards/raffles/\(id)/enter"
+
         // Checkout
         case .checkout: return "checkout"
         case .checkoutConfirm: return "checkout/confirm"
+        case .checkoutCrypto: return "checkout/crypto"
+        case .checkoutCryptoStatus(let id): return "checkout/crypto/\(id)"
+
+        // Promo
+        case .promoValidate: return "promo/validate"
         }
     }
 
