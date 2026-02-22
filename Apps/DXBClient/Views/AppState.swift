@@ -160,11 +160,12 @@ final class AppState {
             let country = locationManager.detectedCountryCode
             let tier = subscription?.plan
             partnerOffers = try await apiService.fetchOffers(country: country, category: nil, tier: tier)
+            #if DEBUG
+            print("[AppState] Loaded \(partnerOffers.count) offers")
+            #endif
         } catch {
             if handleAuthError(error) { return }
-            #if DEBUG
             print("[AppState] Failed to load offers: \(error.localizedDescription)")
-            #endif
         }
     }
 

@@ -272,24 +272,29 @@ struct PaymentSheetView: View {
         }
 
         isPurchasing = true; errorMessage = nil
+        appLog("[Payment] Starting purchase for plan: \(plan.id), method: \(selectedMethod.rawValue)")
         do {
             let order: ESIMOrder
             switch selectedMethod {
             case .applePay:
+                appLog("[Payment] Presenting Apple Pay sheet...")
                 let payment = try await ApplePayService.shared.presentPaymentSheet(
                     amount: discountedPrice,
                     label: "\(plan.location) eSIM – \(plan.dataGB)GB"
                 )
+                appLog("[Payment] Apple Pay authorized, calling API...")
                 order = try await appState.apiService.processApplePayPayment(
                     planId: plan.id,
                     paymentToken: payment.tokenBase64,
                     paymentNetwork: payment.paymentNetwork
                 )
             case .card:
+                appLog("[Payment] Calling purchase API for card...")
                 order = try await appState.apiService.purchasePlan(planId: plan.id)
             case .crypto:
                 isPurchasing = false; return
             }
+            appLog("[Payment] Purchase successful: \(order.orderNo)")
             isPurchasing = false; onPurchaseComplete?(order); dismiss()
         } catch let apError as ApplePayError {
             isPurchasing = false
@@ -302,8 +307,23 @@ struct PaymentSheetView: View {
             case .failedToCreate, .paymentFailed:
                 errorMessage = apError.localizedDescription
             }
+        } catch let apiError as APIError {
+            isPurchasing = false
+            appLog("[Payment] API Error: \(apiError)", level: .error)
+            switch apiError {
+            case .serverError(let code, let message):
+                errorMessage = "Error \(code): \(message)"
+            case .unauthorized:
+                errorMessage = "Session expired. Please sign in again."
+            case .httpError(let code):
+                errorMessage = "Server error (\(code)). Please try again."
+            default:
+                errorMessage = apiError.localizedDescription
+            }
         } catch {
-            errorMessage = "Payment failed. Please try again."; isPurchasing = false
+            appLog("[Payment] Unexpected error: \(error)", level: .error)
+            errorMessage = "Payment failed: \(error.localizedDescription)"
+            isPurchasing = false
         }
     }
 

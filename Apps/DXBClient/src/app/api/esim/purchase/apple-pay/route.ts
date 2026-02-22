@@ -180,9 +180,16 @@ export async function POST(request: NextRequest) {
         { status: error.status }
       )
     }
-    console.error('[Apple Pay] Unexpected error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error('[Apple Pay] Unexpected error:', errorMessage)
+    
+    // Return more specific error for debugging (hide secrets in production)
+    const safeMessage = errorMessage.includes('ESIM_ACCESS_CODE') || errorMessage.includes('ESIM_SECRET_KEY')
+      ? 'eSIM provider not configured'
+      : errorMessage.substring(0, 100)
+    
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: safeMessage },
       { status: 500 }
     )
   }
