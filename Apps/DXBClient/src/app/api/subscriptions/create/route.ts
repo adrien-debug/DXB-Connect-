@@ -1,11 +1,19 @@
 import { requireAuthFlexible } from '@/lib/auth-middleware'
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { z } from 'zod'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  ) as SupabaseAny
+}
 
 const PLAN_CONFIG = {
   privilege: { discount: 15, cap: null },
@@ -43,7 +51,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const validated = createSchema.parse(body)
 
-    const supabase = await createClient() as SupabaseAny
+    const supabase = getAdminClient()
 
     // Vérifier pas d'abo actif
     const { data: existing } = await supabase

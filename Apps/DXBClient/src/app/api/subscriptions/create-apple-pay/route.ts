@@ -1,11 +1,18 @@
 import { requireAuthFlexible } from '@/lib/auth-middleware'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { z } from 'zod'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  ) as SupabaseAny
+}
 
 const PLAN_CONFIG = {
   privilege: { discount: 15, cap: null },
@@ -51,7 +58,7 @@ export async function POST(request: Request) {
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-01-28.clover' })
-    const supabase = await createClient() as SupabaseAny
+    const supabase = getAdminClient()
 
     // Vérifier pas d'abo actif
     const { data: existing } = await supabase
@@ -152,7 +159,9 @@ export async function POST(request: Request) {
       .single()
 
     if (dbError) {
-      console.error('[subscriptions/apple-pay] DB error:', { userId: user.id })
+      console.error('[subscriptions/apple-pay] DB error:', {
+        userId: user.id, code: dbError.code, message: dbError.message,
+      })
     }
 
     console.log('[subscriptions/apple-pay] Created:', {
@@ -161,7 +170,17 @@ export async function POST(request: Request) {
       stripeSubId: subscription.id,
     })
 
-    return NextResponse.json({ success: true, data: sub })
+    const responseData = sub ?? {
+      id: subscription.id,
+      plan: validated.plan,
+      status: subscription.status,
+      billing_period: validated.billing_period,
+      discount_percent: config.discount,
+      current_period_end: periodEnd,
+      cancel_at_period_end: false,
+    }
+
+    return NextResponse.json({ success: true, data: responseData })
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: 'Invalid input', details: err.errors }, { status: 400 })
