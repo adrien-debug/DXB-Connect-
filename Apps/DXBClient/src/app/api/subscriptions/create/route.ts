@@ -162,7 +162,12 @@ export async function POST(request: Request) {
       .single()
 
     if (dbError) {
-      console.error('[subscriptions/create] DB error after Stripe:', { userId: user.id })
+      console.error('[subscriptions/create] DB error after Stripe:', {
+        userId: user.id,
+        code: dbError.code,
+        message: dbError.message,
+        hint: dbError.hint,
+      })
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -175,9 +180,19 @@ export async function POST(request: Request) {
       stripeSubId: subscription.id,
     })
 
+    const responseData = sub ?? {
+      id: subscription.id,
+      plan: validated.plan,
+      status: subscription.status,
+      billing_period: validated.billing_period,
+      discount_percent: config.discount,
+      current_period_end: periodEnd,
+      cancel_at_period_end: false,
+    }
+
     return NextResponse.json({
       success: true,
-      data: sub,
+      data: responseData,
       clientSecret,
       subscriptionId: subscription.id,
     })
