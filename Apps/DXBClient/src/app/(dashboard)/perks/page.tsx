@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Gift, Plus, Globe, MapPin, Trash2, Pencil, X, Loader2, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 
-const RAILWAY_API = process.env.NEXT_PUBLIC_RAILWAY_URL || 'https://web-production-14c51.up.railway.app'
+const RAILWAY_API = process.env.NEXT_PUBLIC_RAILWAY_URL || 'https://api-github-production-a848.up.railway.app'
 
 interface PartnerOffer {
   id: string

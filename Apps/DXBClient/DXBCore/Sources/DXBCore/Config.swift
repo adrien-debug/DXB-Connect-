@@ -28,12 +28,12 @@ public enum APIConfig {
 
         case .staging:
             // Staging Railway - même architecture que production
-            return URL(string: "https://web-production-14c51.up.railway.app/api")!
+            return URL(string: "https://api-github-production-a848.up.railway.app/api")!
 
         case .production:
             // ✅ PRODUCTION RAILWAY - NE JAMAIS CHANGER
             // Railway Backend est le SEUL point d'entrée
-            return URL(string: "https://web-production-14c51.up.railway.app/api")!
+            return URL(string: "https://api-github-production-a848.up.railway.app/api")!
         }
     }
 

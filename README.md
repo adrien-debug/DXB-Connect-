@@ -13,7 +13,7 @@ Next.js Web ──┘
 ```
 
 - **Railway** is the single entry point — no direct client-to-Supabase or client-to-eSIM API connections
-- **Production URL**: `https://web-production-14c51.up.railway.app/api`
+- **Production URL**: `https://api-github-production-a848.up.railway.app/api`
 
 ## Stack
 
@@ -168,7 +168,7 @@ npm install
 ### 2. Environment
 Create `.env.local` from `.env.example`:
 ```env
-NEXT_PUBLIC_RAILWAY_URL=https://web-production-14c51.up.railway.app
+NEXT_PUBLIC_RAILWAY_URL=https://api-github-production-a848.up.railway.app
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
@@ -190,7 +190,7 @@ npm run typecheck    # TypeScript check
 ```bash
 # Config.swift points to:
 # DEBUG  → http://localhost:4000/api
-# RELEASE → https://web-production-14c51.up.railway.app/api
+# RELEASE → https://api-github-production-a848.up.railway.app/api
 ```
 
 ## Auth

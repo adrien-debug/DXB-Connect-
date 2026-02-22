@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
     url: 'http://localhost:4000',
     cleartext: true
     // Production: Railway backend
-    // url: 'https://web-production-14c51.up.railway.app',
+    // url: 'https://api-github-production-a848.up.railway.app',
   },
   ios: {
     contentInset: 'automatic',

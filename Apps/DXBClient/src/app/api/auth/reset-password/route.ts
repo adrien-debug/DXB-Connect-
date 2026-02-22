@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const supabase = await createClient()
 
     const { error } = await supabase.auth.resetPasswordForEmail(body.email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://web-production-14c51.up.railway.app'}/auth/callback?type=recovery`,
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://api-github-production-a848.up.railway.app'}/auth/callback?type=recovery`,
     })
 
     if (error) {

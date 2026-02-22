@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { CreditCard, TrendingUp, Users, Crown } from 'lucide-react'
 
-const RAILWAY_API = process.env.NEXT_PUBLIC_RAILWAY_URL || 'https://web-production-14c51.up.railway.app'
+const RAILWAY_API = process.env.NEXT_PUBLIC_RAILWAY_URL || 'https://api-github-production-a848.up.railway.app'
 
 interface Subscription {
   id: string
