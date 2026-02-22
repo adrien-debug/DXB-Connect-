@@ -1,7 +1,7 @@
 import { requireAuthFlexible } from '@/lib/auth-middleware'
 import type { Database } from '@/lib/database.types'
 import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { emitEvent } from '@/lib/events/event-pipeline'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
@@ -10,6 +10,13 @@ type EsimOrderInsert = Database['public']['Tables']['esim_orders']['Insert']
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  ) as SupabaseAny
+}
 
 interface SubscriptionRow {
   id: string
@@ -84,7 +91,7 @@ export async function POST(request: Request) {
     console.log('[esim/purchase] On-demand order for user=%s, package=%s', user.id, body.packageCode)
 
     // 0. Idempotence : vérifier si une commande récente (< 30s) existe pour le même package
-    const supabase = await createClient()
+    const supabase = getAdminClient()
     const thirtySecsAgo = new Date(Date.now() - 30_000).toISOString()
     const { data: recentOrder } = await (supabase.from('esim_orders') as SupabaseAny)
       .select('order_no, iccid, lpa_code, qr_code_url, status')

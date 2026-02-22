@@ -1,7 +1,14 @@
 import { requireAuthFlexible } from '@/lib/auth-middleware'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { esimPost, ESIMAccessError } from '@/lib/esim-access-client'
 import { NextResponse } from 'next/server'
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+}
 
 interface EsimItem {
   esimTranNo?: string
@@ -46,7 +53,7 @@ export async function GET(request: Request) {
     const allEsims = data.obj?.esimList || []
 
     // 2. Récupérer les ICCIDs déjà attribués à des clients (dans Supabase)
-    const supabase = await createClient()
+    const supabase = getAdminClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: assignedOrders } = await (supabase.from('esim_orders') as any)
       .select('iccid')

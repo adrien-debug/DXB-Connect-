@@ -2,12 +2,18 @@ import { requireAuthFlexible } from '@/lib/auth-middleware'
 import type { Json } from '@/lib/database.types'
 import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
 import type { TopupRequest } from '@/lib/esim-types'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-// Cast ciblé — types Supabase générés en décalage avec la version du client
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  ) as SupabaseAny
+}
 
 /**
  * GET /api/esim/topup
@@ -79,7 +85,7 @@ export async function POST(request: Request) {
     if (data.success) {
       console.log('[esim/topup] Top-up réussi iccid=%s package=%s user=%s', body.iccid, body.packageCode, user!.id)
 
-      const supabase = await createClient()
+      const supabase = getAdminClient()
       const { error: dbError } = await (supabase.from('esim_orders') as SupabaseAny).insert({
         user_id: user!.id,
         order_no: data.obj?.orderNo ?? transactionId,

@@ -1,13 +1,20 @@
 import { requireAuthFlexible } from '@/lib/auth-middleware'
 import type { Database } from '@/lib/database.types'
 import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
 type EsimOrderInsert = Database['public']['Tables']['esim_orders']['Insert']
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  ) as SupabaseAny
+}
 
 interface ApplePayRequest {
   packageCode: string
@@ -45,6 +52,7 @@ interface OrderResponse {
  * - Enregistre dans Supabase
  */
 export async function POST(request: NextRequest) {
+  console.log('[Apple Pay] Received request')
   try {
     const { user, error: authError } = await requireAuthFlexible(request)
 
@@ -56,9 +64,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body: ApplePayRequest = await request.json()
+    let body: ApplePayRequest
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      console.error('[Apple Pay] Body parse error:', parseError)
+      return NextResponse.json(
+        { success: false, error: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
+
+    console.log('[Apple Pay] Body keys:', Object.keys(body), 'packageCode:', body.packageCode, 'hasToken:', !!body.paymentToken)
 
     if (!body.packageCode) {
+      console.log('[Apple Pay] Missing packageCode')
       return NextResponse.json(
         { success: false, error: 'Package code required' },
         { status: 400 }
@@ -66,6 +86,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!body.paymentToken) {
+      console.log('[Apple Pay] Missing paymentToken')
       return NextResponse.json(
         { success: false, error: 'Payment token required' },
         { status: 400 }
@@ -106,7 +127,7 @@ export async function POST(request: NextRequest) {
     const pkgDetails = queryResponse.obj?.packageList?.[0] || orderResponse.obj?.packageList?.[0]
 
     // 3. Enregistrer dans Supabase
-    const supabase = await createClient()
+    const supabase = getAdminClient()
 
     const row: EsimOrderInsert = {
       user_id: user.id,

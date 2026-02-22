@@ -1,10 +1,17 @@
+import { requireAuthFlexible } from '@/lib/auth-middleware'
 import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-// Cast ciblé — types Supabase générés en décalage avec la version du client
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  ) as SupabaseAny
+}
 
 /**
  * GET /api/esim/query
@@ -25,9 +32,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
+    const { user, error: authError } = await requireAuthFlexible(request)
     if (authError || !user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -46,14 +51,13 @@ export async function GET(request: Request) {
       }
     )
 
-    // Enrichir avec les données locales si disponibles
     if (data.success && data.obj) {
       try {
-        const supabaseDB = await createClient() as SupabaseAny
-        let localQuery = supabaseDB
+        const supabase = getAdminClient()
+        let localQuery = supabase
           .from('esim_orders')
           .select('purchase_price, currency, created_at')
-          .eq('user_id', user!.id)
+          .eq('user_id', user.id)
 
         if (orderNo) localQuery = localQuery.eq('order_no', orderNo)
         else if (iccid) localQuery = localQuery.eq('iccid', iccid)

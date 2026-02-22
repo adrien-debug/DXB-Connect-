@@ -1,12 +1,18 @@
 import { requireAuthFlexible } from '@/lib/auth-middleware'
 import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
 import type { RevokeRequest } from '@/lib/esim-types'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-// Cast ciblé — types Supabase générés en décalage avec la version du client
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  ) as SupabaseAny
+}
 
 /**
  * POST /api/esim/revoke
@@ -30,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     // Vérifier que la commande appartient à l'utilisateur
-    const supabase = await createClient() as SupabaseAny
+    const supabase = getAdminClient()
     let orderQuery = supabase.from('esim_orders').select('id, order_no').eq('user_id', user!.id)
     if (body.orderNo) orderQuery = orderQuery.eq('order_no', body.orderNo)
     else if (body.iccid) orderQuery = orderQuery.eq('iccid', body.iccid)

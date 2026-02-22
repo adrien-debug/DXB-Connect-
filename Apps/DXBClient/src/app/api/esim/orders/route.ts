@@ -1,7 +1,14 @@
 import { requireAuthFlexible } from '@/lib/auth-middleware'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
 import { NextResponse } from 'next/server'
+
+function getAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  )
+}
 
 /**
  * GET /api/esim/orders
@@ -23,7 +30,7 @@ export async function GET(request: Request) {
   const showAll = searchParams.get('all') === 'true'
 
   try {
-    const supabase = await createClient()
+    const supabase = getAdminClient()
 
     // Vérifier si l'utilisateur est admin (pour accès à toutes les eSIMs)
     let isAdmin = false
