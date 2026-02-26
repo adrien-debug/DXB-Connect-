@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'core/theme/app_theme.dart';
+import 'core/config/app_config.dart';
 import 'routing/app_router.dart';
 import 'features/auth/models/auth_models.dart';
 import 'features/auth/providers/auth_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  Stripe.publishableKey = AppConfig.stripePublishableKey;
+  Stripe.merchantIdentifier = AppConfig.merchantId;
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

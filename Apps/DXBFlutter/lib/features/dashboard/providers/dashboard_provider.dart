@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/config/api_endpoints.dart';
@@ -107,9 +108,10 @@ class DashboardNotifier extends StateNotifier<DashboardData> {
 
       await _loadUsageData();
     } catch (e) {
+      if (kDebugMode) debugPrint('[Dashboard] loadDashboard error: $e');
       state = state.copyWith(
         isLoading: false,
-        error: 'Failed to load dashboard. Pull to retry.',
+        error: ApiClient.extractErrorMessage(e, 'Failed to load dashboard. Pull to retry.'),
       );
     }
   }
@@ -117,20 +119,15 @@ class DashboardNotifier extends StateNotifier<DashboardData> {
   Future<List<EsimOrder>> _fetchEsims() async {
     try {
       final response = await _apiClient.get(ApiEndpoints.esimOrders);
-      final data = response.data;
-      List<dynamic> list = [];
-      if (data is Map) {
-        list = data['obj']?['orderList'] as List<dynamic>? ??
-            data['orders'] as List<dynamic>? ??
-            data['data'] as List<dynamic>? ??
-            [];
-      } else if (data is List) {
-        list = data;
-      }
+      final list = ApiClient.extractList(
+        response.data,
+        ['obj.orderList', 'orders', 'data'],
+      );
       return list
           .map((e) => EsimOrder.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (_) {
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Dashboard] _fetchEsims error: $e');
       return [];
     }
   }
@@ -138,14 +135,13 @@ class DashboardNotifier extends StateNotifier<DashboardData> {
   Future<SubscriptionInfo?> _fetchSubscription() async {
     try {
       final response = await _apiClient.get(ApiEndpoints.subscriptionsMe);
-      final data = response.data;
-      if (data == null) return null;
-      final sub = data['subscription'] ?? data['data'];
-      if (sub is Map<String, dynamic>) {
-        return SubscriptionInfo.fromJson(sub);
-      }
-      return null;
-    } catch (_) {
+      final sub = ApiClient.extractObject(
+        response.data,
+        ['subscription', 'data'],
+      );
+      return sub != null ? SubscriptionInfo.fromJson(sub) : null;
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Dashboard] _fetchSubscription error: $e');
       return null;
     }
   }
@@ -153,19 +149,12 @@ class DashboardNotifier extends StateNotifier<DashboardData> {
   Future<List<PartnerOffer>> _fetchOffers() async {
     try {
       final response = await _apiClient.get(ApiEndpoints.offers);
-      final data = response.data;
-      List<dynamic> list = [];
-      if (data is Map) {
-        list = data['data'] as List<dynamic>? ??
-            data['offers'] as List<dynamic>? ??
-            [];
-      } else if (data is List) {
-        list = data;
-      }
+      final list = ApiClient.extractList(response.data, ['data', 'offers']);
       return list
           .map((e) => PartnerOffer.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (_) {
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Dashboard] _fetchOffers error: $e');
       return [];
     }
   }
@@ -173,14 +162,13 @@ class DashboardNotifier extends StateNotifier<DashboardData> {
   Future<RewardsWallet?> _fetchRewards() async {
     try {
       final response = await _apiClient.get(ApiEndpoints.rewardsSummary);
-      final data = response.data;
-      if (data == null) return null;
-      final walletData = data['data']?['wallet'] ?? data['wallet'];
-      if (walletData is Map<String, dynamic>) {
-        return RewardsWallet.fromJson(walletData);
-      }
-      return null;
-    } catch (_) {
+      final walletData = ApiClient.extractObject(
+        response.data is Map ? (response.data['data'] ?? response.data) : response.data,
+        ['wallet'],
+      );
+      return walletData != null ? RewardsWallet.fromJson(walletData) : null;
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Dashboard] _fetchRewards error: $e');
       return null;
     }
   }
@@ -201,8 +189,8 @@ class DashboardNotifier extends StateNotifier<DashboardData> {
             cache[iccid] = EsimUsage.fromJson(usageData);
           }
         }
-      } catch (_) {
-        // Skip failed usage fetches silently
+      } catch (e) {
+        if (kDebugMode) debugPrint('[Dashboard] Usage fetch failed for $iccid: $e');
       }
     }
     state = state.copyWith(usageCache: cache);

@@ -32,6 +32,9 @@ dependencies:
   # Auth
   sign_in_with_apple: ^6.1.4
 
+  # Payments
+  flutter_stripe: ^11.3.0
+
   # QR Code
   qr_flutter: ^4.1.0
 

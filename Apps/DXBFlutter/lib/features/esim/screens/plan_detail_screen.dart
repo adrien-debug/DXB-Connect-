@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/loading_indicator.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../models/esim_models.dart';
-import '../providers/plans_provider.dart';
 import '../widgets/country_helper.dart';
 
 class PlanDetailScreen extends ConsumerStatefulWidget {
@@ -22,13 +23,22 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
 
   Future<void> _purchase() async {
     setState(() => _isPurchasing = true);
-    final success =
-        await ref.read(plansProvider.notifier).purchasePlan(plan.id);
-    setState(() => _isPurchasing = false);
 
+    final authState = ref.read(authProvider);
+    final checkoutService = ref.read(checkoutServiceProvider);
+
+    final result = await checkoutService.purchaseEsim(
+      packageCode: plan.id,
+      packageName: plan.name,
+      price: plan.priceUSD,
+      customerEmail: authState.user?.email ?? '',
+      customerName: authState.user?.name ?? 'Customer',
+    );
+
+    setState(() => _isPurchasing = false);
     if (!mounted) return;
 
-    if (success) {
+    if (result.success) {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -49,9 +59,10 @@ class _PlanDetailScreenState extends ConsumerState<PlanDetailScreen> {
         ),
       );
     } else {
+      if (result.error == 'Payment cancelled') return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Purchase failed. Please try again.'),
+        SnackBar(
+          content: Text(result.error ?? 'Purchase failed'),
           backgroundColor: AppColors.error,
         ),
       );

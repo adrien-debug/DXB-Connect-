@@ -181,17 +181,17 @@ class GradientBorderCard extends StatelessWidget {
     this.onTap,
     this.padding,
     this.borderColors,
-    this.borderWidth = 1.0,
+    this.borderWidth = 1.5,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = borderColors ??
         [
-          AppColors.accent.withValues(alpha: 0.6),
-          AppColors.accent.withValues(alpha: 0.1),
-          Colors.white.withValues(alpha: 0.05),
-          AppColors.accent.withValues(alpha: 0.3),
+          AppColors.accent.withValues(alpha: 0.7),
+          AppColors.accent.withValues(alpha: 0.15),
+          Colors.white.withValues(alpha: 0.06),
+          AppColors.accent.withValues(alpha: 0.4),
         ];
 
     final content = Container(
@@ -393,7 +393,7 @@ class _CircularUsageGaugeState extends State<CircularUsageGauge>
               progress: value,
               progressColor: widget.progressColor ?? AppColors.accent,
               trackColor:
-                  widget.trackColor ?? Colors.white.withValues(alpha: 0.06),
+                  widget.trackColor ?? Colors.white.withValues(alpha: 0.1),
             ),
             child: Center(
               child: Column(
@@ -448,26 +448,41 @@ class _GaugePainter extends CustomPainter {
     final trackPaint = Paint()
       ..color = trackColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 8
+      ..strokeWidth = 10
       ..strokeCap = StrokeCap.round;
 
     canvas.drawCircle(center, radius, trackPaint);
 
     if (progress > 0) {
+      final glowPaint = Paint()
+        ..color = progressColor.withValues(alpha: 0.25)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 18
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepAngle,
+        false,
+        glowPaint,
+      );
+
       final progressPaint = Paint()
         ..shader = SweepGradient(
           startAngle: startAngle,
           endAngle: startAngle + sweepAngle,
           colors: [
             progressColor,
-            progressColor.withValues(alpha: 0.8),
+            progressColor.withValues(alpha: 0.85),
             progressColor,
           ],
           stops: const [0, 0.5, 1],
           transform: GradientRotation(startAngle),
         ).createShader(Rect.fromCircle(center: center, radius: radius))
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 8
+        ..strokeWidth = 10
         ..strokeCap = StrokeCap.round;
 
       canvas.drawArc(
@@ -476,21 +491,6 @@ class _GaugePainter extends CustomPainter {
         sweepAngle,
         false,
         progressPaint,
-      );
-
-      final glowPaint = Paint()
-        ..color = progressColor.withValues(alpha: 0.3)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 14
-        ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        sweepAngle,
-        false,
-        glowPaint,
       );
     }
   }

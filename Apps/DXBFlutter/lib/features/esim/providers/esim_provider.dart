@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/config/api_endpoints.dart';
@@ -91,25 +92,20 @@ class EsimListNotifier extends StateNotifier<EsimListData> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final response = await _apiClient.get(ApiEndpoints.esimOrders);
-      final raw = response.data;
-      List<dynamic> list = [];
-      if (raw is Map) {
-        list = raw['obj']?['orderList'] as List<dynamic>? ??
-            raw['orders'] as List<dynamic>? ??
-            raw['data'] as List<dynamic>? ??
-            [];
-      } else if (raw is List) {
-        list = raw;
-      }
+      final list = ApiClient.extractList(
+        response.data,
+        ['obj.orderList', 'orders', 'data'],
+      );
       final esims = list
           .map((e) => EsimOrder.fromJson(e as Map<String, dynamic>))
           .toList();
       state = state.copyWith(esims: esims, isLoading: false);
       await _loadUsageForAll();
     } catch (e) {
+      if (kDebugMode) debugPrint('[EsimList] loadEsims error: $e');
       state = state.copyWith(
         isLoading: false,
-        error: 'Failed to load eSIMs',
+        error: ApiClient.extractErrorMessage(e, 'Failed to load eSIMs'),
       );
     }
   }
@@ -123,11 +119,16 @@ class EsimListNotifier extends StateNotifier<EsimListData> {
         final response = await _apiClient.get(
           '${ApiEndpoints.esimUsage}?iccid=$iccid',
         );
-        if (response.data != null) {
-          cache[iccid] = EsimUsage.fromJson(
-              response.data as Map<String, dynamic>);
+        final raw = response.data;
+        if (raw != null) {
+          final usageData = raw is Map ? (raw['obj'] ?? raw['data'] ?? raw) : raw;
+          if (usageData is Map<String, dynamic>) {
+            cache[iccid] = EsimUsage.fromJson(usageData);
+          }
         }
-      } catch (_) {}
+      } catch (e) {
+        if (kDebugMode) debugPrint('[EsimList] Usage fetch failed for $iccid: $e');
+      }
     }
     state = state.copyWith(usageCache: cache);
   }
@@ -143,7 +144,7 @@ class EsimDetailNotifier extends StateNotifier<EsimDetailData> {
       state = state.copyWith(isLoadingUsage: false);
       return;
     }
-    state = state.copyWith(isLoadingUsage: true, isLoadingTopUp: true);
+    state = state.copyWith(isLoadingUsage: true, isLoadingTopUp: true, clearError: true);
     await Future.wait([
       _loadUsage(iccid),
       _loadTopUp(iccid),
@@ -169,8 +170,12 @@ class EsimDetailNotifier extends StateNotifier<EsimDetailData> {
       } else {
         state = state.copyWith(isLoadingUsage: false);
       }
-    } catch (_) {
-      state = state.copyWith(isLoadingUsage: false);
+    } catch (e) {
+      if (kDebugMode) debugPrint('[EsimDetail] _loadUsage error: $e');
+      state = state.copyWith(
+        isLoadingUsage: false,
+        error: ApiClient.extractErrorMessage(e, 'Failed to load usage data'),
+      );
     }
   }
 
@@ -179,23 +184,18 @@ class EsimDetailNotifier extends StateNotifier<EsimDetailData> {
       final response = await _apiClient.get(
         '${ApiEndpoints.esimTopup}?iccid=$iccid',
       );
-      final raw = response.data;
-      List<dynamic> list = [];
-      if (raw is Map) {
-        list = raw['obj']?['packageList'] as List<dynamic>? ??
-            raw['packages'] as List<dynamic>? ??
-            raw['data'] as List<dynamic>? ??
-            [];
-      } else if (raw is List) {
-        list = raw;
-      }
+      final list = ApiClient.extractList(
+        response.data,
+        ['obj.packageList', 'packages', 'data'],
+      );
       state = state.copyWith(
         topUpPackages: list
             .map((e) => TopUpPackage.fromJson(e as Map<String, dynamic>))
             .toList(),
         isLoadingTopUp: false,
       );
-    } catch (_) {
+    } catch (e) {
+      if (kDebugMode) debugPrint('[EsimDetail] _loadTopUp error: $e');
       state = state.copyWith(isLoadingTopUp: false);
     }
   }
@@ -206,11 +206,12 @@ class EsimDetailNotifier extends StateNotifier<EsimDetailData> {
       await _apiClient.post(ApiEndpoints.esimSuspend, data: {'orderNo': orderNo});
       state = state.copyWith(isActionInProgress: false, clearAction: true);
       return true;
-    } catch (_) {
+    } catch (e) {
+      if (kDebugMode) debugPrint('[EsimDetail] suspendEsim error: $e');
       state = state.copyWith(
         isActionInProgress: false,
         clearAction: true,
-        error: 'Failed to suspend eSIM',
+        error: ApiClient.extractErrorMessage(e, 'Failed to suspend eSIM'),
       );
       return false;
     }
@@ -225,11 +226,12 @@ class EsimDetailNotifier extends StateNotifier<EsimDetailData> {
       );
       state = state.copyWith(isActionInProgress: false, clearAction: true);
       return true;
-    } catch (_) {
+    } catch (e) {
+      if (kDebugMode) debugPrint('[EsimDetail] topUpEsim error: $e');
       state = state.copyWith(
         isActionInProgress: false,
         clearAction: true,
-        error: 'Top-up failed. Please try again.',
+        error: ApiClient.extractErrorMessage(e, 'Top-up failed. Please try again.'),
       );
       return false;
     }

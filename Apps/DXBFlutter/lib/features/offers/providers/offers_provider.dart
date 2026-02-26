@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/config/api_endpoints.dart';
@@ -44,17 +45,15 @@ class OffersNotifier extends StateNotifier<OffersData> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final response = await _apiClient.get(ApiEndpoints.offers);
-      final raw = response.data;
-      List<dynamic> list = [];
-      if (raw is Map) {
-        list = raw['data'] as List<dynamic>? ?? raw['offers'] as List<dynamic>? ?? [];
-      } else if (raw is List) {
-        list = raw;
-      }
+      final list = ApiClient.extractList(response.data, ['data', 'offers']);
       final offers = list.map((e) => PartnerOffer.fromJson(e as Map<String, dynamic>)).toList();
       state = state.copyWith(offers: offers, isLoading: false);
-    } catch (_) {
-      state = state.copyWith(isLoading: false, error: 'Unable to load offers');
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Offers] loadOffers error: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: ApiClient.extractErrorMessage(e, 'Unable to load offers'),
+      );
     }
   }
 
@@ -70,7 +69,8 @@ class OffersNotifier extends StateNotifier<OffersData> {
     try {
       final response = await _apiClient.post(ApiEndpoints.offerClick(offerId));
       return response.data?['redirectUrl']?.toString();
-    } catch (_) {
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Offers] trackClick error: $e');
       return null;
     }
   }

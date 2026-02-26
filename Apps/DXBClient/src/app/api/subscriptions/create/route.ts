@@ -68,6 +68,13 @@ export async function POST(request: Request) {
       )
     }
 
+    // Nettoyer les subs incomplètes précédentes
+    await supabase
+      .from('subscriptions')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('status', 'incomplete')
+
     const config = PLAN_CONFIG[validated.plan]
     const priceId = getStripePriceId(validated.plan, validated.billing_period)
 

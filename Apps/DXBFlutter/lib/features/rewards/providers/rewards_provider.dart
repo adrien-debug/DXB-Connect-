@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/config/api_endpoints.dart';
@@ -79,8 +80,12 @@ class RewardsNotifier extends StateNotifier<RewardsData> {
       }
 
       state = state.copyWith(summary: summary, transactions: txns, isLoading: false);
-    } catch (_) {
-      state = state.copyWith(isLoading: false, error: 'Failed to load rewards.');
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Rewards] loadRewards error: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: ApiClient.extractErrorMessage(e, 'Failed to load rewards.'),
+      );
     }
   }
 
@@ -89,8 +94,11 @@ class RewardsNotifier extends StateNotifier<RewardsData> {
       await _apiClient.post(ApiEndpoints.rewardsCheckin);
       await loadRewards();
       return true;
-    } catch (_) {
-      state = state.copyWith(error: 'Check-in failed. Try again later.');
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Rewards] dailyCheckin error: $e');
+      state = state.copyWith(
+        error: ApiClient.extractErrorMessage(e, 'Check-in failed. Try again later.'),
+      );
       return false;
     }
   }
@@ -100,8 +108,11 @@ class RewardsNotifier extends StateNotifier<RewardsData> {
       await _apiClient.post(ApiEndpoints.rafflesEnter, data: {'raffle_id': raffleId});
       await loadRewards();
       return true;
-    } catch (_) {
-      state = state.copyWith(error: 'Unable to enter raffle. Try again.');
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Rewards] enterRaffle error: $e');
+      state = state.copyWith(
+        error: ApiClient.extractErrorMessage(e, 'Unable to enter raffle. Try again.'),
+      );
       return false;
     }
   }

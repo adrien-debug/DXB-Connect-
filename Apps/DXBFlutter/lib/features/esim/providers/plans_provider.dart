@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/config/api_endpoints.dart';
@@ -124,16 +125,10 @@ class PlansNotifier extends StateNotifier<PlansData> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final response = await _apiClient.get(ApiEndpoints.esimPackages);
-      final raw = response.data;
-      List<dynamic> list = [];
-      if (raw is Map) {
-        list = raw['obj']?['packageList'] as List<dynamic>? ??
-            raw['packages'] as List<dynamic>? ??
-            raw['data'] as List<dynamic>? ??
-            [];
-      } else if (raw is List) {
-        list = raw;
-      }
+      final list = ApiClient.extractList(
+        response.data,
+        ['obj.packageList', 'packages', 'data'],
+      );
       state = state.copyWith(
         allPlans: list
             .map((e) => EsimPlan.fromJson(e as Map<String, dynamic>))
@@ -141,22 +136,24 @@ class PlansNotifier extends StateNotifier<PlansData> {
         isLoading: false,
       );
     } catch (e) {
+      if (kDebugMode) debugPrint('[Plans] loadPlans error: $e');
       state = state.copyWith(
         isLoading: false,
-        error: 'Failed to load plans. Pull to retry.',
+        error: ApiClient.extractErrorMessage(e, 'Failed to load plans. Pull to retry.'),
       );
     }
   }
 
-  Future<bool> purchasePlan(String packageCode) async {
+  Future<String?> purchasePlan(String packageCode) async {
     try {
       await _apiClient.post(
         ApiEndpoints.esimPurchase,
         data: {'packageCode': packageCode},
       );
-      return true;
-    } catch (_) {
-      return false;
+      return null;
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Plans] purchasePlan error: $e');
+      return ApiClient.extractErrorMessage(e, 'Purchase failed. Please try again.');
     }
   }
 }

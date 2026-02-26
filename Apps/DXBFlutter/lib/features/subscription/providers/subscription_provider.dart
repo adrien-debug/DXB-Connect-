@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/config/api_endpoints.dart';
 import '../../../core/providers/core_providers.dart';
+import '../../../core/services/checkout_service.dart';
 
 enum SubPlan {
   privilege,
@@ -55,48 +57,69 @@ enum SubPlan {
 class SubscriptionActionState {
   final bool isProcessing;
   final String? error;
+  final bool? lastSuccess;
 
-  const SubscriptionActionState({this.isProcessing = false, this.error});
+  const SubscriptionActionState({this.isProcessing = false, this.error, this.lastSuccess});
 
-  SubscriptionActionState copyWith({bool? isProcessing, String? error, bool clearError = false}) {
+  SubscriptionActionState copyWith({bool? isProcessing, String? error, bool clearError = false, bool? lastSuccess}) {
     return SubscriptionActionState(
       isProcessing: isProcessing ?? this.isProcessing,
       error: clearError ? null : (error ?? this.error),
+      lastSuccess: lastSuccess,
     );
   }
 }
 
 class SubscriptionNotifier extends StateNotifier<SubscriptionActionState> {
   final ApiClient _apiClient;
+  final CheckoutService _checkoutService;
 
-  SubscriptionNotifier(this._apiClient) : super(const SubscriptionActionState());
+  SubscriptionNotifier(this._apiClient, this._checkoutService)
+      : super(const SubscriptionActionState());
 
   Future<bool> subscribe(SubPlan plan, bool isAnnual) async {
-    state = state.copyWith(isProcessing: true, clearError: true);
+    state = state.copyWith(isProcessing: true, clearError: true, lastSuccess: null);
     try {
-      await _apiClient.post(
-        ApiEndpoints.subscriptionsCreate,
-        data: {
-          'plan': plan.name,
-          'billingPeriod': isAnnual ? 'yearly' : 'monthly',
-        },
+      final result = await _checkoutService.createSubscription(
+        plan: plan.name,
+        billingPeriod: isAnnual ? 'yearly' : 'monthly',
       );
-      state = state.copyWith(isProcessing: false);
-      return true;
+
+      if (result.success) {
+        state = state.copyWith(isProcessing: false, lastSuccess: true);
+        return true;
+      } else {
+        state = state.copyWith(
+          isProcessing: false,
+          error: result.error,
+          lastSuccess: false,
+        );
+        return false;
+      }
     } catch (e) {
-      state = state.copyWith(isProcessing: false, error: 'Subscription failed. Please try again.');
+      if (kDebugMode) debugPrint('[Subscription] subscribe error: $e');
+      state = state.copyWith(
+        isProcessing: false,
+        error: ApiClient.extractErrorMessage(e, 'Subscription failed. Please try again.'),
+        lastSuccess: false,
+      );
       return false;
     }
   }
 
   Future<bool> cancel() async {
-    state = state.copyWith(isProcessing: true, clearError: true);
+    state = state.copyWith(isProcessing: true, clearError: true, lastSuccess: null);
     try {
       await _apiClient.post(ApiEndpoints.subscriptionsCancel);
-      state = state.copyWith(isProcessing: false);
+      state = state.copyWith(isProcessing: false, lastSuccess: true);
       return true;
-    } catch (_) {
-      state = state.copyWith(isProcessing: false, error: 'Unable to cancel. Contact support.');
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Subscription] cancel error: $e');
+      state = state.copyWith(
+        isProcessing: false,
+        error: ApiClient.extractErrorMessage(e, 'Unable to cancel. Contact support.'),
+        lastSuccess: false,
+      );
       return false;
     }
   }
@@ -107,5 +130,6 @@ class SubscriptionNotifier extends StateNotifier<SubscriptionActionState> {
 final subscriptionActionProvider =
     StateNotifierProvider<SubscriptionNotifier, SubscriptionActionState>((ref) {
   final apiClient = ref.read(apiClientProvider);
-  return SubscriptionNotifier(apiClient);
+  final checkoutService = ref.read(checkoutServiceProvider);
+  return SubscriptionNotifier(apiClient, checkoutService);
 });

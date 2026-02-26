@@ -25,9 +25,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   bool _isLoading = false;
   String? _errorMessage;
 
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _nameController = TextEditingController();
+  // DEV: Pré-rempli pour tests rapides
+  final _emailController = TextEditingController(
+    text: 'adrienbeyond@gmail.com',
+  );
+  final _passwordController = TextEditingController(
+    text: 'Test1234!',
+  );
+  final _nameController = TextEditingController(
+    text: 'Adrien Test',
+  );
 
   late final AnimationController _slideController;
   late final Animation<Offset> _slideAnimation;

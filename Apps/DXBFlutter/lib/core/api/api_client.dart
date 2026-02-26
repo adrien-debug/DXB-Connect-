@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
 import '../config/api_endpoints.dart';
 import 'auth_storage.dart';
@@ -29,9 +30,21 @@ class ApiClient {
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
+          if (kDebugMode) {
+            debugPrint('[API] ${options.method} ${options.path}');
+          }
           handler.next(options);
         },
+        onResponse: (response, handler) {
+          if (kDebugMode) {
+            debugPrint('[API] ${response.statusCode} ${response.requestOptions.path}');
+          }
+          handler.next(response);
+        },
         onError: (error, handler) async {
+          if (kDebugMode) {
+            debugPrint('[API ERR] ${error.response?.statusCode} ${error.requestOptions.path}: ${error.message}');
+          }
           if (error.response?.statusCode == 401) {
             final refreshed = await _tryRefreshToken();
             if (refreshed) {
@@ -43,6 +56,58 @@ class ApiClient {
         },
       ),
     );
+  }
+
+  static List<dynamic> extractList(dynamic data, List<String> keys) {
+    if (data is List) return data;
+    if (data is Map) {
+      for (final key in keys) {
+        if (key.contains('.')) {
+          final parts = key.split('.');
+          dynamic current = data;
+          for (final p in parts) {
+            if (current is Map) {
+              current = current[p];
+            } else {
+              current = null;
+              break;
+            }
+          }
+          if (current is List) return current;
+        } else if (data[key] is List) {
+          return data[key] as List;
+        }
+      }
+    }
+    return [];
+  }
+
+  static Map<String, dynamic>? extractObject(dynamic data, List<String> keys) {
+    if (data is Map<String, dynamic>) {
+      for (final key in keys) {
+        final val = data[key];
+        if (val is Map<String, dynamic>) return val;
+      }
+    }
+    return null;
+  }
+
+  static String extractErrorMessage(dynamic error, String fallback) {
+    if (error is DioException) {
+      final data = error.response?.data;
+      if (data is Map) {
+        final msg = data['error'] ?? data['message'] ?? data['detail'];
+        if (msg is String && msg.isNotEmpty) return msg;
+      }
+      if (error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.receiveTimeout) {
+        return 'Connection timeout. Check your network.';
+      }
+      if (error.type == DioExceptionType.connectionError) {
+        return 'No internet connection.';
+      }
+    }
+    return fallback;
   }
 
   Future<bool> _tryRefreshToken() async {

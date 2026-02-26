@@ -108,59 +108,9 @@ class _EsimListScreenState extends ConsumerState<EsimListScreen> {
     }
 
     if (esims.isEmpty) {
-      return SliverFillRemaining(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xxl),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'assets/images/empty_esim.png',
-                  width: 180,
-                  height: 180,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Icon(
-                    Icons.sim_card_outlined,
-                    size: 64,
-                    color: AppColors.textTertiary.withValues(alpha: 0.5),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                const Text(
-                  'No eSIMs yet',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Get connected anywhere in the world\nwith your first eSIM',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: () => context.go('/dashboard/plans'),
-                    icon: const Icon(Icons.explore_rounded, size: 18),
-                    label: const Text(
-                      'Browse Plans',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+      return SliverToBoxAdapter(
+        child: _EmptyStateWithPromos(
+          onBrowsePlans: () => context.go('/dashboard/plans'),
         ),
       );
     }
@@ -309,6 +259,177 @@ class _FilterPills extends StatelessWidget {
       }).toList(),
     );
   }
+}
+
+class _EmptyStateWithPromos extends StatelessWidget {
+  final VoidCallback onBrowsePlans;
+
+  const _EmptyStateWithPromos({required this.onBrowsePlans});
+
+  static const _promos = [
+    _PromoDestination(flag: '🇫🇷', name: 'France', price: 6, data: '1 GB', days: 7),
+    _PromoDestination(flag: '🇯🇵', name: 'Japan', price: 6, data: '1 GB', days: 7),
+    _PromoDestination(flag: '🇺🇸', name: 'USA', price: 5, data: '1 GB', days: 7),
+    _PromoDestination(flag: '🇦🇪', name: 'UAE', price: 7, data: '1 GB', days: 7),
+    _PromoDestination(flag: '🇹🇭', name: 'Thailand', price: 5, data: '1 GB', days: 7),
+    _PromoDestination(flag: '🇬🇧', name: 'UK', price: 5, data: '1 GB', days: 7),
+    _PromoDestination(flag: '🇪🇸', name: 'Spain', price: 5, data: '1 GB', days: 7),
+    _PromoDestination(flag: '🇩🇪', name: 'Germany', price: 5, data: '1 GB', days: 7),
+    _PromoDestination(flag: '🇮🇹', name: 'Italy', price: 5, data: '1 GB', days: 7),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: AppColors.surfaceBorder, width: 0.5),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.sim_card_outlined,
+                  size: 40,
+                  color: AppColors.accent.withValues(alpha: 0.6),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'No eSIMs yet',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Get connected anywhere in the world',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'POPULAR DESTINATIONS',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+              color: AppColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.88,
+            ),
+            itemCount: _promos.length,
+            itemBuilder: (context, index) {
+              final promo = _promos[index];
+              return GestureDetector(
+                onTap: onBrowsePlans,
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(
+                        color: AppColors.surfaceBorder, width: 0.5),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        promo.flag,
+                        style: const TextStyle(fontSize: 28),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        promo.name,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.accent.withValues(alpha: 0.1),
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.full),
+                        ),
+                        child: Text(
+                          'From \$${promo.price}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.accent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: onBrowsePlans,
+              icon: const Icon(Icons.explore_rounded, size: 18),
+              label: const Text(
+                'Browse All Plans',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+}
+
+class _PromoDestination {
+  final String flag;
+  final String name;
+  final int price;
+  final String data;
+  final int days;
+
+  const _PromoDestination({
+    required this.flag,
+    required this.name,
+    required this.price,
+    required this.data,
+    required this.days,
+  });
 }
 
 class _EsimCard extends StatelessWidget {

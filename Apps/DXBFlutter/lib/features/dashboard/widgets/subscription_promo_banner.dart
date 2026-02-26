@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/premium_widgets.dart';
 
 class SubscriptionPromoBanner extends StatelessWidget {
   final VoidCallback? onTap;
@@ -10,18 +12,20 @@ class SubscriptionPromoBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(
-              color: AppColors.accent.withValues(alpha: 0.2),
-              width: 0.5,
-            ),
-          ),
+      child: ScaleOnTap(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap?.call();
+        },
+        child: GradientBorderCard(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          borderWidth: 1.5,
+          borderColors: [
+            AppColors.accent.withValues(alpha: 0.7),
+            AppColors.accent.withValues(alpha: 0.15),
+            Colors.white.withValues(alpha: 0.06),
+            AppColors.accent.withValues(alpha: 0.4),
+          ],
           child: Row(
             children: [
               Container(
@@ -52,7 +56,7 @@ class SubscriptionPromoBanner extends StatelessWidget {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Up to -50% · From \$3.33/mo',
+                      'Save up to 50% · From \$3.33/mo',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
@@ -63,7 +67,8 @@ class SubscriptionPromoBanner extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: BoxDecoration(
                   color: AppColors.accent,
                   borderRadius: BorderRadius.circular(AppRadius.full),

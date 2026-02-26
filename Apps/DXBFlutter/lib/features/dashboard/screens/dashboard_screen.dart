@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/loading_indicator.dart';
+import '../../../core/widgets/premium_widgets.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/balance_card.dart';
+import '../widgets/quick_actions_row.dart';
 import '../widgets/esim_cards_row.dart';
 import '../widgets/subscription_promo_banner.dart';
 import '../widgets/offers_section.dart';
@@ -55,48 +57,95 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       bottom: false,
                       child: Column(
                         children: [
-                          const SizedBox(height: 8),
-                          DashboardHeader(
-                            userName: userName,
-                            tier: dashboard.subscription?.plan,
-                            wallet: dashboard.wallet,
-                            esimCount: dashboard.esims.length,
-                            activeCount: dashboard.activeCount,
-                          ),
                           const SizedBox(height: 12),
-                          BalanceCard(
-                            remainingGB: dashboard.totalRemainingGB,
-                            usagePercent: dashboard.usagePercent,
-                            esimCount: dashboard.esims.length,
-                            activeCount: dashboard.activeCount,
-                            countriesCount: dashboard.countriesCount,
-                            isLoaded: dashboard.usageCache.isNotEmpty ||
-                                dashboard.esims.isEmpty,
-                          ),
-                          const SizedBox(height: 16),
-                          if (dashboard.error != null)
-                            _ErrorBanner(
-                              message: dashboard.error!,
-                              onRetry: () => ref
-                                  .read(dashboardProvider.notifier)
-                                  .loadDashboard(),
+
+                          StaggeredFadeIn(
+                            index: 0,
+                            child: DashboardHeader(
+                              userName: userName,
+                              tier: dashboard.subscription?.plan,
+                              wallet: dashboard.wallet,
+                              esimCount: dashboard.esims.length,
+                              activeCount: dashboard.activeCount,
                             ),
-                          EsimCardsRow(
-                            esims: dashboard.activeEsims,
                           ),
+
+                          const SizedBox(height: 16),
+
+                          StaggeredFadeIn(
+                            index: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.lg),
+                              child: BalanceCard(
+                                remainingGB: dashboard.totalRemainingGB,
+                                usagePercent: dashboard.usagePercent,
+                                esimCount: dashboard.esims.length,
+                                activeCount: dashboard.activeCount,
+                                countriesCount: dashboard.countriesCount,
+                                isLoaded:
+                                    dashboard.usageCache.isNotEmpty ||
+                                        dashboard.esims.isEmpty,
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          StaggeredFadeIn(
+                            index: 2,
+                            child: QuickActionsRow(
+                              onBuyEsim: () =>
+                                  context.go('/dashboard/plans'),
+                              onTopUp: () => context.go('/esims'),
+                              onUsage: () => context.go('/esims'),
+                            ),
+                          ),
+
+                          if (dashboard.error != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: _ErrorBanner(
+                                message: dashboard.error!,
+                                onRetry: () => ref
+                                    .read(dashboardProvider.notifier)
+                                    .loadDashboard(),
+                              ),
+                            ),
+
+                          const SizedBox(height: 16),
+
+                          StaggeredFadeIn(
+                            index: 3,
+                            child: EsimCardsRow(
+                              esims: dashboard.activeEsims,
+                              usageCache: dashboard.usageCache,
+                            ),
+                          ),
+
                           if (dashboard.subscription == null) ...[
                             const SizedBox(height: 16),
-                            SubscriptionPromoBanner(
-                              onTap: () => context.go('/dashboard/subscription'),
+                            StaggeredFadeIn(
+                              index: 4,
+                              child: SubscriptionPromoBanner(
+                                onTap: () =>
+                                    context.go('/dashboard/subscription'),
+                              ),
                             ),
                           ],
+
                           if (dashboard.offers.isNotEmpty) ...[
                             const SizedBox(height: 20),
-                            OffersSection(
-                              offers: dashboard.offers,
-                              onViewAll: () => context.go('/dashboard/offers'),
+                            StaggeredFadeIn(
+                              index: 5,
+                              child: OffersSection(
+                                offers: dashboard.offers,
+                                onViewAll: () =>
+                                    context.go('/dashboard/offers'),
+                              ),
                             ),
                           ],
+
                           const SizedBox(height: 100),
                         ],
                       ),
@@ -115,23 +164,33 @@ class _DashboardShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: AppSpacing.lg),
-            const ShimmerCard(height: 120),
+            const ShimmerCard(height: 130),
             const SizedBox(height: 12),
-            const ShimmerCard(height: 140),
+            const ShimmerCard(height: 160),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(child: ShimmerCard(height: 64)),
+                const SizedBox(width: 10),
+                Expanded(child: ShimmerCard(height: 64)),
+                const SizedBox(width: 10),
+                Expanded(child: ShimmerCard(height: 64)),
+              ],
+            ),
             const SizedBox(height: 16),
             ShimmerBox(width: 60, height: 10, radius: 4),
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: ShimmerCard(height: 60)),
+                Expanded(child: ShimmerCard(height: 110)),
                 const SizedBox(width: 10),
-                Expanded(child: ShimmerCard(height: 60)),
+                Expanded(child: ShimmerCard(height: 110)),
               ],
             ),
             const SizedBox(height: 16),
@@ -140,6 +199,7 @@ class _DashboardShimmer extends StatelessWidget {
             ShimmerBox(width: 80, height: 10, radius: 4),
             const SizedBox(height: 8),
             const ShimmerCard(height: 120),
+            const SizedBox(height: 100),
           ],
         ),
       ),

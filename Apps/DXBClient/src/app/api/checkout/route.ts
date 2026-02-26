@@ -101,28 +101,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create order in database (supabase déjà créé plus haut)
+    // Create order in database
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert([{
+        id: orderNumber,
         user_id: userId,
-        order_number: orderNumber,
         status: 'pending',
-        payment_method: body.payment_method,
-        payment_status: 'pending',
         payment_intent_id: paymentIntentData.id,
-        subtotal,
-        tax,
-        total,
-        currency: 'EUR',
-        customer_email: body.customer_email,
-        customer_name: body.customer_name
+        amount: total,
+        currency: 'USD',
+        idempotency_key: `${userId}_${Date.now()}`,
       }])
       .select()
       .single()
 
     if (orderError) {
-      console.error('Error creating order:', orderError)
+      console.error('[checkout] DB insert error:', { code: orderError.code, hint: orderError.hint })
       return NextResponse.json(
         { success: false, error: 'Failed to create order' },
         { status: 500 }
@@ -132,12 +127,9 @@ export async function POST(request: NextRequest) {
     // Create order items
     const orderItems = body.items.map(item => ({
       order_id: order.id,
-      product_id: item.product_id,
-      product_name: item.product_name,
-      product_sku: item.product_sku || null,
+      product_id: item.product_sku || item.product_id || null,
       quantity: item.quantity,
-      unit_price: item.unit_price,
-      total_price: item.unit_price * item.quantity
+      price: item.unit_price * item.quantity,
     }))
 
     const { error: itemsError } = await supabase
@@ -145,8 +137,7 @@ export async function POST(request: NextRequest) {
       .insert(orderItems)
 
     if (itemsError) {
-      console.error('Error creating order items:', itemsError)
-      // Order was created, items failed - log but don't fail
+      console.error('[checkout] Order items insert error:', { code: itemsError.code })
     }
 
     return NextResponse.json({

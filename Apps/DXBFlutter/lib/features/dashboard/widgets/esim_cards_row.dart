@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/premium_widgets.dart';
 import '../../esim/models/esim_models.dart';
+import '../../esim/widgets/country_helper.dart';
 
 class EsimCardsRow extends StatelessWidget {
   final List<EsimOrder> esims;
+  final Map<String, EsimUsage> usageCache;
 
-  const EsimCardsRow({super.key, required this.esims});
+  const EsimCardsRow({
+    super.key,
+    required this.esims,
+    this.usageCache = const {},
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +52,7 @@ class EsimCardsRow extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 68,
+          height: 110,
           child: ListView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -57,7 +65,14 @@ class EsimCardsRow extends StatelessWidget {
                 ...esims.take(5).map(
                       (esim) => Padding(
                         padding: const EdgeInsets.only(right: 10),
-                        child: _SimBadge(esim: esim),
+                        child: _SimCard(
+                          esim: esim,
+                          usage: usageCache[esim.iccid],
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            context.go('/esims/${esim.orderNo}');
+                          },
+                        ),
                       ),
                     ),
                 _AddSimBadge(
@@ -72,10 +87,12 @@ class EsimCardsRow extends StatelessWidget {
   }
 }
 
-class _SimBadge extends StatelessWidget {
+class _SimCard extends StatelessWidget {
   final EsimOrder esim;
+  final EsimUsage? usage;
+  final VoidCallback? onTap;
 
-  const _SimBadge({required this.esim});
+  const _SimCard({required this.esim, this.usage, this.onTap});
 
   bool get _isActive => esim.isActive;
 
@@ -94,59 +111,143 @@ class _SimBadge extends StatelessWidget {
     }
   }
 
+  String get _countryName {
+    final name = esim.packageName;
+    final parts = name.split(' ');
+    return parts.isNotEmpty ? parts.first : 'eSIM';
+  }
+
+  String get _flag => flagFromName(esim.packageName);
+
+  String get _remainingLabel {
+    if (usage == null) return '';
+    return formatVolume(usage!.remainingData);
+  }
+
+  double get _usageFraction {
+    if (usage == null) return 0;
+    if (usage!.totalVolume == 0) return 0;
+    return (usage!.orderUsage / usage!.totalVolume).clamp(0.0, 1.0);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 140,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: _isActive
-              ? AppColors.accent.withValues(alpha: 0.25)
-              : AppColors.surfaceBorder,
-          width: 0.5,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            esim.packageName,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+    return ScaleOnTap(
+      onTap: onTap,
+      child: Container(
+        width: 155,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(
+            color: _isActive
+                ? AppColors.accent.withValues(alpha: 0.25)
+                : AppColors.surfaceBorder,
+            width: 0.5,
           ),
-          Row(
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _isActive ? AppColors.accent : AppColors.textTertiary,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  _flag,
+                  style: const TextStyle(fontSize: 18),
                 ),
-              ),
-              const SizedBox(width: 5),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _countryName,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            Row(
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color:
+                        _isActive ? AppColors.accent : AppColors.textTertiary,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  _statusLabel,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                    color:
+                        _isActive ? AppColors.accent : AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+            if (_remainingLabel.isNotEmpty) ...[
+              const SizedBox(height: 6),
               Text(
-                _statusLabel,
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
-                  color: _isActive ? AppColors.accent : AppColors.textSecondary,
+                _remainingLabel,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                  fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
             ],
-          ),
-        ],
+            const SizedBox(height: 6),
+            _MiniProgressBar(fraction: _usageFraction),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _MiniProgressBar extends StatelessWidget {
+  final double fraction;
+  const _MiniProgressBar({required this.fraction});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final fillWidth = (width * fraction).clamp(0.0, width);
+        return Container(
+          height: 3,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(1.5),
+            color: AppColors.surfaceBorder,
+          ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              width: fillWidth,
+              height: 3,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(1.5),
+                color: AppColors.accent,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -158,7 +259,7 @@ class _EmptySimPrompt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return ScaleOnTap(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -170,7 +271,8 @@ class _EmptySimPrompt extends StatelessWidget {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.add_circle_outline_rounded, size: 20, color: AppColors.accent),
+            Icon(Icons.add_circle_outline_rounded,
+                size: 20, color: AppColors.accent),
             SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,10 +311,10 @@ class _AddSimBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return ScaleOnTap(
       onTap: onTap,
       child: Container(
-        width: 52,
+        width: 60,
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -221,12 +323,12 @@ class _AddSimBadge extends StatelessWidget {
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_rounded, size: 18, color: AppColors.accent),
-            SizedBox(height: 2),
+            Icon(Icons.add_rounded, size: 22, color: AppColors.accent),
+            SizedBox(height: 4),
             Text(
               'Add',
               style: TextStyle(
-                fontSize: 9,
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary,
               ),

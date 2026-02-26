@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/premium_widgets.dart';
 
 class BalanceCard extends StatelessWidget {
   final double remainingGB;
@@ -30,75 +31,92 @@ class BalanceCard extends StatelessWidget {
     return remainingGB >= 1 ? 'GB' : 'MB';
   }
 
-  String get _usageDisplay => isLoaded ? '$usagePercent%' : '--%';
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.surfaceBorder, width: 0.5),
-      ),
+    return GradientBorderCard(
+      padding: const EdgeInsets.all(18),
+      borderWidth: 1.5,
+      borderColors: [
+        AppColors.accent.withValues(alpha: 0.7),
+        AppColors.accent.withValues(alpha: 0.12),
+        Colors.white.withValues(alpha: 0.06),
+        AppColors.accent.withValues(alpha: 0.4),
+      ],
       child: Column(
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                _remainingValue,
-                style: const TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textPrimary,
-                  height: 1,
-                  letterSpacing: -2,
-                  fontFeatures: [FontFeature.tabularFigures()],
-                ),
+              CircularUsageGauge(
+                percentage: isLoaded ? usagePercent.toDouble() : 0,
+                size: 110,
+                centerValue: isLoaded ? '$usagePercent%' : '--%',
+                centerLabel: 'USED',
               ),
-              const SizedBox(width: 4),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 5),
-                child: Text(
-                  _remainingUnit,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppRadius.full),
-                  color: AppColors.accent.withValues(alpha: 0.1),
-                ),
-                child: Text(
-                  '$_usageDisplay used',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.accent,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          _remainingValue,
+                          style: const TextStyle(
+                            fontSize: 42,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary,
+                            height: 1,
+                            letterSpacing: -2,
+                            fontFeatures: [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Text(
+                            _remainingUnit,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'remaining',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          _UsageBar(percent: isLoaded ? usagePercent : 0),
           const SizedBox(height: 14),
           Container(height: 0.5, color: AppColors.surfaceBorder),
           const SizedBox(height: 12),
           Row(
             children: [
-              _MiniStat(value: '$esimCount', label: 'eSIMs'),
-              _MiniStat(value: '$activeCount', label: 'Active'),
-              _MiniStat(value: '$countriesCount', label: 'Countries'),
+              _MiniStat(
+                value: '$esimCount',
+                label: 'eSIMs',
+              ),
+              _MiniStat(
+                value: '$activeCount',
+                label: 'Active',
+                showDot: activeCount > 0,
+              ),
+              _MiniStat(
+                value: '$countriesCount',
+                label: 'Countries',
+              ),
             ],
           ),
         ],
@@ -107,71 +125,57 @@ class BalanceCard extends StatelessWidget {
   }
 }
 
-class _UsageBar extends StatelessWidget {
-  final int percent;
-  const _UsageBar({required this.percent});
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final fillWidth = (width * percent / 100).clamp(0.0, width);
-        return Container(
-          height: 4,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(2),
-            color: AppColors.surfaceBorder,
-          ),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 800),
-              curve: Curves.easeOutCubic,
-              width: fillWidth,
-              height: 4,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(2),
-                color: AppColors.accent,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
 class _MiniStat extends StatelessWidget {
   final String value;
   final String label;
+  final bool showDot;
 
-  const _MiniStat({required this.value, required this.label});
+  const _MiniStat({
+    required this.value,
+    required this.label,
+    this.showDot = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Center(
-        child: Column(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textPrimary,
-                fontFeatures: [FontFeature.tabularFigures()],
+            if (showDot) ...[
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.accent,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.8,
-                color: AppColors.accent,
-              ),
+              const SizedBox(width: 5),
+            ],
+            Column(
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimary,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.8,
+                    color: AppColors.accent,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

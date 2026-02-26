@@ -29,10 +29,9 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Vérifier que la commande appartient à l'utilisateur authentifié
     const { data: existingOrder } = await supabase
       .from('orders')
-      .select('id, user_id, payment_intent_id, payment_status')
+      .select('id, user_id, payment_intent_id, status')
       .eq('id', body.order_id)
       .eq('user_id', user.id)
       .single()
@@ -44,11 +43,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (existingOrder.payment_status === 'paid') {
+    if (existingOrder.status === 'paid') {
       return NextResponse.json({ success: true, message: 'Already confirmed' })
     }
 
-    // Vérifier le statut du paiement auprès de Stripe (source de vérité)
     let paymentStatus: 'paid' | 'failed' = 'failed'
 
     if (isStripeConfigured() && stripe && body.payment_intent_id.startsWith('pi_') && !body.payment_intent_id.startsWith('pi_dev_')) {
@@ -60,11 +58,11 @@ export async function POST(request: NextRequest) {
       paymentStatus = 'paid'
     }
 
+    const newStatus = paymentStatus === 'paid' ? 'paid' : 'cancelled'
     const { error } = await supabase
       .from('orders')
       .update({
-        payment_status: paymentStatus,
-        status: paymentStatus === 'paid' ? 'processing' : 'cancelled',
+        status: newStatus,
         updated_at: new Date().toISOString()
       })
       .eq('id', body.order_id)
