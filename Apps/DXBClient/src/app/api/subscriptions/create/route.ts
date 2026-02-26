@@ -187,12 +187,30 @@ export async function POST(request: Request) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const invoice = subscription.latest_invoice as any
-    const clientSecret = invoice?.payment_intent?.client_secret
+    let clientSecret = invoice?.payment_intent?.client_secret
+
+    // Fallback: if expand didn't work, fetch the payment intent manually
+    if (!clientSecret && invoice) {
+      try {
+        const invoiceId = typeof invoice === 'string' ? invoice : invoice?.id
+        if (invoiceId) {
+          const fullInvoice = await stripe.invoices.retrieve(invoiceId, {
+            expand: ['payment_intent'],
+          })
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const pi = (fullInvoice as any).payment_intent
+          clientSecret = pi?.client_secret || null
+        }
+      } catch (e) {
+        console.error('[subscriptions/create] Failed to fetch invoice PI:', e instanceof Error ? e.message : 'unknown')
+      }
+    }
 
     console.log('[subscriptions/create] Created:', {
       userId: user.id,
       plan: validated.plan,
       stripeSubId: subscription.id,
+      hasClientSecret: !!clientSecret,
     })
 
     const responseData = sub ?? {
