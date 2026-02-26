@@ -48,28 +48,9 @@ interface EsimOrdersResponse {
   }
 }
 
-async function fetchOrders(page = 1, pageSize = 50, showAll = true): Promise<EsimOrder[]> {
-  // 🔒 Ajouter token d'authentification
-  const headers: HeadersInit = {}
-  if (typeof window !== 'undefined') {
-    try {
-      const { createBrowserClient } = await import('@supabase/ssr')
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`
-      }
-    } catch (e) {
-      console.warn('[useEsimOrders] Could not get session:', e)
-    }
-  }
-
-  // all=true permet aux admins de voir TOUTES les eSIMs de l'entreprise
+async function fetchOrders(page = 1, pageSize = 50, showAll = true, signal?: AbortSignal): Promise<EsimOrder[]> {
   const allParam = showAll ? '&all=true' : ''
-  const response = await fetch(`/api/esim/orders?page=${page}&pageSize=${pageSize}${allParam}`, { headers })
+  const response = await fetch(`/api/esim/orders?page=${page}&pageSize=${pageSize}${allParam}`, { signal })
 
   if (!response.ok) {
     throw new Error('Failed to fetch orders')
@@ -93,7 +74,7 @@ async function fetchOrders(page = 1, pageSize = 50, showAll = true): Promise<Esi
 export function useEsimOrders(page = 1, pageSize = 50, showAll = true) {
   return useQuery({
     queryKey: ['esim-orders', page, pageSize, showAll],
-    queryFn: () => fetchOrders(page, pageSize, showAll),
+    queryFn: ({ signal }) => fetchOrders(page, pageSize, showAll, signal),
     staleTime: 1000 * 60, // 1 minute
   })
 }

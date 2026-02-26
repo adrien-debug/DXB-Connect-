@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const isDev = process.env.NODE_ENV === 'development'
+
 const nextConfig = {
   poweredByHeader: false,
   async headers() {
@@ -35,7 +37,7 @@ const nextConfig = {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
           },
-          {
+          ...(isDev ? [] : [{
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
@@ -49,7 +51,7 @@ const nextConfig = {
               "base-uri 'self'",
               "form-action 'self'",
             ].join('; '),
-          },
+          }]),
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(self), payment=(self)',

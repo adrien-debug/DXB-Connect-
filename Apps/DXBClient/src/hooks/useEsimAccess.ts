@@ -15,6 +15,7 @@ import {
   type TopupRequest,
   type TopupResponse
 } from '@/lib/esim-types'
+import { supabase } from '@/lib/supabase/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 interface MerchantBalance {
@@ -43,40 +44,42 @@ interface EsimApiResponse<T> {
 }
 
 // ============================================
+// AUTH HELPER
+// ============================================
+
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const headers: HeadersInit = {}
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`
+    }
+  } catch (e) {
+    console.warn('[useEsimAccess] Could not get session:', e)
+  }
+  return headers
+}
+
+// ============================================
 // FETCH FUNCTIONS
 // ============================================
 
 /**
  * Fetch packages bruts depuis l'API
  */
-async function fetchPackagesRaw(params?: { location?: string; type?: string }): Promise<EsimPackageRaw[]> {
+async function fetchPackagesRaw(params?: { location?: string; type?: string }, signal?: AbortSignal): Promise<EsimPackageRaw[]> {
   const searchParams = new URLSearchParams()
   if (params?.location) searchParams.set('location', params.location)
   if (params?.type) searchParams.set('type', params.type)
 
   const url = `/api/esim/packages${searchParams.toString() ? `?${searchParams}` : ''}`
 
-  // 🔒 Ajouter token d'authentification (requis par l'API)
-  const headers: HeadersInit = { 'Content-Type': 'application/json' }
-
-  // Essayer de récupérer le token depuis le client Supabase
-  if (typeof window !== 'undefined') {
-    try {
-      const { createBrowserClient } = await import('@supabase/ssr')
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`
-      }
-    } catch (e) {
-      console.warn('[useEsimAccess] Could not get session:', e)
-    }
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(await getAuthHeaders()),
   }
 
-  const response = await fetch(url, { headers })
+  const response = await fetch(url, { headers, signal })
 
   if (!response.ok) {
     throw new Error('Failed to fetch packages')
@@ -94,33 +97,17 @@ async function fetchPackagesRaw(params?: { location?: string; type?: string }): 
 /**
  * Fetch packages normalisés (format iOS)
  */
-async function fetchPlans(params?: { location?: string; type?: string }): Promise<Plan[]> {
-  const rawPackages = await fetchPackagesRaw(params)
+async function fetchPlans(params?: { location?: string; type?: string }, signal?: AbortSignal): Promise<Plan[]> {
+  const rawPackages = await fetchPackagesRaw(params, signal)
   return rawPackages.map(toNormalizedPlan)
 }
 
 /**
  * Fetch stock eSIM
  */
-async function fetchStock(): Promise<StockData> {
-  const headers: HeadersInit = {}
-  if (typeof window !== 'undefined') {
-    try {
-      const { createBrowserClient } = await import('@supabase/ssr')
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`
-      }
-    } catch (e) {
-      console.warn('[useEsimAccess] Could not get session:', e)
-    }
-  }
-
-  const response = await fetch('/api/esim/stock', { headers })
+async function fetchStock(signal?: AbortSignal): Promise<StockData> {
+  const headers = await getAuthHeaders()
+  const response = await fetch('/api/esim/stock', { headers, signal })
 
   if (!response.ok) {
     throw new Error('Failed to fetch stock')
@@ -138,26 +125,9 @@ async function fetchStock(): Promise<StockData> {
 /**
  * Fetch balance marchand
  */
-async function fetchBalance(): Promise<MerchantBalance> {
-  // 🔒 Ajouter token
-  const headers: HeadersInit = {}
-  if (typeof window !== 'undefined') {
-    try {
-      const { createBrowserClient } = await import('@supabase/ssr')
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`
-      }
-    } catch (e) {
-      console.warn('[useEsimAccess] Could not get session:', e)
-    }
-  }
-
-  const response = await fetch('/api/esim/balance', { headers })
+async function fetchBalance(signal?: AbortSignal): Promise<MerchantBalance> {
+  const headers = await getAuthHeaders()
+  const response = await fetch('/api/esim/balance', { headers, signal })
 
   if (!response.ok) {
     throw new Error('Failed to fetch balance')
@@ -175,26 +145,9 @@ async function fetchBalance(): Promise<MerchantBalance> {
 /**
  * Fetch orders eSIM de l'utilisateur
  */
-async function fetchOrders(): Promise<ESIMOrder[]> {
-  // 🔒 Ajouter token
-  const headers: HeadersInit = {}
-  if (typeof window !== 'undefined') {
-    try {
-      const { createBrowserClient } = await import('@supabase/ssr')
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`
-      }
-    } catch (e) {
-      console.warn('[useEsimAccess] Could not get session:', e)
-    }
-  }
-
-  const response = await fetch('/api/esim/orders', { headers })
+async function fetchOrders(signal?: AbortSignal): Promise<ESIMOrder[]> {
+  const headers = await getAuthHeaders()
+  const response = await fetch('/api/esim/orders', { headers, signal })
 
   if (!response.ok) {
     throw new Error('Failed to fetch orders')
@@ -244,7 +197,7 @@ async function purchasePackage(request: PurchaseRequest): Promise<ESIMOrder> {
 export function useEsimPackages(params?: { location?: string; type?: string }) {
   return useQuery({
     queryKey: ['esim-packages', params],
-    queryFn: () => fetchPackagesRaw(params),
+    queryFn: ({ signal }) => fetchPackagesRaw(params, signal),
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
 }
@@ -255,7 +208,7 @@ export function useEsimPackages(params?: { location?: string; type?: string }) {
 export function useEsimPlans(params?: { location?: string; type?: string }) {
   return useQuery({
     queryKey: ['esim-plans', params],
-    queryFn: () => fetchPlans(params),
+    queryFn: ({ signal }) => fetchPlans(params, signal),
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
 }
@@ -266,7 +219,7 @@ export function useEsimPlans(params?: { location?: string; type?: string }) {
 export function useEsimBalance() {
   return useQuery({
     queryKey: ['esim-balance'],
-    queryFn: fetchBalance,
+    queryFn: ({ signal }) => fetchBalance(signal),
     staleTime: 1000 * 60, // 1 minute
   })
 }
@@ -277,7 +230,7 @@ export function useEsimBalance() {
 export function useEsimStock() {
   return useQuery({
     queryKey: ['esim-stock'],
-    queryFn: fetchStock,
+    queryFn: ({ signal }) => fetchStock(signal),
     staleTime: 1000 * 60 * 2, // 2 minutes
   })
 }
@@ -288,7 +241,7 @@ export function useEsimStock() {
 export function useEsimOrders() {
   return useQuery({
     queryKey: ['esim-orders'],
-    queryFn: fetchOrders,
+    queryFn: ({ signal }) => fetchOrders(signal),
     staleTime: 1000 * 60 * 2, // 2 minutes
   })
 }
@@ -316,8 +269,8 @@ export function useEsimPurchase() {
 /**
  * Fetch utilisation data d'une eSIM
  */
-async function fetchEsimUsage(iccid: string): Promise<ESIMUsage> {
-  const response = await fetch(`/api/esim/usage?iccid=${iccid}`)
+async function fetchEsimUsage(iccid: string, signal?: AbortSignal): Promise<ESIMUsage> {
+  const response = await fetch(`/api/esim/usage?iccid=${iccid}`, { signal })
 
   if (!response.ok) {
     throw new Error('Failed to fetch usage')
@@ -335,8 +288,8 @@ async function fetchEsimUsage(iccid: string): Promise<ESIMUsage> {
 /**
  * Fetch packages top-up disponibles pour une eSIM
  */
-async function fetchTopupPackages(iccid: string): Promise<TopupPackage[]> {
-  const response = await fetch(`/api/esim/topup?iccid=${iccid}`)
+async function fetchTopupPackages(iccid: string, signal?: AbortSignal): Promise<TopupPackage[]> {
+  const response = await fetch(`/api/esim/topup?iccid=${iccid}`, { signal })
 
   if (!response.ok) {
     throw new Error('Failed to fetch topup packages')
@@ -426,12 +379,12 @@ async function suspendEsim(request: SuspendRequest): Promise<{ success: boolean 
 /**
  * Query détaillé d'une eSIM
  */
-async function queryEsim(params: { orderNo?: string; iccid?: string }): Promise<ESIMOrder> {
+async function queryEsim(params: { orderNo?: string; iccid?: string }, signal?: AbortSignal): Promise<ESIMOrder> {
   const searchParams = new URLSearchParams()
   if (params.orderNo) searchParams.set('orderNo', params.orderNo)
   if (params.iccid) searchParams.set('iccid', params.iccid)
 
-  const response = await fetch(`/api/esim/query?${searchParams}`)
+  const response = await fetch(`/api/esim/query?${searchParams}`, { signal })
 
   if (!response.ok) {
     throw new Error('Failed to query eSIM')
@@ -456,7 +409,7 @@ async function queryEsim(params: { orderNo?: string; iccid?: string }): Promise<
 export function useEsimUsage(iccid: string | undefined) {
   return useQuery({
     queryKey: ['esim-usage', iccid],
-    queryFn: () => fetchEsimUsage(iccid!),
+    queryFn: ({ signal }) => fetchEsimUsage(iccid!, signal),
     enabled: !!iccid,
     staleTime: 1000 * 30, // 30 secondes
   })
@@ -468,7 +421,7 @@ export function useEsimUsage(iccid: string | undefined) {
 export function useTopupPackages(iccid: string | undefined) {
   return useQuery({
     queryKey: ['topup-packages', iccid],
-    queryFn: () => fetchTopupPackages(iccid!),
+    queryFn: ({ signal }) => fetchTopupPackages(iccid!, signal),
     enabled: !!iccid,
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
@@ -539,7 +492,7 @@ export function useEsimSuspend() {
 export function useEsimQuery(params: { orderNo?: string; iccid?: string }) {
   return useQuery({
     queryKey: ['esim-query', params],
-    queryFn: () => queryEsim(params),
+    queryFn: ({ signal }) => queryEsim(params, signal),
     enabled: !!(params.orderNo || params.iccid),
     staleTime: 1000 * 60, // 1 minute
   })

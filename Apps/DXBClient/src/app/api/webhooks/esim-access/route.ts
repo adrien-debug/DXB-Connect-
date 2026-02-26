@@ -1,9 +1,19 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-// Cast ciblé — types Supabase générés en décalage avec la version du client
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SupabaseAny = any
+
+function getAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase admin credentials')
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey)
+}
 
 /**
  * Webhook endpoint pour recevoir les notifications eSIM Access
@@ -42,7 +52,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 })
     }
     
-    const supabase = await createClient() as SupabaseAny
+    const supabase = getAdminClient() as SupabaseAny
     
     // Traiter selon le type d'événement
     switch (eventType) {
@@ -68,14 +78,16 @@ export async function POST(request: Request) {
     }
     
     // Log l'événement dans la base
-    await supabase.from('webhook_logs').insert({
-      source: 'esim_access',
-      event_type: eventType,
-      payload: body,
-      processed_at: new Date().toISOString()
-    }).catch(() => {
+    try {
+      await supabase.from('webhook_logs').insert({
+        source: 'esim_access',
+        event_type: eventType,
+        payload: body,
+        processed_at: new Date().toISOString()
+      })
+    } catch {
       // Table peut ne pas exister, on ignore
-    })
+    }
     
     return NextResponse.json({ success: true, received: eventType })
     

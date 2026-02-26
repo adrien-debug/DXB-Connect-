@@ -57,9 +57,10 @@ export async function POST(request: NextRequest) {
     const { user, error: authError } = await requireAuthFlexible(request)
 
     if (authError || !user) {
-      console.error('[Apple Pay] Auth error:', authError)
+      console.error('[Apple Pay] Auth error')
+      if (authError instanceof NextResponse) return authError
       return NextResponse.json(
-        { success: false, error: authError || 'Unauthorized' },
+        { success: false, error: 'Unauthorized - Bearer token or valid session required' },
         { status: 401 }
       )
     }

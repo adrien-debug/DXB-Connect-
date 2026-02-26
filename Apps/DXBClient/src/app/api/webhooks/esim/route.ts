@@ -96,14 +96,15 @@ export async function POST(request: Request) {
       }
     }
 
-    console.log('[webhook/esim] Received:', payload.notifyType, payload.content.orderNo)
-
     if (!payload.notifyType || !payload.content?.orderNo) {
+      console.warn('[webhook/esim] Invalid payload: missing notifyType or orderNo')
       return NextResponse.json(
-        { success: false, error: 'Invalid webhook payload' },
+        { success: false, error: 'Invalid webhook payload: notifyType and content.orderNo required' },
         { status: 400 }
       )
     }
+
+    console.log('[webhook/esim] Received:', payload.notifyType, payload.content.orderNo)
 
     const supabase = getAdminClient()
 

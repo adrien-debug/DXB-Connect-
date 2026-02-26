@@ -29,6 +29,34 @@ const updateSchema = offerSchema.partial().extend({
 })
 
 /**
+ * GET /api/admin/offers
+ * Liste toutes les offres partenaires (admin).
+ */
+export async function GET(request: Request) {
+  const { error } = await requireAdmin(request)
+  if (error) return error
+
+  try {
+    const supabase = await createClient() as SupabaseAny
+
+    const { data: offers, error: dbError } = await supabase
+      .from('partner_offers')
+      .select('*')
+      .order('sort_order', { ascending: true })
+
+    if (dbError) {
+      console.error('[admin/offers] List error:', { error: dbError.code })
+      return NextResponse.json({ success: false, error: 'Failed to fetch offers' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, data: offers })
+  } catch {
+    console.error('[admin/offers] Unexpected error on GET')
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+/**
  * POST /api/admin/offers
  * Crée une nouvelle offre partenaire.
  */
