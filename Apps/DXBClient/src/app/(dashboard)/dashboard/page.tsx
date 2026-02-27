@@ -1,7 +1,7 @@
 'use client'
 
 import { useEsimBalance, useEsimStock } from '@/hooks/useEsimAccess'
-import { supabaseAny as supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
 import {
   ArrowDownRight,
   ArrowRight,
@@ -20,7 +20,7 @@ import {
   Zap
 } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Area,
   AreaChart,
@@ -35,7 +35,7 @@ interface DashboardStats {
   clientsCount: number
   esimOrdersCount: number
   totalRevenue: number
-  recentOrders: any[]
+  recentOrders: Record<string, unknown>[]
   ordersByCountry: { name: string; value: number }[]
   ordersByDay: { name: string; orders: number }[]
 }
@@ -52,81 +52,33 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const { data: balance } = useEsimBalance()
   const { data: stock } = useEsimStock()
+  const { authFetch } = useAuth()
 
   const INITIAL_CREDIT = 500000
   const currentBalance = balance?.balance || 0
   const spent = INITIAL_CREDIT - currentBalance
 
-  useEffect(() => {
-    fetchStats()
-  }, [])
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
-      const { count: clientsCount } = await supabase
-        .from('profiles')
-        .select('id', { count: 'exact', head: true })
-        .eq('role', 'client')
-
-      const { data: orders, count: esimOrdersCount } = await supabase
-        .from('esim_orders')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .limit(50)
-
-      const recentOrders = orders?.slice(0, 5) || []
-
-      const countryMap: Record<string, number> = {}
-      orders?.forEach((order: any) => {
-        const country = order.package_code?.split('_')[0] || 'Autre'
-        countryMap[country] = (countryMap[country] || 0) + 1
-      })
-      const ordersByCountry = Object.entries(countryMap)
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 6)
-
-      const dayMap: Record<string, number> = {}
-      const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        const dayName = days[date.getDay()]
-        dayMap[dayName] = 0
+      const res = await authFetch('/api/admin/stats')
+      if (!res.ok) {
+        console.error('[Dashboard] Stats API error:', res.status)
+        return
       }
-      orders?.forEach((order: any) => {
-        const date = new Date(order.created_at)
-        const dayName = days[date.getDay()]
-        if (dayMap[dayName] !== undefined) {
-          dayMap[dayName]++
-        }
-      })
-      const ordersByDay = Object.entries(dayMap).map(([name, orders]) => ({ name, orders }))
-
-      const { data: revenueData } = await supabase
-        .from('orders')
-        .select('total')
-        .eq('payment_status', 'paid')
-
-      const totalRevenue = revenueData?.reduce(
-        (sum: number, o: { total: number }) => sum + (o.total || 0),
-        0
-      ) || 0
-
-      setStats({
-        clientsCount: clientsCount || 0,
-        esimOrdersCount: esimOrdersCount || 0,
-        totalRevenue,
-        recentOrders,
-        ordersByCountry,
-        ordersByDay
-      })
+      const json = await res.json()
+      if (json.success && json.data) {
+        setStats(json.data)
+      }
     } catch (error) {
       console.error('[Dashboard] Error fetching stats:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [authFetch])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
 
   const COLORS = ['#BAFF39', '#9FE000', '#85C000', '#6BA000', '#518000', '#375000']
 

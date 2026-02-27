@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       // Real Stripe Payment Intent
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(total * 100), // Stripe uses cents
-        currency: 'eur',
+        currency: 'usd',
         automatic_payment_methods: {
           enabled: true,
         },
@@ -161,9 +161,7 @@ export async function POST(request: NextRequest) {
       )
     }
     console.error('[checkout] Error:', {
-      userId: user?.id ?? 'unknown',
       type: error instanceof Error ? error.constructor.name : typeof error,
-      message: error instanceof Error ? error.message : 'unknown',
     })
     return NextResponse.json(
       { success: false, error: 'Internal server error' },

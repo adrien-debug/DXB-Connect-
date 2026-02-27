@@ -14,9 +14,7 @@ interface ConfirmRequest {
 export async function POST(request: NextRequest) {
   try {
     const { user, error: authError } = await requireAuthFlexible(request)
-    if (authError) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
+    if (authError) return authError
 
     const body: ConfirmRequest = await request.json()
 

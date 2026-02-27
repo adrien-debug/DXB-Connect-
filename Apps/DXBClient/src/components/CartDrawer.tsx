@@ -90,6 +90,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 >
                   <div className="flex gap-4">
                     <div className="w-14 h-14 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                      {/* eslint-disable @next/next/no-img-element */}
                       {item.product?.image_url ? (
                         <img
                           src={item.product.image_url}
@@ -99,6 +100,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       ) : (
                         <ShoppingBag className="w-5 h-5 text-zinc-600" />
                       )}
+                      {/* eslint-enable @next/next/no-img-element */}
                     </div>
 
                     <div className="flex-1 min-w-0">

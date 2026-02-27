@@ -426,6 +426,7 @@ function ProductCard({
     >
       {/* Image */}
       <div className="relative h-40 sm:h-36 bg-zinc-800 flex items-center justify-center overflow-hidden">
+        {/* eslint-disable @next/next/no-img-element */}
         {product.image_url ? (
           <img
             src={product.image_url}
@@ -435,6 +436,7 @@ function ProductCard({
         ) : (
           <Package className="w-10 h-10 text-zinc-700" />
         )}
+        {/* eslint-enable @next/next/no-img-element */}
 
         {/* Status badges */}
         <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex flex-wrap gap-1.5 max-w-[calc(100%-5rem)]">

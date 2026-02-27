@@ -449,7 +449,8 @@ function OrderDetailModal({ order, onClose }: { order: EsimOrder; onClose: () =>
         <div className="p-6 space-y-6">
           <div className="flex justify-center">
             <a href={order.qrCodeUrl} target="_blank" rel="noopener noreferrer" className="p-4 rounded-2xl bg-zinc-800 hover:bg-zinc-700 transition-colors">
-              <img src={order.qrCodeUrl} alt="QR Code" className="w-40 h-40 rounded-xl" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={order.qrCodeUrl} alt="QR Code" width={160} height={160} className="w-40 h-40 rounded-xl" />
             </a>
           </div>
 

@@ -245,11 +245,13 @@ export default function PaymentModal({
                 {items.map((item, index) => (
                   <div key={index} className="flex items-center gap-3 p-3 bg-zinc-800 rounded-2xl">
                     <div className="w-11 h-11 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                      {/* eslint-disable @next/next/no-img-element */}
                       {item.image_url ? (
                         <img src={item.image_url} alt={item.product_name} className="w-full h-full object-cover rounded-xl" />
                       ) : (
                         <ShoppingBag className="w-5 h-5 text-zinc-600" />
                       )}
+                      {/* eslint-enable @next/next/no-img-element */}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white text-sm truncate">{item.product_name}</p>

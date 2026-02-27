@@ -24,7 +24,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const { collapsed } = useSidebar()
   const pathname = usePathname()
 
-  const currentPage = pageTitles[pathname] || { title: 'SimPass', subtitle: '' }
+  const currentPage = pageTitles[pathname] || { title: 'DXB Connect', subtitle: '' }
   const today = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
     day: 'numeric',
@@ -44,8 +44,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               <Wifi className="w-5 h-5 text-black" />
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-black tracking-tight">SimPass</h1>
-              <p className="text-[10px] text-gray font-medium">Premium Suite</p>
+              <h1 className="text-sm font-semibold text-black tracking-tight">DXB Connect</h1>
+              <p className="text-[10px] text-gray font-medium">Admin Suite</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

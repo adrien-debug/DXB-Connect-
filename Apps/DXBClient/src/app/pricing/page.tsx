@@ -37,7 +37,7 @@ export default async function PricingPage() {
   let error: string | null = null
 
   try {
-    const all = await listEsimPackagesForUI({ type: 'BASE', revalidateSeconds: 60 * 60 })
+    const all = await listEsimPackagesForUI({ type: 'BASE' })
     featured = pickCheapestPerLocation(all).slice(0, 12)
   } catch {
     error = 'Unable to load catalog at this time.'

@@ -100,13 +100,34 @@ CREATE TABLE public.orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id),
   status TEXT DEFAULT 'pending',
+  payment_status TEXT DEFAULT 'pending',
   total DECIMAL(10,2) DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  amount DECIMAL(10,2) DEFAULT 0,
   payment_intent_id TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  idempotency_key TEXT UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Service role can manage all orders" ON public.orders FOR ALL USING (auth.role() = 'service_role');
+
+-- ORDER_ITEMS
+DROP TABLE IF EXISTS public.order_items CASCADE;
+CREATE TABLE public.order_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
+  product_id TEXT,
+  quantity INTEGER DEFAULT 1,
+  price DECIMAL(10,2) DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own order items" ON public.order_items FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid())
+);
+CREATE POLICY "Service role can manage all order items" ON public.order_items FOR ALL USING (auth.role() = 'service_role');
 
 -- ESIM_ORDERS
 DROP TABLE IF EXISTS public.esim_orders CASCADE;
