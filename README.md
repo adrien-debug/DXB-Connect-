@@ -208,9 +208,74 @@ UPDATE profiles SET role = 'admin' WHERE email = 'you@example.com';
 
 ## Deployment
 
-- **Web/API**: Auto-deploy on push to `main` via Railway
-- **Mobile**: Flutter build → App Store Connect (iOS) / Play Console (Android)
-- **Database**: Supabase hosted (migrations via `scripts/migrate-simpass.js`)
+### Railway (Backend API — current)
+Auto-deploy on push to `main`. Production URL: `https://web-production-14c51.up.railway.app`
+
+### Vercel (Admin Dashboard)
+
+#### 1. Importer le projet
+```
+1. Aller sur https://vercel.com/new
+2. Importer le repo GitHub: adrien-debug/DXB-Connect-
+3. Root Directory: Apps/DXBClient
+4. Framework Preset: Next.js (auto-détecté)
+5. Build Command: npm run build
+6. Output Directory: .next (défaut)
+```
+
+#### 2. Variables d'environnement (Settings → Environment Variables)
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+
+# Railway Backend
+NEXT_PUBLIC_RAILWAY_URL=https://web-production-14c51.up.railway.app
+
+# eSIM Access API
+ESIM_ACCESS_CODE=xxx
+ESIM_SECRET_KEY=xxx
+ESIM_WEBHOOK_SECRET=xxx
+
+# Stripe
+STRIPE_SECRET_KEY=sk_live_xxx
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+
+# Stripe Subscription Price IDs
+STRIPE_PRIVILEGE_PRICE_MONTHLY=price_xxx
+STRIPE_PRIVILEGE_PRICE_YEARLY=price_xxx
+STRIPE_ELITE_PRICE_MONTHLY=price_xxx
+STRIPE_ELITE_PRICE_YEARLY=price_xxx
+STRIPE_BLACK_PRICE_MONTHLY=price_xxx
+STRIPE_BLACK_PRICE_YEARLY=price_xxx
+```
+
+#### 3. Domaine custom (optionnel)
+```
+Settings → Domains → Add → dxbconnect.com (ou sous-domaine)
+```
+
+#### 4. CSP : mettre à jour le domaine Vercel
+Dans `next.config.js`, ajouter le domaine Vercel dans la directive `connect-src` du CSP si nécessaire :
+```
+connect-src 'self' https://web-production-14c51.up.railway.app https://*.supabase.co ...
+```
+
+#### 5. Webhooks post-deploy
+- **Stripe** : mettre à jour l'URL webhook dans Stripe Dashboard → `https://votre-domaine.vercel.app/api/webhooks/stripe`
+- **eSIM Access** : mettre à jour l'URL webhook → `https://votre-domaine.vercel.app/api/webhooks/esim-access`
+
+#### Note Architecture
+Vercel sert à la fois le dashboard admin ET les API routes. Les clients Flutter/iOS continuent de pointer vers Railway (`web-production-14c51.up.railway.app`). Le dashboard Vercel et Railway partagent la même codebase et les mêmes API routes.
+
+### Mobile
+- **iOS**: Flutter build → App Store Connect
+- **Android**: Flutter build → Play Console
+
+### Database
+Supabase hosted (migrations via `scripts/migrate-simpass.js`)
 
 ## Marketing Pages
 
@@ -233,4 +298,4 @@ UPDATE profiles SET role = 'admin' WHERE email = 'you@example.com';
 2. **App Store Connect**: Configure 6 IAP subscriptions
 3. **Fireblocks**: Configure vault + webhook
 4. **Affiliates**: Register with GetYourGuide, Tiqets, Klook
-5. **Domain**: Purchase `simpass.co` / `getsimpass.com`
+5. **Domain**: Configure custom domain on Vercel
