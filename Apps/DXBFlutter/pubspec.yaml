@@ -30,10 +30,9 @@ dependencies:
   json_annotation: ^4.9.0
 
   # Auth
-  sign_in_with_apple: ^6.1.4
-
+#
   # Payments
-  flutter_stripe: ^11.3.0
+  # flutter_stripe: ^11.3.0  # Temporarily disabled to debug iOS 26 crash
 
   # QR Code
   qr_flutter: ^4.1.0

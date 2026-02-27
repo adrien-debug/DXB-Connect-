@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../core/theme/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_logo.dart';
@@ -25,16 +23,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   bool _isLoading = false;
   String? _errorMessage;
 
-  // DEV: Pré-rempli pour tests rapides
-  final _emailController = TextEditingController(
-    text: 'adrienbeyond@gmail.com',
-  );
-  final _passwordController = TextEditingController(
-    text: 'Test1234!',
-  );
-  final _nameController = TextEditingController(
-    text: 'Adrien Test',
-  );
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nameController = TextEditingController();
 
   late final AnimationController _slideController;
   late final Animation<Offset> _slideAnimation;
@@ -107,58 +98,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     _switchMode(_AuthMode.landing);
   }
 
-  Future<void> _handleAppleSignIn() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final credential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
-
-      final identityToken = credential.identityToken;
-      final authCode = credential.authorizationCode;
-
-      if (identityToken == null) {
-        setState(() {
-          _errorMessage = 'Unable to retrieve Apple credentials';
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final fullName = [
-        credential.givenName,
-        credential.familyName,
-      ].where((s) => s != null && s.isNotEmpty).join(' ');
-
-      await ref.read(authProvider.notifier).signInWithApple(
-            identityToken: identityToken,
-            authorizationCode: authCode,
-            email: credential.email,
-            name: fullName.isNotEmpty ? fullName : null,
-          );
-
-      final authState = ref.read(authProvider);
-      if (authState.error != null) {
-        setState(() => _errorMessage = authState.error);
-      }
-    } on SignInWithAppleAuthorizationException catch (e) {
-      if (e.code != AuthorizationErrorCode.canceled) {
-        setState(
-            () => _errorMessage = 'Apple Sign In failed: ${e.message}');
-      }
-    } catch (e) {
-      setState(() => _errorMessage = 'Sign in failed. Please try again.');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
 
   Future<void> _submitAuth() async {
     if (!_isFormValid) return;
@@ -204,7 +143,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          _buildBackground(),
+          IgnorePointer(child: _buildBackground()),
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -327,12 +266,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           ),
         ),
         const SizedBox(height: 32),
-        if (Platform.isIOS) ...[
-          _buildAppleSignInButton(),
-          const SizedBox(height: 20),
-          _buildDividerOr(),
-          const SizedBox(height: 20),
-        ],
         _buildEmailButton(),
         const SizedBox(height: 24),
         _buildTermsText(),
@@ -340,41 +273,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     );
   }
 
-  Widget _buildAppleSignInButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: SignInWithAppleButton(
-        onPressed: _handleAppleSignIn,
-        style: SignInWithAppleButtonStyle.white,
-        borderRadius: BorderRadius.circular(AppRadius.full),
-      ),
-    );
-  }
-
-  Widget _buildDividerOr() {
-    return const Row(
-      children: [
-        Expanded(
-          child: Divider(color: AppColors.surfaceBorder, thickness: 1),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.base),
-          child: Text(
-            'or',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textTertiary,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Divider(color: AppColors.surfaceBorder, thickness: 1),
-        ),
-      ],
-    );
-  }
 
   Widget _buildEmailButton() {
     return SizedBox(
@@ -382,8 +280,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
       height: 52,
       child: OutlinedButton(
         onPressed: () {
-          _isRegistering = false;
           _switchMode(_AuthMode.emailAuth);
+          setState(() => _isRegistering = false);
         },
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textPrimary,

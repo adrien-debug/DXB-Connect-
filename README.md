@@ -1,15 +1,15 @@
-# SimPass
+# DXB Connect
 
 **Not just data — benefits in every destination.**
 
-eSIM platform with iOS app (SwiftUI), admin dashboard (Next.js 14), travel partner perks, membership plans (Privilege/Elite/Black), gamification (XP/Points/Raffles), and crypto payments.
+eSIM platform with mobile app (Flutter), admin dashboard (Next.js 14), travel partner perks, membership plans (Privilege/Elite/Black), gamification (XP/Points/Raffles), and crypto payments.
 
 ## Architecture
 
 ```
-iOS SwiftUI ──┐
-              ├──► Railway Backend (Next.js API) ──► Supabase ──► eSIM Access API
-Next.js Web ──┘
+Flutter App (iOS/Android) ──┐
+                            ├──► Railway Backend (Next.js API) ──► Supabase ──► eSIM Access API
+Next.js Admin Web ──────────┘
 ```
 
 - **Railway** is the single entry point — no direct client-to-Supabase or client-to-eSIM API connections
@@ -19,7 +19,7 @@ Next.js Web ──┘
 
 | Component | Technologies |
 |-----------|-------------|
-| iOS App | SwiftUI, DXBCore (Swift Package) |
+| Mobile App | Flutter (iOS + Android) |
 | Admin Web | Next.js 14, TailwindCSS, React Query |
 | Backend | Railway (Next.js API), Supabase (Auth + PostgreSQL) |
 | eSIM Provider | eSIM Access API |
@@ -57,27 +57,28 @@ Next.js Web ──┘
 ## Project Structure
 
 ```
-Apps/DXBClient/
-├── Views/                  # SwiftUI views (iOS)
-├── DXBCore/                # Swift Package (models, API service)
-├── src/
-│   ├── app/
-│   │   ├── (dashboard)/    # Admin pages (auth protected)
-│   │   │   ├── dashboard/  # Main dashboard
-│   │   │   ├── perks/      # Partner offers management
-│   │   │   ├── subscriptions/ # Plans management
-│   │   │   ├── rewards/    # Gamification management
-│   │   │   ├── esim/       # eSIM packages + orders
-│   │   │   ├── orders/     # Order history
-│   │   │   └── customers/  # Customer management
-│   │   ├── api/            # API routes (Railway backend)
-│   │   ├── login/          # Auth pages
-│   │   └── (marketing)     # Public pages (/, /pricing, /features, etc.)
-│   ├── components/         # React components
-│   ├── hooks/              # React Query hooks
-│   └── lib/                # Supabase, Stripe, validation
-├── scripts/                # Migration & sync scripts
-└── .cursor/rules/          # Cursor AI rules
+Apps/
+├── DXBFlutter/               # Flutter mobile app (iOS + Android)
+│   ├── lib/
+│   │   ├── core/             # API client, services, models
+│   │   ├── features/         # Auth, dashboard, etc.
+│   │   └── routing/          # App router
+│   ├── ios/                  # iOS runner
+│   └── android/              # Android runner
+│
+├── DXBClient/                # Next.js Admin Web + Railway Backend
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── (dashboard)/  # Admin pages (auth protected)
+│   │   │   ├── api/          # API routes (Railway backend)
+│   │   │   ├── login/        # Auth pages
+│   │   │   └── (marketing)   # Public pages
+│   │   ├── components/       # React components
+│   │   ├── hooks/            # React Query hooks
+│   │   └── lib/              # Supabase, Stripe, validation
+│   └── public/               # Static assets
+│
+└── scripts/                  # Figma sync & migration scripts
 ```
 
 ## API Endpoints
@@ -186,11 +187,11 @@ npm run build        # Production build
 npm run typecheck    # TypeScript check
 ```
 
-### 4. iOS
+### 4. Flutter App
 ```bash
-# Config.swift points to:
-# DEBUG  → http://localhost:4000/api
-# RELEASE → https://web-production-14c51.up.railway.app/api
+cd Apps/DXBFlutter
+flutter pub get
+flutter run         # Run on connected device/simulator
 ```
 
 ## Auth
@@ -208,7 +209,7 @@ UPDATE profiles SET role = 'admin' WHERE email = 'you@example.com';
 ## Deployment
 
 - **Web/API**: Auto-deploy on push to `main` via Railway
-- **iOS**: Xcode archive → App Store Connect
+- **Mobile**: Flutter build → App Store Connect (iOS) / Play Console (Android)
 - **Database**: Supabase hosted (migrations via `scripts/migrate-simpass.js`)
 
 ## Marketing Pages
@@ -223,52 +224,6 @@ UPDATE profiles SET role = 'admin' WHERE email = 'you@example.com';
 | `/blog` | Articles (perks, plans, rewards, crypto) |
 | `/faq` | 20 questions across 5 categories |
 | `/contact` | FAQ + contact form |
-
-## iOS App Status
-
-**Last Update**: Feb 20, 2026 — CLEAN MODERN UI (All views updated)
-**Build Status**: BUILD SUCCEEDED
-
-### Design System: Clean Modern
-
-**Style**: Light background, white cards, navy accents, soft shadows
-
-| Token | Value |
-|-------|-------|
-| Navy | `#1A1F36` |
-| Navy Light | `#262D47` |
-| Accent Blue | `#4D73F2` |
-| Background | `#F5F7FA` |
-| Surface | `#FFFFFF` |
-
-### Architecture
-- `DXBCore/APIConfig` → Railway Backend only
-- No direct Supabase/eSIM API connections
-- Secure tokens (Keychain) + auto refresh
-
-### Views
-
-| View | Description |
-|------|-------------|
-| `Theme.swift` | Clean palette, cards, CleanArcProgress, buttons |
-| `DashboardView.swift` | Navy hero card, stats grid, actions |
-| `AuthView.swift` | Apple Sign In + Email/OTP, navy gradient |
-| `MyESIMsView.swift` | Filter pills, usage gauges, white cards |
-| `PlanListView.swift` | Search, region filters, clean cards |
-| `ESIMDetailView.swift` | Usage arc, QR code sheet, clean actions |
-| `RewardsHubView.swift` | Wallet hero, missions, raffles, history |
-| `ProfileView.swift` | Avatar, settings sections, sign out |
-| `SubscriptionView.swift` | Plan cards, billing toggle, features |
-| `RootView.swift` | Navy splash screen |
-
-### Key Components
-- **DXBCore**: Swift Package (API Client + Auth + Railway)
-- **AppState**: @Observable singleton
-- **Theme**: Clean design tokens, white cards, soft shadows
-- **UI Language**: English (all views localized)
-
-**Build**:
-`xcodebuild -project "Apps/DXBClient/DXBConnect.xcodeproj" -scheme "DXBConnect" -configuration Debug -destination 'generic/platform=iOS Simulator' build`
 
 ---
 

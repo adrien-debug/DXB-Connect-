@@ -187,13 +187,13 @@ class _CountriesGrid extends StatelessWidget {
     'Oceania': ['Australia', 'New Zealand', 'Fiji', 'Papua New Guinea'],
   };
 
-  static const _regionEmojis = <String, String>{
-    'Middle East': '🕌',
-    'Europe': '🏰',
-    'Asia': '⛩️',
-    'Americas': '🗽',
-    'Africa': '🌍',
-    'Oceania': '🏝️',
+  static const _regionIcons = <String, IconData>{
+    'Middle East': Icons.mosque_rounded,
+    'Europe': Icons.account_balance_rounded,
+    'Asia': Icons.temple_buddhist_rounded,
+    'Americas': Icons.location_city_rounded,
+    'Africa': Icons.public_rounded,
+    'Oceania': Icons.beach_access_rounded,
   };
 
   static const _regionOrder = ['Middle East', 'Europe', 'Asia', 'Americas', 'Africa', 'Oceania'];
@@ -246,7 +246,7 @@ class _CountriesGrid extends StatelessWidget {
         ),
         if (popular.isNotEmpty) ...[
           const SizedBox(height: 12),
-          _SectionHeader(emoji: '🔥', title: 'Popular', count: popular.length),
+          _SectionHeader(icon: Icons.local_fire_department_rounded, title: 'Popular', count: popular.length),
           const SizedBox(height: 8),
           _CountryGridBlock(countries: popular, onSelect: onSelect),
         ],
@@ -255,7 +255,7 @@ class _CountriesGrid extends StatelessWidget {
               children: [
                 const SizedBox(height: 14),
                 _SectionHeader(
-                  emoji: _regionEmojis[entry.key] ?? '🌐',
+                  icon: _regionIcons[entry.key] ?? Icons.language_rounded,
                   title: entry.key,
                   count: entry.value.length,
                 ),
@@ -270,12 +270,12 @@ class _CountriesGrid extends StatelessWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  final String emoji;
+  final IconData icon;
   final String title;
   final int count;
 
   const _SectionHeader({
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.count,
   });
@@ -286,7 +286,7 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 16)),
+          Icon(icon, size: 18, color: AppColors.accent),
           const SizedBox(width: 8),
           Text(
             title,

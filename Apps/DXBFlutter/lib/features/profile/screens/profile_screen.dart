@@ -415,11 +415,18 @@ class _SignOutButton extends StatelessWidget {
 class _AppInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
-        Text('SimPass v1.0.0', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textTertiary)),
-        SizedBox(height: 6),
-        Text('Made with ❤️ in Dubai', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+        const Text('DXB Connect v1.0.0', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textTertiary)),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Made with ', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+            Icon(Icons.favorite_rounded, size: 12, color: AppColors.error.withValues(alpha: 0.7)),
+            const Text(' in Dubai', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+          ],
+        ),
       ],
     );
   }

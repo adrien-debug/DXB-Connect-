@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,15 +15,22 @@ import '../features/subscription/screens/subscription_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import 'shell_screen.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+class _AuthChangeNotifier extends ChangeNotifier {
+  void notify() => notifyListeners();
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  final authNotifier = _AuthChangeNotifier();
+
+  ref.listen(authProvider, (_, __) {
+    authNotifier.notify();
+  });
 
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
     initialLocation: '/dashboard',
+    refreshListenable: authNotifier,
     redirect: (context, state) {
+      final authState = ref.read(authProvider);
       final isAuth = authState.isAuthenticated;
       final isAuthRoute = state.matchedLocation == '/auth';
 

@@ -135,18 +135,18 @@ class _OfferCard extends StatelessWidget {
   final VoidCallback onTap;
   const _OfferCard({required this.offer, required this.onTap});
 
-  static const _categoryIcons = <String, String>{
-    'restaurant': '🍽️', 'food': '🍽️',
-    'hotel': '🏨', 'accommodation': '🏨',
-    'activity': '🎯', 'experience': '🎯',
-    'transport': '🚗', 'car': '🚗',
-    'shopping': '🛍️',
-    'lounge': '✈️',
-    'insurance': '🛡️',
-    'telecom': '📱',
+  static const _categoryIcons = <String, IconData>{
+    'restaurant': Icons.restaurant_rounded, 'food': Icons.restaurant_rounded,
+    'hotel': Icons.hotel_rounded, 'accommodation': Icons.hotel_rounded,
+    'activity': Icons.attractions_rounded, 'experience': Icons.attractions_rounded,
+    'transport': Icons.directions_car_rounded, 'car': Icons.directions_car_rounded,
+    'shopping': Icons.shopping_bag_rounded,
+    'lounge': Icons.flight_rounded,
+    'insurance': Icons.shield_rounded,
+    'telecom': Icons.smartphone_rounded,
   };
 
-  String _categoryIcon(String c) => _categoryIcons[c.toLowerCase()] ?? '🌍';
+  IconData _categoryIcon(String c) => _categoryIcons[c.toLowerCase()] ?? Icons.public_rounded;
 
   @override
   Widget build(BuildContext context) {
@@ -183,11 +183,14 @@ class _OfferCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      if (offer.category.isNotEmpty)
+                      if (offer.category.isNotEmpty) ...[
+                        Icon(_categoryIcon(offer.category), size: 13, color: AppColors.textTertiary),
+                        const SizedBox(width: 4),
                         Text(
-                          '${_categoryIcon(offer.category)} ${offer.category[0].toUpperCase()}${offer.category.substring(1)}',
+                          '${offer.category[0].toUpperCase()}${offer.category.substring(1)}',
                           style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textTertiary),
                         ),
+                      ],
                       const Spacer(),
                       Container(
                         width: 28, height: 28,
@@ -258,7 +261,7 @@ class _OfferCard extends StatelessWidget {
                 if (offer.countryCodes.isNotEmpty)
                   _badge(flagEmoji(offer.countryCodes.first) + (offer.city != null ? ' ${offer.city}' : ''))
                 else if (offer.isGlobal)
-                  _badge('🌍 Worldwide'),
+                  _iconBadge(Icons.public_rounded, 'Worldwide'),
                 if (offer.tierRequired != null) ...[
                   const SizedBox(width: 6),
                   _tierBadge(offer.tierRequired!),
@@ -289,7 +292,7 @@ class _OfferCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_categoryIcon(offer.category), style: const TextStyle(fontSize: 40)),
+            Icon(_categoryIcon(offer.category), size: 40, color: AppColors.textTertiary),
             const SizedBox(height: 8),
             Text(
               offer.partnerName.isNotEmpty ? offer.partnerName : 'Partner',
@@ -324,6 +327,25 @@ class _OfferCard extends StatelessWidget {
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Text(text, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white)),
+    );
+  }
+
+  Widget _iconBadge(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: Colors.white),
+          const SizedBox(width: 4),
+          Text(text, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white)),
+        ],
+      ),
     );
   }
 

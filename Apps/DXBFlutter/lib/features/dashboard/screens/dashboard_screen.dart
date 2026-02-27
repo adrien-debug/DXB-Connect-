@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/loading_indicator.dart';
-import '../../../core/widgets/premium_widgets.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/dashboard_header.dart';
@@ -59,47 +58,38 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         children: [
                           const SizedBox(height: 12),
 
-                          StaggeredFadeIn(
-                            index: 0,
-                            child: DashboardHeader(
-                              userName: userName,
-                              tier: dashboard.subscription?.plan,
-                              wallet: dashboard.wallet,
-                              esimCount: dashboard.esims.length,
-                              activeCount: dashboard.activeCount,
-                            ),
+                          DashboardHeader(
+                            userName: userName,
+                            tier: dashboard.subscription?.plan,
+                            wallet: dashboard.wallet,
+                            esimCount: dashboard.esims.length,
+                            activeCount: dashboard.activeCount,
                           ),
 
                           const SizedBox(height: 16),
 
-                          StaggeredFadeIn(
-                            index: 1,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.lg),
-                              child: BalanceCard(
-                                remainingGB: dashboard.totalRemainingGB,
-                                usagePercent: dashboard.usagePercent,
-                                esimCount: dashboard.esims.length,
-                                activeCount: dashboard.activeCount,
-                                countriesCount: dashboard.countriesCount,
-                                isLoaded:
-                                    dashboard.usageCache.isNotEmpty ||
-                                        dashboard.esims.isEmpty,
-                              ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.lg),
+                            child: BalanceCard(
+                              remainingGB: dashboard.totalRemainingGB,
+                              usagePercent: dashboard.usagePercent,
+                              esimCount: dashboard.esims.length,
+                              activeCount: dashboard.activeCount,
+                              countriesCount: dashboard.countriesCount,
+                              isLoaded:
+                                  dashboard.usageCache.isNotEmpty ||
+                                      dashboard.esims.isEmpty,
                             ),
                           ),
 
                           const SizedBox(height: 20),
 
-                          StaggeredFadeIn(
-                            index: 2,
-                            child: QuickActionsRow(
-                              onBuyEsim: () =>
-                                  context.go('/dashboard/plans'),
-                              onTopUp: () => context.go('/esims'),
-                              onUsage: () => context.go('/esims'),
-                            ),
+                          QuickActionsRow(
+                            onBuyEsim: () =>
+                                context.go('/dashboard/plans'),
+                            onTopUp: () => context.go('/esims'),
+                            onUsage: () => context.go('/esims'),
                           ),
 
                           if (dashboard.error != null)
@@ -115,34 +105,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
                           const SizedBox(height: 16),
 
-                          StaggeredFadeIn(
-                            index: 3,
-                            child: EsimCardsRow(
-                              esims: dashboard.activeEsims,
-                              usageCache: dashboard.usageCache,
-                            ),
+                          EsimCardsRow(
+                            esims: dashboard.activeEsims,
+                            usageCache: dashboard.usageCache,
                           ),
 
                           if (dashboard.subscription == null) ...[
                             const SizedBox(height: 16),
-                            StaggeredFadeIn(
-                              index: 4,
-                              child: SubscriptionPromoBanner(
-                                onTap: () =>
-                                    context.go('/dashboard/subscription'),
-                              ),
+                            SubscriptionPromoBanner(
+                              onTap: () =>
+                                  context.go('/dashboard/subscription'),
                             ),
                           ],
 
                           if (dashboard.offers.isNotEmpty) ...[
                             const SizedBox(height: 20),
-                            StaggeredFadeIn(
-                              index: 5,
-                              child: OffersSection(
-                                offers: dashboard.offers,
-                                onViewAll: () =>
-                                    context.go('/dashboard/offers'),
-                              ),
+                            OffersSection(
+                              offers: dashboard.offers,
+                              onViewAll: () =>
+                                  context.go('/dashboard/offers'),
                             ),
                           ],
 

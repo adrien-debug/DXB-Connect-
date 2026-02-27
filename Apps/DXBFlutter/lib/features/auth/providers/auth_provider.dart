@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/auth_storage.dart';
@@ -13,32 +14,68 @@ class AuthNotifier extends StateNotifier<AuthStateData> {
       : super(const AuthStateData());
 
   Future<void> checkAuth() async {
+    final sw = Stopwatch()..start();
     state = state.copyWith(status: AuthState.loading);
     try {
-      final hasTokens = await _authStorage.hasTokens();
+      final hasTokens = await _authStorage.hasTokens().timeout(
+        const Duration(milliseconds: 1500),
+        onTimeout: () {
+          if (kDebugMode) debugPrint('[Auth] hasTokens timeout, assuming no tokens');
+          return false;
+        },
+      );
+      if (kDebugMode) debugPrint('[Auth] hasTokens: $hasTokens (${sw.elapsedMilliseconds}ms)');
       if (!hasTokens) {
         state = state.copyWith(status: AuthState.unauthenticated);
         return;
       }
 
-      final response = await _apiClient.get(ApiEndpoints.esimOrders);
-      if (response.statusCode == 200) {
-        final userId = await _authStorage.getUserId();
-        final email = await _authStorage.getUserEmail();
-        final name = await _authStorage.getUserName();
+      final userId = await _authStorage.getUserId().timeout(
+        const Duration(milliseconds: 500),
+        onTimeout: () => null,
+      );
+      final email = await _authStorage.getUserEmail().timeout(
+        const Duration(milliseconds: 500),
+        onTimeout: () => null,
+      );
+      final name = await _authStorage.getUserName().timeout(
+        const Duration(milliseconds: 500),
+        onTimeout: () => null,
+      );
+
+      if (userId != null && email != null) {
         state = state.copyWith(
           status: AuthState.authenticated,
-          user: userId != null && email != null
-              ? UserInfo(id: userId, email: email, name: name)
-              : null,
+          user: UserInfo(id: userId, email: email, name: name),
         );
+        if (kDebugMode) debugPrint('[Auth] Authenticated from local tokens (${sw.elapsedMilliseconds}ms)');
+
+        _validateTokenRemotely();
       } else {
         await _authStorage.clearTokens();
         state = state.copyWith(status: AuthState.unauthenticated);
       }
-    } catch (_) {
-      await _authStorage.clearTokens();
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Auth] checkAuth error: $e');
+      try {
+        await _authStorage.clearTokens().timeout(const Duration(milliseconds: 500));
+      } catch (clearError) {
+        if (kDebugMode) debugPrint('[Auth] clearTokens error: $clearError');
+      }
       state = state.copyWith(status: AuthState.unauthenticated);
+    }
+  }
+
+  Future<void> _validateTokenRemotely() async {
+    try {
+      final response = await _apiClient.get(ApiEndpoints.health);
+      if (response.statusCode != 200) {
+        if (kDebugMode) debugPrint('[Auth] Remote validation failed, logging out');
+        await _authStorage.clearTokens();
+        if (mounted) state = state.copyWith(status: AuthState.unauthenticated, user: null);
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Auth] Remote validation error (user stays logged in): $e');
     }
   }
 
@@ -156,10 +193,7 @@ class AuthNotifier extends StateNotifier<AuthStateData> {
   }
 
   String _extractError(dynamic e) {
-    if (e is Exception) {
-      return e.toString().replaceAll('Exception: ', '');
-    }
-    return 'An unexpected error occurred';
+    return ApiClient.extractErrorMessage(e, 'An unexpected error occurred');
   }
 }
 

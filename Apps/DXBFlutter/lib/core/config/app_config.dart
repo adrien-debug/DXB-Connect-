@@ -15,19 +15,7 @@ class AppConfig {
   }
 
   static String get stripePublishableKey {
-    switch (current) {
-      case AppEnvironment.development:
-      case AppEnvironment.staging:
-        return const String.fromEnvironment(
-          'STRIPE_PK',
-          defaultValue: 'pk_test_placeholder',
-        );
-      case AppEnvironment.production:
-        return const String.fromEnvironment(
-          'STRIPE_PK',
-          defaultValue: 'pk_live_51T1yInErTYHH9DtVYXyZTKvRuPChIyf2HHzcSALBcDnrkkrgOatesY8l5JkS6Lv1CD5BDohjVXBcVIsKzY1ZuIoo009GNhy4pf',
-        );
-    }
+    return const String.fromEnvironment('STRIPE_PK', defaultValue: '');
   }
 
   static const String appName = 'DXB Connect';
