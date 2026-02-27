@@ -186,8 +186,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Invalid input', details: err.errors }, { status: 400 })
     }
     if (err instanceof Stripe.errors.StripeError) {
-      console.error('[subscriptions/apple-pay] Stripe error:', err.message)
-      return NextResponse.json({ success: false, error: err.message }, { status: 402 })
+      console.error('[subscriptions/apple-pay] Stripe error:', err.type, err.code)
+      return NextResponse.json(
+        { success: false, error: 'Payment failed. Please try again or use a different payment method.' },
+        { status: 402 }
+      )
     }
     console.error('[subscriptions/apple-pay] Unexpected error')
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })

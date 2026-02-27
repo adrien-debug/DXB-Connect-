@@ -1,4 +1,8 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show ThemeMode;
+import 'package:flutter_stripe/flutter_stripe.dart';
 import '../api/api_client.dart';
 import '../config/api_endpoints.dart';
 
@@ -25,7 +29,7 @@ class CheckoutService {
 
   CheckoutService(this._apiClient);
 
-  /// Step 1: Create checkout order + Stripe PaymentIntent
+  /// Step 1: Create checkout order + Stripe PaymentIntent on backend
   Future<CheckoutResult> createCheckout({
     required String packageCode,
     required String packageName,
@@ -75,7 +79,35 @@ class CheckoutService {
     }
   }
 
-  /// Step 2: Confirm payment after Stripe completes
+  /// Step 2: Present Stripe Payment Sheet to user
+  Future<bool> _presentPaymentSheet(String clientSecret) async {
+    await Stripe.instance.initPaymentSheet(
+      paymentSheetParameters: SetupPaymentSheetParameters(
+        paymentIntentClientSecret: clientSecret,
+        merchantDisplayName: 'DXB Connect',
+        style: ThemeMode.dark,
+        appearance: const PaymentSheetAppearance(
+          colors: PaymentSheetAppearanceColors(
+            primary: Color(0xFFBAFF39),
+            background: Color(0xFF1A1A1A),
+            componentBackground: Color(0xFF2A2A2A),
+            componentText: Color(0xFFFFFFFF),
+            secondaryText: Color(0xFF9C9C9B),
+            placeholderText: Color(0xFF656463),
+            icon: Color(0xFFD0D0CF),
+          ),
+          shapes: PaymentSheetShape(
+            borderRadius: 16,
+          ),
+        ),
+      ),
+    );
+
+    await Stripe.instance.presentPaymentSheet();
+    return true;
+  }
+
+  /// Step 3: Confirm payment with backend after Stripe completes
   Future<CheckoutResult> confirmPayment({
     required String orderId,
     required String paymentIntentId,
@@ -104,7 +136,7 @@ class CheckoutService {
     }
   }
 
-  /// Full purchase flow: checkout -> confirm (Stripe payment sheet handled externally)
+  /// Full purchase flow: create order → present Payment Sheet → confirm
   Future<CheckoutResult> purchaseEsim({
     required String packageCode,
     required String packageName,
@@ -112,6 +144,7 @@ class CheckoutService {
     required String customerEmail,
     required String customerName,
   }) async {
+    // 1. Create order + PaymentIntent on backend
     final checkout = await createCheckout(
       packageCode: packageCode,
       packageName: packageName,
@@ -120,10 +153,34 @@ class CheckoutService {
       customerName: customerName,
     );
 
-    if (!checkout.success) return checkout;
+    if (!checkout.success || checkout.clientSecret == null) {
+      return CheckoutResult(
+        success: false,
+        error: checkout.error ?? 'Failed to create payment',
+      );
+    }
 
-    // TODO: Present Stripe Payment Sheet with checkout.clientSecret
-    // For now, auto-confirm (works in dev mode)
+    // 2. Present Stripe Payment Sheet
+    try {
+      await _presentPaymentSheet(checkout.clientSecret!);
+    } on StripeException catch (e) {
+      if (e.error.code == FailureCode.Canceled) {
+        return const CheckoutResult(success: false, error: 'Payment cancelled');
+      }
+      if (kDebugMode) debugPrint('[Checkout] Stripe error: ${e.error.localizedMessage}');
+      return CheckoutResult(
+        success: false,
+        error: e.error.localizedMessage ?? 'Payment failed',
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Checkout] Payment Sheet error: $e');
+      return CheckoutResult(
+        success: false,
+        error: 'Payment failed. Please try again.',
+      );
+    }
+
+    // 3. Payment succeeded — confirm with backend
     if (checkout.orderId != null && checkout.paymentIntentId != null) {
       return confirmPayment(
         orderId: checkout.orderId!,
@@ -134,13 +191,55 @@ class CheckoutService {
     return checkout;
   }
 
+  /// Create subscription via backend API
   Future<CheckoutResult> createSubscription({
     required String plan,
     required String billingPeriod,
   }) async {
-    return const CheckoutResult(
-      success: false,
-      error: 'Payment service temporarily unavailable',
-    );
+    try {
+      final response = await _apiClient.post(
+        ApiEndpoints.subscriptionsCreate,
+        data: {
+          'plan': plan,
+          'billing_period': billingPeriod,
+        },
+      );
+
+      final data = response.data;
+      if (data['success'] != true) {
+        return CheckoutResult(
+          success: false,
+          error: data['error']?.toString() ?? 'Subscription failed',
+        );
+      }
+
+      final clientSecret = data['clientSecret']?.toString();
+
+      // If clientSecret returned → need Stripe confirmation (production)
+      if (clientSecret != null && clientSecret.isNotEmpty) {
+        try {
+          await _presentPaymentSheet(clientSecret);
+        } on StripeException catch (e) {
+          if (e.error.code == FailureCode.Canceled) {
+            return const CheckoutResult(success: false, error: 'Payment cancelled');
+          }
+          return CheckoutResult(
+            success: false,
+            error: e.error.localizedMessage ?? 'Payment failed',
+          );
+        }
+      }
+
+      return CheckoutResult(
+        success: true,
+        orderId: data['data']?['id']?.toString(),
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('[Checkout] createSubscription error: $e');
+      return CheckoutResult(
+        success: false,
+        error: ApiClient.extractErrorMessage(e, 'Subscription failed. Please try again.'),
+      );
+    }
   }
 }

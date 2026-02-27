@@ -2,12 +2,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'core/config/app_config.dart';
 import 'core/theme/app_theme.dart';
 import 'routing/app_router.dart';
 import 'features/auth/providers/auth_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final stripeKey = AppConfig.stripePublishableKey;
+  if (stripeKey.isNotEmpty) {
+    Stripe.publishableKey = stripeKey;
+    Stripe.merchantIdentifier = AppConfig.merchantId;
+  } else if (kDebugMode) {
+    debugPrint('[Stripe] No publishable key — payment sheet disabled');
+  }
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

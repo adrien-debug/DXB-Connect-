@@ -32,7 +32,7 @@ dependencies:
   # Auth
 #
   # Payments
-  # flutter_stripe: ^11.3.0  # Temporarily disabled to debug iOS 26 crash
+  flutter_stripe: ^11.5.0
 
   # QR Code
   qr_flutter: ^4.1.0

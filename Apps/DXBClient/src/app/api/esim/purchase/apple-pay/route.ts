@@ -1,6 +1,7 @@
 import { requireAuthFlexible } from '@/lib/auth-middleware'
 import type { Database } from '@/lib/database.types'
 import { ESIMAccessError, esimPost } from '@/lib/esim-access-client'
+import { stripe, isStripeConfigured } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -21,6 +22,8 @@ interface ApplePayRequest {
   paymentMethod: string
   paymentToken: string
   paymentNetwork: string
+  amount?: number
+  currency?: string
 }
 
 interface OrderResponse {
@@ -47,9 +50,9 @@ interface OrderResponse {
 /**
  * POST /api/esim/purchase/apple-pay
  * Achat eSIM via Apple Pay.
- * - Valide le token Apple Pay
- * - Commande on-demand via eSIM Access API
- * - Enregistre dans Supabase
+ * 1. Valide le token Apple Pay via Stripe PaymentIntent
+ * 2. Commande on-demand via eSIM Access API
+ * 3. Enregistre dans Supabase
  */
 export async function POST(request: NextRequest) {
   console.log('[Apple Pay] Received request')
@@ -68,18 +71,14 @@ export async function POST(request: NextRequest) {
     let body: ApplePayRequest
     try {
       body = await request.json()
-    } catch (parseError) {
-      console.error('[Apple Pay] Body parse error:', parseError)
+    } catch {
       return NextResponse.json(
         { success: false, error: 'Invalid request body' },
         { status: 400 }
       )
     }
 
-    console.log('[Apple Pay] Body keys:', Object.keys(body), 'packageCode:', body.packageCode, 'hasToken:', !!body.paymentToken)
-
     if (!body.packageCode) {
-      console.log('[Apple Pay] Missing packageCode')
       return NextResponse.json(
         { success: false, error: 'Package code required' },
         { status: 400 }
@@ -87,20 +86,89 @@ export async function POST(request: NextRequest) {
     }
 
     if (!body.paymentToken) {
-      console.log('[Apple Pay] Missing paymentToken')
       return NextResponse.json(
         { success: false, error: 'Payment token required' },
         { status: 400 }
       )
     }
 
-    if (body.paymentToken === 'SIMULATOR_TOKEN') {
-      console.log('[Apple Pay] Simulator token detected — proceeding without real payment validation')
-    }
-
     console.log('[Apple Pay] Processing for user=%s, package=%s', user.id, body.packageCode)
 
-    // 1. Commander on-demand via eSIM Access API
+    // --- STEP 1: Validate payment via Stripe ---
+    const isDev = process.env.NODE_ENV === 'development'
+    const isSimulator = body.paymentToken === 'SIMULATOR_TOKEN'
+
+    if (isSimulator && !isDev) {
+      return NextResponse.json(
+        { success: false, error: 'Simulator tokens not allowed in production' },
+        { status: 400 }
+      )
+    }
+
+    let paymentIntentId: string | null = null
+
+    if (!isSimulator) {
+      if (!isStripeConfigured() || !stripe) {
+        console.error('[Apple Pay] Stripe not configured')
+        return NextResponse.json(
+          { success: false, error: 'Payment processor not configured' },
+          { status: 503 }
+        )
+      }
+
+      const amountCents = Math.round((body.amount ?? 0) * 100)
+      if (amountCents < 50) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid payment amount' },
+          { status: 400 }
+        )
+      }
+
+      try {
+        const pm = await stripe.paymentMethods.create({
+          type: 'card',
+          card: { token: body.paymentToken },
+        })
+
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amountCents,
+          currency: (body.currency ?? 'usd').toLowerCase(),
+          payment_method: pm.id,
+          confirm: true,
+          automatic_payment_methods: {
+            enabled: true,
+            allow_redirects: 'never',
+          },
+          metadata: {
+            user_id: user.id,
+            package_code: body.packageCode,
+            source: 'apple_pay',
+          },
+        })
+
+        if (paymentIntent.status !== 'succeeded') {
+          console.error('[Apple Pay] Payment not succeeded, status:', paymentIntent.status)
+          return NextResponse.json(
+            { success: false, error: 'Payment not completed' },
+            { status: 402 }
+          )
+        }
+
+        paymentIntentId = paymentIntent.id
+        console.log('[Apple Pay] Payment confirmed: %s', paymentIntentId)
+      } catch (stripeError) {
+        const msg = stripeError instanceof Error ? stripeError.message : 'Payment failed'
+        console.error('[Apple Pay] Stripe error:', msg)
+        return NextResponse.json(
+          { success: false, error: 'Payment failed. Please try again.' },
+          { status: 402 }
+        )
+      }
+    } else {
+      console.log('[Apple Pay] DEV: Simulator token — skipping Stripe')
+    }
+
+    // --- STEP 2: Order eSIM via eSIM Access API ---
     const transactionId = `dxb_ap_${user.id.slice(0, 8)}_${Date.now()}`
 
     const orderResponse = await esimPost<OrderResponse>('/open/esim/order', {
@@ -121,7 +189,7 @@ export async function POST(request: NextRequest) {
 
     const orderNo = orderResponse.obj.orderNo
 
-    // 2. Récupérer les détails (QR code, LPA)
+    // --- STEP 3: Query eSIM details ---
     await new Promise(resolve => setTimeout(resolve, 2000))
 
     const queryResponse = await esimPost<OrderResponse>('/open/esim/query', {
@@ -131,7 +199,7 @@ export async function POST(request: NextRequest) {
     const esimDetails = queryResponse.obj?.esimList?.[0]
     const pkgDetails = queryResponse.obj?.packageList?.[0] || orderResponse.obj?.packageList?.[0]
 
-    // 3. Enregistrer dans Supabase
+    // --- STEP 4: Save to Supabase ---
     const supabase = getAdminClient()
 
     const row: EsimOrderInsert = {
@@ -151,13 +219,13 @@ export async function POST(request: NextRequest) {
       console.error('[Apple Pay] DB insert error:', dbError.message)
     }
 
-    console.log('[Apple Pay] Order completed: orderNo=%s, status=%s', orderNo, esimDetails?.smdpStatus || 'PENDING')
+    console.log('[Apple Pay] Order completed: orderNo=%s, paymentIntent=%s', orderNo, paymentIntentId ?? 'simulator')
 
-    // 4. Retourner au format attendu par iOS
     return NextResponse.json({
       success: true,
       obj: {
         orderNo,
+        paymentIntentId,
         esimList: esimDetails ? [{
           iccid: esimDetails.iccid,
           ac: esimDetails.ac,
@@ -184,10 +252,9 @@ export async function POST(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     console.error('[Apple Pay] Unexpected error:', errorMessage)
     
-    // Return more specific error for debugging (hide secrets in production)
     const safeMessage = errorMessage.includes('ESIM_ACCESS_CODE') || errorMessage.includes('ESIM_SECRET_KEY')
       ? 'eSIM provider not configured'
-      : errorMessage.substring(0, 100)
+      : 'An unexpected error occurred'
     
     return NextResponse.json(
       { success: false, error: safeMessage },
