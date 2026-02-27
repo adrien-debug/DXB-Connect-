@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 
 /**
  * Apple Sign-In pour iOS
@@ -63,6 +64,21 @@ export async function POST(request: Request) {
         role: currentRole,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'id' })
+    }
+
+    // Sync legacy users table (orders FK references it)
+    try {
+      const admin = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      )
+      await admin.from('users').upsert({
+        id: data.user.id,
+        email: body.email || data.user.email || '',
+        name: body.name || data.user.user_metadata?.full_name || '',
+      }, { onConflict: 'id' })
+    } catch (syncErr) {
+      console.error('[auth/apple] users sync error (non-blocking):', syncErr instanceof Error ? syncErr.message : 'unknown')
     }
 
     // Format de réponse aligné avec iOS AuthResponse

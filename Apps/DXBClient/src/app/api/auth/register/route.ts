@@ -65,6 +65,13 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' })
 
+    // Sync legacy users table (orders FK references it)
+    await supabaseAdmin.from('users').upsert({
+      id: data.user.id,
+      email: body.email,
+      name: body.name || '',
+    }, { onConflict: 'id' })
+
     // Auto-login pour obtenir la session
     const { data: loginData, error: loginError } = await supabaseAdmin.auth.signInWithPassword({
       email: body.email,

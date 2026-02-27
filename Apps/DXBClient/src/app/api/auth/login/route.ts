@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 
 const loginSchema = z.object({
@@ -50,6 +51,21 @@ export async function POST(request: Request) {
         email: data.user.email,
         name: profile?.full_name || data.user.user_metadata?.full_name || '',
       },
+    }
+
+    // Sync legacy users table (orders FK references it)
+    try {
+      const admin = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      )
+      await admin.from('users').upsert({
+        id: data.user.id,
+        email: data.user.email,
+        name: profile?.full_name || data.user.user_metadata?.full_name || '',
+      }, { onConflict: 'id' })
+    } catch (syncErr) {
+      console.error('[auth/login] users sync error (non-blocking):', syncErr instanceof Error ? syncErr.message : 'unknown')
     }
 
     console.log('[auth/login] Success for userId:', data.user.id)
