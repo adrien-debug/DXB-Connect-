@@ -160,7 +160,11 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    console.error('[checkout] Error:', { userId: 'unknown' })
+    console.error('[checkout] Error:', {
+      userId: user?.id ?? 'unknown',
+      type: error instanceof Error ? error.constructor.name : typeof error,
+      message: error instanceof Error ? error.message : 'unknown',
+    })
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

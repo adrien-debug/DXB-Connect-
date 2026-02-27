@@ -19,7 +19,6 @@ export async function GET(request: Request) {
     const packageList = await listEsimPackagesForUI({
       locationCode,
       type,
-      revalidateSeconds: 60 * 10, // 10min (admin)
     })
 
     return NextResponse.json({

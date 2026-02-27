@@ -24,7 +24,8 @@ export const getStripe = () => {
   return stripePromise
 }
 
-// Check if Stripe is configured
+// Check if Stripe server-side is configured (publishable key is client-side only)
 export const isStripeConfigured = () => {
-  return !!process.env.STRIPE_SECRET_KEY && !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  const key = process.env.STRIPE_SECRET_KEY
+  return !!(key && key.startsWith('sk_') && key.length > 20)
 }

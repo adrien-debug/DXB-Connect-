@@ -43,7 +43,6 @@ export type EsimPackageForUI = {
 type Options = {
   locationCode?: string
   type?: string
-  revalidateSeconds?: number
 }
 
 /**
@@ -51,15 +50,15 @@ type Options = {
  * Cette fonction est server-side (utilise les secrets eSIM Access via esimPost).
  */
 export async function listEsimPackagesForUI(options: Options = {}): Promise<EsimPackageForUI[]> {
-  const { locationCode, type = 'BASE', revalidateSeconds = 60 * 60 } = options
+  const { locationCode, type = 'BASE' } = options
 
+  // No ISR revalidate: eSIM Access response exceeds Next.js 2MB cache limit
   const packagesData = await esimPost<PackageListResponse>(
     '/open/package/list',
     {
       type,
       ...(locationCode && { locationCode: locationCode.toUpperCase() }),
     },
-    { revalidate: revalidateSeconds }
   )
 
   const allPackages = packagesData.obj?.packageList || []
